@@ -18,5 +18,2149 @@ CHIP Mux8Way16 {
     OUT out[16];
 
     PARTS:
-    // Put your code here:
+    
+    /* FINAL SOLUTION
+        (or
+            (and a (not sel0) (not sel1) (not sel2))
+            (and b sel0 (not sel1) (not sel2))
+            (and c (not sel0) sel1 (not sel2))
+            (and d sel0 sel1 (not sel2))
+            (and e (not sel0) (not sel1) sel2)
+            (and f sel0 (not sel1) sel2)
+            (and g (not sel0) sel1 sel2)
+            (and h sel0 sel1 sel2))
+    */
+
+    Nand(a=sel[0], b=sel[0], out=notsel0);
+    Nand(a=sel[1], b=sel[1], out=notsel1);
+    Nand(a=sel[2], b=sel[2], out=notsel2); 
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel10);
+    Nand(a=nandnotsel0notsel10, b=nandnotsel0notsel10, out=andnotsel010);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel010, out=nandnotsel0120);
+    Nand(a=nandnotsel0120, b=nandnotsel0120, out=andnotsel0120);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[0], b=andnotsel0120, out=nandanotsel0120);
+    Nand(a=nandanotsel0120, b=nandanotsel0120, out=andanotsel0120);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel20);
+    Nand(a=nandnotsel1notsel20, b=nandnotsel1notsel20, out=andnotsel120);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel120, out=nandsel0notsel120);
+    Nand(a=nandsel0notsel120, b=nandsel0notsel120, out=andsel0notsel120);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[0], b=andsel0notsel120, out=nandbandsel0notsel120);
+    Nand(a=nandbandsel0notsel120, b=nandbandsel0notsel120, out=andbsel0notsel120);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel020);
+    Nand(a=nandnotsel020, b=nandnotsel020, out=andnotsel020);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel020, out=nandsel1andnotsel020);
+    Nand(a=nandsel1andnotsel020, b=nandsel1andnotsel020, out=andsel1notsel020);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[0], b=andsel1notsel020, out=nandcandsel1notsel020);
+    Nand(a=nandcandsel1notsel020, b=nandcandsel1notsel020, out=andcsel1notsel020);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel20);
+    Nand(a=nandsel1notsel20, b=nandsel1notsel20, out=andsel1notsel20);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel20, out=nandsel0sel1notsel20);
+    Nand(a=nandsel0sel1notsel20, b=nandsel0sel1notsel20, out=andsel0sel1notsel20);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[0], b=andsel0sel1notsel20, out=nanddsel0sel1notsel20);
+    Nand(a=nanddsel0sel1notsel20, b=nanddsel0sel1notsel20, out=anddsel0sel1notsel20);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel010);
+    Nand(a=nandnotsel010, b=nandnotsel010, out=andnotsel0notsel10);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel10, out=nandsel2notsel010);
+    Nand(a=nandsel2notsel010, b=nandsel2notsel010, out=andnotsel0notsel1sel20);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[0], b=andnotsel0notsel1sel20, out=nandenotsel01sel20);
+    Nand(a=nandenotsel01sel20, b=nandenotsel01sel20, out=andenotselnotsel1sel20);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel10);
+    Nand(a=nandsel0notsel10, b=nandsel0notsel10, out=andsel0notsel10);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel10, out=nandsel0notsel1sel20);
+    Nand(a=nandsel0notsel1sel20, b=nandsel0notsel1sel20, out=andsel0notsel1sel20);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[0], b=andsel0notsel1sel20, out=nandfsel0notselsel20);
+    Nand(a=nandfsel0notselsel20, b=nandfsel0notselsel20, out=andfsel0notselsel20);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel10);
+    Nand(a=nandnotsel0sel10, b=nandnotsel0sel10, out=andnotsel0sel10);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel10, out=nandnotsel0sel1sel20);
+    Nand(a=nandnotsel0sel1sel20, b=nandnotsel0sel1sel20, out=andnotsel0sel1sel20);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[0], b=andnotsel0sel1sel20, out=nandgnotsel0sel1sel20);
+    Nand(a=nandgnotsel0sel1sel20, b=nandgnotsel0sel1sel20, out=andgnotsel0sel1sel20);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel10);
+    Nand(a=nandsel0sel10, b=nandsel0sel10, out=andsel0sel10);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel10, b=sel[2], out=nandsel0sel1sel20);
+    Nand(a=nandsel0sel1sel20, b=nandsel0sel1sel20, out=andsel0sel1sel20);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[0], b=andsel0sel1sel20, out=nandhsel0sel1sel20);
+    Nand(a=nandhsel0sel1sel20, b=nandhsel0sel1sel20, out=andhsel0sel1sel20);
+
+
+    Nand(a=andanotsel0120, b=andanotsel0120, out=ora0);
+    Nand(a=andbsel0notsel120, b=andbsel0notsel120, out=orb0);
+    Nand(a=ora0, b=orb0, out=orab0);
+
+    Nand(a=orab0, b=orab0, out=nandorab0);
+    Nand(a=andcsel1notsel020, b=andcsel1notsel020, out=orc0);
+    Nand(a=nandorab0, b=orc0, out=orabc0);
+
+    Nand(a=orabc0, b=orabc0, out=nandorabc0);
+    Nand(a=anddsel0sel1notsel20, b=anddsel0sel1notsel20, out=ord0);
+    Nand(a=nandorabc0, b=ord0, out=orabcd0);
+
+    Nand(a=orabcd0, b=orabcd0, out=nandorabcd0);
+    Nand(a=andenotselnotsel1sel20, b=andenotselnotsel1sel20, out=ore0);
+    Nand(a=nandorabcd0, b=ore0, out=orabcde0);
+
+    Nand(a=orabcde0, b=orabcde0, out=nandorabcde0);
+    Nand(a=andfsel0notselsel20, b=andfsel0notselsel20, out=orf0);
+    Nand(a=nandorabcde0, b=orf0, out=orabcdef0);
+
+    Nand(a=orabcdef0, b=orabcdef0, out=nandorabcdef0);
+    Nand(a=andgnotsel0sel1sel20, b=andgnotsel0sel1sel20, out=org0);
+    Nand(a=nandorabcdef0, b=org0, out=orabcdefg0);
+
+    Nand(a=orabcdefg0, b=orabcdefg0, out=nandorabcdefg0);
+    Nand(a=andhsel0sel1sel20, b=andhsel0sel1sel20, out=orh0);
+    Nand(a=nandorabcdefg0, b=orh0, out=out[0]);
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel11);
+    Nand(a=nandnotsel0notsel11, b=nandnotsel0notsel11, out=andnotsel011);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel011, out=nandnotsel0121);
+    Nand(a=nandnotsel0121, b=nandnotsel0121, out=andnotsel0121);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[1], b=andnotsel0121, out=nandanotsel0121);
+    Nand(a=nandanotsel0121, b=nandanotsel0121, out=andanotsel0121);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel21);
+    Nand(a=nandnotsel1notsel21, b=nandnotsel1notsel21, out=andnotsel121);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel121, out=nandsel0notsel121);
+    Nand(a=nandsel0notsel121, b=nandsel0notsel121, out=andsel0notsel121);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[1], b=andsel0notsel121, out=nandbandsel0notsel121);
+    Nand(a=nandbandsel0notsel121, b=nandbandsel0notsel121, out=andbsel0notsel121);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel021);
+    Nand(a=nandnotsel021, b=nandnotsel021, out=andnotsel021);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel021, out=nandsel1andnotsel021);
+    Nand(a=nandsel1andnotsel021, b=nandsel1andnotsel021, out=andsel1notsel021);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[1], b=andsel1notsel021, out=nandcandsel1notsel021);
+    Nand(a=nandcandsel1notsel021, b=nandcandsel1notsel021, out=andcsel1notsel021);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel21);
+    Nand(a=nandsel1notsel21, b=nandsel1notsel21, out=andsel1notsel21);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel21, out=nandsel0sel1notsel21);
+    Nand(a=nandsel0sel1notsel21, b=nandsel0sel1notsel21, out=andsel0sel1notsel21);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[1], b=andsel0sel1notsel21, out=nanddsel0sel1notsel21);
+    Nand(a=nanddsel0sel1notsel21, b=nanddsel0sel1notsel21, out=anddsel0sel1notsel21);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel011);
+    Nand(a=nandnotsel011, b=nandnotsel011, out=andnotsel0notsel11);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel11, out=nandsel2notsel011);
+    Nand(a=nandsel2notsel011, b=nandsel2notsel011, out=andnotsel0notsel1sel21);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[1], b=andnotsel0notsel1sel21, out=nandenotsel01sel21);
+    Nand(a=nandenotsel01sel21, b=nandenotsel01sel21, out=andenotselnotsel1sel21);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel11);
+    Nand(a=nandsel0notsel11, b=nandsel0notsel11, out=andsel0notsel11);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel11, out=nandsel0notsel1sel21);
+    Nand(a=nandsel0notsel1sel21, b=nandsel0notsel1sel21, out=andsel0notsel1sel21);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[1], b=andsel0notsel1sel21, out=nandfsel0notselsel21);
+    Nand(a=nandfsel0notselsel21, b=nandfsel0notselsel21, out=andfsel0notselsel21);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel11);
+    Nand(a=nandnotsel0sel11, b=nandnotsel0sel11, out=andnotsel0sel11);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel11, out=nandnotsel0sel1sel21);
+    Nand(a=nandnotsel0sel1sel21, b=nandnotsel0sel1sel21, out=andnotsel0sel1sel21);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[1], b=andnotsel0sel1sel21, out=nandgnotsel0sel1sel21);
+    Nand(a=nandgnotsel0sel1sel21, b=nandgnotsel0sel1sel21, out=andgnotsel0sel1sel21);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel11);
+    Nand(a=nandsel0sel11, b=nandsel0sel11, out=andsel0sel11);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel11, b=sel[2], out=nandsel0sel1sel21);
+    Nand(a=nandsel0sel1sel21, b=nandsel0sel1sel21, out=andsel0sel1sel21);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[1], b=andsel0sel1sel21, out=nandhsel0sel1sel21);
+    Nand(a=nandhsel0sel1sel21, b=nandhsel0sel1sel21, out=andhsel0sel1sel21);
+
+
+    Nand(a=andanotsel0121, b=andanotsel0121, out=ora1);
+    Nand(a=andbsel0notsel121, b=andbsel0notsel121, out=orb1);
+    Nand(a=ora1, b=orb1, out=orab1);
+
+    Nand(a=orab1, b=orab1, out=nandorab1);
+    Nand(a=andcsel1notsel021, b=andcsel1notsel021, out=orc1);
+    Nand(a=nandorab1, b=orc1, out=orabc1);
+
+    Nand(a=orabc1, b=orabc1, out=nandorabc1);
+    Nand(a=anddsel0sel1notsel21, b=anddsel0sel1notsel21, out=ord1);
+    Nand(a=nandorabc1, b=ord1, out=orabcd1);
+
+    Nand(a=orabcd1, b=orabcd1, out=nandorabcd1);
+    Nand(a=andenotselnotsel1sel21, b=andenotselnotsel1sel21, out=ore1);
+    Nand(a=nandorabcd1, b=ore1, out=orabcde1);
+
+    Nand(a=orabcde1, b=orabcde1, out=nandorabcde1);
+    Nand(a=andfsel0notselsel21, b=andfsel0notselsel21, out=orf1);
+    Nand(a=nandorabcde1, b=orf1, out=orabcdef1);
+
+    Nand(a=orabcdef1, b=orabcdef1, out=nandorabcdef1);
+    Nand(a=andgnotsel0sel1sel21, b=andgnotsel0sel1sel21, out=org1);
+    Nand(a=nandorabcdef1, b=org1, out=orabcdefg1);
+
+    Nand(a=orabcdefg1, b=orabcdefg1, out=nandorabcdefg1);
+    Nand(a=andhsel0sel1sel21, b=andhsel0sel1sel21, out=orh1);
+    Nand(a=nandorabcdefg1, b=orh1, out=out[1]);
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel12);
+    Nand(a=nandnotsel0notsel12, b=nandnotsel0notsel12, out=andnotsel012);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel012, out=nandnotsel0122);
+    Nand(a=nandnotsel0122, b=nandnotsel0122, out=andnotsel0122);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[2], b=andnotsel0122, out=nandanotsel0122);
+    Nand(a=nandanotsel0122, b=nandanotsel0122, out=andanotsel0122);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel22);
+    Nand(a=nandnotsel1notsel22, b=nandnotsel1notsel22, out=andnotsel122);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel122, out=nandsel0notsel122);
+    Nand(a=nandsel0notsel122, b=nandsel0notsel122, out=andsel0notsel122);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[2], b=andsel0notsel122, out=nandbandsel0notsel122);
+    Nand(a=nandbandsel0notsel122, b=nandbandsel0notsel122, out=andbsel0notsel122);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel022);
+    Nand(a=nandnotsel022, b=nandnotsel022, out=andnotsel022);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel022, out=nandsel1andnotsel022);
+    Nand(a=nandsel1andnotsel022, b=nandsel1andnotsel022, out=andsel1notsel022);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[2], b=andsel1notsel022, out=nandcandsel1notsel022);
+    Nand(a=nandcandsel1notsel022, b=nandcandsel1notsel022, out=andcsel1notsel022);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel22);
+    Nand(a=nandsel1notsel22, b=nandsel1notsel22, out=andsel1notsel22);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel22, out=nandsel0sel1notsel22);
+    Nand(a=nandsel0sel1notsel22, b=nandsel0sel1notsel22, out=andsel0sel1notsel22);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[2], b=andsel0sel1notsel22, out=nanddsel0sel1notsel22);
+    Nand(a=nanddsel0sel1notsel22, b=nanddsel0sel1notsel22, out=anddsel0sel1notsel22);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel012);
+    Nand(a=nandnotsel012, b=nandnotsel012, out=andnotsel0notsel12);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel12, out=nandsel2notsel012);
+    Nand(a=nandsel2notsel012, b=nandsel2notsel012, out=andnotsel0notsel1sel22);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[2], b=andnotsel0notsel1sel22, out=nandenotsel01sel22);
+    Nand(a=nandenotsel01sel22, b=nandenotsel01sel22, out=andenotselnotsel1sel22);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel12);
+    Nand(a=nandsel0notsel12, b=nandsel0notsel12, out=andsel0notsel12);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel12, out=nandsel0notsel1sel22);
+    Nand(a=nandsel0notsel1sel22, b=nandsel0notsel1sel22, out=andsel0notsel1sel22);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[2], b=andsel0notsel1sel22, out=nandfsel0notselsel22);
+    Nand(a=nandfsel0notselsel22, b=nandfsel0notselsel22, out=andfsel0notselsel22);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel12);
+    Nand(a=nandnotsel0sel12, b=nandnotsel0sel12, out=andnotsel0sel12);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel12, out=nandnotsel0sel1sel22);
+    Nand(a=nandnotsel0sel1sel22, b=nandnotsel0sel1sel22, out=andnotsel0sel1sel22);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[2], b=andnotsel0sel1sel22, out=nandgnotsel0sel1sel22);
+    Nand(a=nandgnotsel0sel1sel22, b=nandgnotsel0sel1sel22, out=andgnotsel0sel1sel22);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel12);
+    Nand(a=nandsel0sel12, b=nandsel0sel12, out=andsel0sel12);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel12, b=sel[2], out=nandsel0sel1sel22);
+    Nand(a=nandsel0sel1sel22, b=nandsel0sel1sel22, out=andsel0sel1sel22);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[2], b=andsel0sel1sel22, out=nandhsel0sel1sel22);
+    Nand(a=nandhsel0sel1sel22, b=nandhsel0sel1sel22, out=andhsel0sel1sel22);
+
+
+    Nand(a=andanotsel0122, b=andanotsel0122, out=ora2);
+    Nand(a=andbsel0notsel122, b=andbsel0notsel122, out=orb2);
+    Nand(a=ora2, b=orb2, out=orab2);
+
+    Nand(a=orab2, b=orab2, out=nandorab2);
+    Nand(a=andcsel1notsel022, b=andcsel1notsel022, out=orc2);
+    Nand(a=nandorab2, b=orc2, out=orabc2);
+
+    Nand(a=orabc2, b=orabc2, out=nandorabc2);
+    Nand(a=anddsel0sel1notsel22, b=anddsel0sel1notsel22, out=ord2);
+    Nand(a=nandorabc2, b=ord2, out=orabcd2);
+
+    Nand(a=orabcd2, b=orabcd2, out=nandorabcd2);
+    Nand(a=andenotselnotsel1sel22, b=andenotselnotsel1sel22, out=ore2);
+    Nand(a=nandorabcd2, b=ore2, out=orabcde2);
+
+    Nand(a=orabcde2, b=orabcde2, out=nandorabcde2);
+    Nand(a=andfsel0notselsel22, b=andfsel0notselsel22, out=orf2);
+    Nand(a=nandorabcde2, b=orf2, out=orabcdef2);
+
+    Nand(a=orabcdef2, b=orabcdef2, out=nandorabcdef2);
+    Nand(a=andgnotsel0sel1sel22, b=andgnotsel0sel1sel22, out=org2);
+    Nand(a=nandorabcdef2, b=org2, out=orabcdefg2);
+
+    Nand(a=orabcdefg2, b=orabcdefg2, out=nandorabcdefg2);
+    Nand(a=andhsel0sel1sel22, b=andhsel0sel1sel22, out=orh2);
+    Nand(a=nandorabcdefg2, b=orh2, out=out[2]);
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel13);
+    Nand(a=nandnotsel0notsel13, b=nandnotsel0notsel13, out=andnotsel013);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel013, out=nandnotsel0123);
+    Nand(a=nandnotsel0123, b=nandnotsel0123, out=andnotsel0123);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[3], b=andnotsel0123, out=nandanotsel0123);
+    Nand(a=nandanotsel0123, b=nandanotsel0123, out=andanotsel0123);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel23);
+    Nand(a=nandnotsel1notsel23, b=nandnotsel1notsel23, out=andnotsel123);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel123, out=nandsel0notsel123);
+    Nand(a=nandsel0notsel123, b=nandsel0notsel123, out=andsel0notsel123);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[3], b=andsel0notsel123, out=nandbandsel0notsel123);
+    Nand(a=nandbandsel0notsel123, b=nandbandsel0notsel123, out=andbsel0notsel123);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel023);
+    Nand(a=nandnotsel023, b=nandnotsel023, out=andnotsel023);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel023, out=nandsel1andnotsel023);
+    Nand(a=nandsel1andnotsel023, b=nandsel1andnotsel023, out=andsel1notsel023);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[3], b=andsel1notsel023, out=nandcandsel1notsel023);
+    Nand(a=nandcandsel1notsel023, b=nandcandsel1notsel023, out=andcsel1notsel023);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel23);
+    Nand(a=nandsel1notsel23, b=nandsel1notsel23, out=andsel1notsel23);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel23, out=nandsel0sel1notsel23);
+    Nand(a=nandsel0sel1notsel23, b=nandsel0sel1notsel23, out=andsel0sel1notsel23);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[3], b=andsel0sel1notsel23, out=nanddsel0sel1notsel23);
+    Nand(a=nanddsel0sel1notsel23, b=nanddsel0sel1notsel23, out=anddsel0sel1notsel23);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel013);
+    Nand(a=nandnotsel013, b=nandnotsel013, out=andnotsel0notsel13);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel13, out=nandsel2notsel013);
+    Nand(a=nandsel2notsel013, b=nandsel2notsel013, out=andnotsel0notsel1sel23);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[3], b=andnotsel0notsel1sel23, out=nandenotsel01sel23);
+    Nand(a=nandenotsel01sel23, b=nandenotsel01sel23, out=andenotselnotsel1sel23);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel13);
+    Nand(a=nandsel0notsel13, b=nandsel0notsel13, out=andsel0notsel13);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel13, out=nandsel0notsel1sel23);
+    Nand(a=nandsel0notsel1sel23, b=nandsel0notsel1sel23, out=andsel0notsel1sel23);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[3], b=andsel0notsel1sel23, out=nandfsel0notselsel23);
+    Nand(a=nandfsel0notselsel23, b=nandfsel0notselsel23, out=andfsel0notselsel23);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel13);
+    Nand(a=nandnotsel0sel13, b=nandnotsel0sel13, out=andnotsel0sel13);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel13, out=nandnotsel0sel1sel23);
+    Nand(a=nandnotsel0sel1sel23, b=nandnotsel0sel1sel23, out=andnotsel0sel1sel23);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[3], b=andnotsel0sel1sel23, out=nandgnotsel0sel1sel23);
+    Nand(a=nandgnotsel0sel1sel23, b=nandgnotsel0sel1sel23, out=andgnotsel0sel1sel23);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel13);
+    Nand(a=nandsel0sel13, b=nandsel0sel13, out=andsel0sel13);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel13, b=sel[2], out=nandsel0sel1sel23);
+    Nand(a=nandsel0sel1sel23, b=nandsel0sel1sel23, out=andsel0sel1sel23);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[3], b=andsel0sel1sel23, out=nandhsel0sel1sel23);
+    Nand(a=nandhsel0sel1sel23, b=nandhsel0sel1sel23, out=andhsel0sel1sel23);
+
+
+    Nand(a=andanotsel0123, b=andanotsel0123, out=ora3);
+    Nand(a=andbsel0notsel123, b=andbsel0notsel123, out=orb3);
+    Nand(a=ora3, b=orb3, out=orab3);
+
+    Nand(a=orab3, b=orab3, out=nandorab3);
+    Nand(a=andcsel1notsel023, b=andcsel1notsel023, out=orc3);
+    Nand(a=nandorab3, b=orc3, out=orabc3);
+
+    Nand(a=orabc3, b=orabc3, out=nandorabc3);
+    Nand(a=anddsel0sel1notsel23, b=anddsel0sel1notsel23, out=ord3);
+    Nand(a=nandorabc3, b=ord3, out=orabcd3);
+
+    Nand(a=orabcd3, b=orabcd3, out=nandorabcd3);
+    Nand(a=andenotselnotsel1sel23, b=andenotselnotsel1sel23, out=ore3);
+    Nand(a=nandorabcd3, b=ore3, out=orabcde3);
+
+    Nand(a=orabcde3, b=orabcde3, out=nandorabcde3);
+    Nand(a=andfsel0notselsel23, b=andfsel0notselsel23, out=orf3);
+    Nand(a=nandorabcde3, b=orf3, out=orabcdef3);
+
+    Nand(a=orabcdef3, b=orabcdef3, out=nandorabcdef3);
+    Nand(a=andgnotsel0sel1sel23, b=andgnotsel0sel1sel23, out=org3);
+    Nand(a=nandorabcdef3, b=org3, out=orabcdefg3);
+
+    Nand(a=orabcdefg3, b=orabcdefg3, out=nandorabcdefg3);
+    Nand(a=andhsel0sel1sel23, b=andhsel0sel1sel23, out=orh3);
+    Nand(a=nandorabcdefg3, b=orh3, out=out[3]);
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel14);
+    Nand(a=nandnotsel0notsel14, b=nandnotsel0notsel14, out=andnotsel014);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel014, out=nandnotsel0124);
+    Nand(a=nandnotsel0124, b=nandnotsel0124, out=andnotsel0124);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[4], b=andnotsel0124, out=nandanotsel0124);
+    Nand(a=nandanotsel0124, b=nandanotsel0124, out=andanotsel0124);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel24);
+    Nand(a=nandnotsel1notsel24, b=nandnotsel1notsel24, out=andnotsel124);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel124, out=nandsel0notsel124);
+    Nand(a=nandsel0notsel124, b=nandsel0notsel124, out=andsel0notsel124);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[4], b=andsel0notsel124, out=nandbandsel0notsel124);
+    Nand(a=nandbandsel0notsel124, b=nandbandsel0notsel124, out=andbsel0notsel124);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel024);
+    Nand(a=nandnotsel024, b=nandnotsel024, out=andnotsel024);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel024, out=nandsel1andnotsel024);
+    Nand(a=nandsel1andnotsel024, b=nandsel1andnotsel024, out=andsel1notsel024);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[4], b=andsel1notsel024, out=nandcandsel1notsel024);
+    Nand(a=nandcandsel1notsel024, b=nandcandsel1notsel024, out=andcsel1notsel024);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel24);
+    Nand(a=nandsel1notsel24, b=nandsel1notsel24, out=andsel1notsel24);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel24, out=nandsel0sel1notsel24);
+    Nand(a=nandsel0sel1notsel24, b=nandsel0sel1notsel24, out=andsel0sel1notsel24);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[4], b=andsel0sel1notsel24, out=nanddsel0sel1notsel24);
+    Nand(a=nanddsel0sel1notsel24, b=nanddsel0sel1notsel24, out=anddsel0sel1notsel24);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel014);
+    Nand(a=nandnotsel014, b=nandnotsel014, out=andnotsel0notsel14);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel14, out=nandsel2notsel014);
+    Nand(a=nandsel2notsel014, b=nandsel2notsel014, out=andnotsel0notsel1sel24);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[4], b=andnotsel0notsel1sel24, out=nandenotsel01sel24);
+    Nand(a=nandenotsel01sel24, b=nandenotsel01sel24, out=andenotselnotsel1sel24);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel14);
+    Nand(a=nandsel0notsel14, b=nandsel0notsel14, out=andsel0notsel14);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel14, out=nandsel0notsel1sel24);
+    Nand(a=nandsel0notsel1sel24, b=nandsel0notsel1sel24, out=andsel0notsel1sel24);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[4], b=andsel0notsel1sel24, out=nandfsel0notselsel24);
+    Nand(a=nandfsel0notselsel24, b=nandfsel0notselsel24, out=andfsel0notselsel24);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel14);
+    Nand(a=nandnotsel0sel14, b=nandnotsel0sel14, out=andnotsel0sel14);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel14, out=nandnotsel0sel1sel24);
+    Nand(a=nandnotsel0sel1sel24, b=nandnotsel0sel1sel24, out=andnotsel0sel1sel24);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[4], b=andnotsel0sel1sel24, out=nandgnotsel0sel1sel24);
+    Nand(a=nandgnotsel0sel1sel24, b=nandgnotsel0sel1sel24, out=andgnotsel0sel1sel24);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel14);
+    Nand(a=nandsel0sel14, b=nandsel0sel14, out=andsel0sel14);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel14, b=sel[2], out=nandsel0sel1sel24);
+    Nand(a=nandsel0sel1sel24, b=nandsel0sel1sel24, out=andsel0sel1sel24);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[4], b=andsel0sel1sel24, out=nandhsel0sel1sel24);
+    Nand(a=nandhsel0sel1sel24, b=nandhsel0sel1sel24, out=andhsel0sel1sel24);
+
+
+    Nand(a=andanotsel0124, b=andanotsel0124, out=ora4);
+    Nand(a=andbsel0notsel124, b=andbsel0notsel124, out=orb4);
+    Nand(a=ora4, b=orb4, out=orab4);
+
+    Nand(a=orab4, b=orab4, out=nandorab4);
+    Nand(a=andcsel1notsel024, b=andcsel1notsel024, out=orc4);
+    Nand(a=nandorab4, b=orc4, out=orabc4);
+
+    Nand(a=orabc4, b=orabc4, out=nandorabc4);
+    Nand(a=anddsel0sel1notsel24, b=anddsel0sel1notsel24, out=ord4);
+    Nand(a=nandorabc4, b=ord4, out=orabcd4);
+
+    Nand(a=orabcd4, b=orabcd4, out=nandorabcd4);
+    Nand(a=andenotselnotsel1sel24, b=andenotselnotsel1sel24, out=ore4);
+    Nand(a=nandorabcd4, b=ore4, out=orabcde4);
+
+    Nand(a=orabcde4, b=orabcde4, out=nandorabcde4);
+    Nand(a=andfsel0notselsel24, b=andfsel0notselsel24, out=orf4);
+    Nand(a=nandorabcde4, b=orf4, out=orabcdef4);
+
+    Nand(a=orabcdef4, b=orabcdef4, out=nandorabcdef4);
+    Nand(a=andgnotsel0sel1sel24, b=andgnotsel0sel1sel24, out=org4);
+    Nand(a=nandorabcdef4, b=org4, out=orabcdefg4);
+
+    Nand(a=orabcdefg4, b=orabcdefg4, out=nandorabcdefg4);
+    Nand(a=andhsel0sel1sel24, b=andhsel0sel1sel24, out=orh4);
+    Nand(a=nandorabcdefg4, b=orh4, out=out[4]);
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel15);
+    Nand(a=nandnotsel0notsel15, b=nandnotsel0notsel15, out=andnotsel015);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel015, out=nandnotsel0125);
+    Nand(a=nandnotsel0125, b=nandnotsel0125, out=andnotsel0125);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[5], b=andnotsel0125, out=nandanotsel0125);
+    Nand(a=nandanotsel0125, b=nandanotsel0125, out=andanotsel0125);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel25);
+    Nand(a=nandnotsel1notsel25, b=nandnotsel1notsel25, out=andnotsel125);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel125, out=nandsel0notsel125);
+    Nand(a=nandsel0notsel125, b=nandsel0notsel125, out=andsel0notsel125);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[5], b=andsel0notsel125, out=nandbandsel0notsel125);
+    Nand(a=nandbandsel0notsel125, b=nandbandsel0notsel125, out=andbsel0notsel125);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel025);
+    Nand(a=nandnotsel025, b=nandnotsel025, out=andnotsel025);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel025, out=nandsel1andnotsel025);
+    Nand(a=nandsel1andnotsel025, b=nandsel1andnotsel025, out=andsel1notsel025);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[5], b=andsel1notsel025, out=nandcandsel1notsel025);
+    Nand(a=nandcandsel1notsel025, b=nandcandsel1notsel025, out=andcsel1notsel025);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel25);
+    Nand(a=nandsel1notsel25, b=nandsel1notsel25, out=andsel1notsel25);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel25, out=nandsel0sel1notsel25);
+    Nand(a=nandsel0sel1notsel25, b=nandsel0sel1notsel25, out=andsel0sel1notsel25);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[5], b=andsel0sel1notsel25, out=nanddsel0sel1notsel25);
+    Nand(a=nanddsel0sel1notsel25, b=nanddsel0sel1notsel25, out=anddsel0sel1notsel25);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel015);
+    Nand(a=nandnotsel015, b=nandnotsel015, out=andnotsel0notsel15);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel15, out=nandsel2notsel015);
+    Nand(a=nandsel2notsel015, b=nandsel2notsel015, out=andnotsel0notsel1sel25);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[5], b=andnotsel0notsel1sel25, out=nandenotsel01sel25);
+    Nand(a=nandenotsel01sel25, b=nandenotsel01sel25, out=andenotselnotsel1sel25);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel15);
+    Nand(a=nandsel0notsel15, b=nandsel0notsel15, out=andsel0notsel15);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel15, out=nandsel0notsel1sel25);
+    Nand(a=nandsel0notsel1sel25, b=nandsel0notsel1sel25, out=andsel0notsel1sel25);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[5], b=andsel0notsel1sel25, out=nandfsel0notselsel25);
+    Nand(a=nandfsel0notselsel25, b=nandfsel0notselsel25, out=andfsel0notselsel25);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel15);
+    Nand(a=nandnotsel0sel15, b=nandnotsel0sel15, out=andnotsel0sel15);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel15, out=nandnotsel0sel1sel25);
+    Nand(a=nandnotsel0sel1sel25, b=nandnotsel0sel1sel25, out=andnotsel0sel1sel25);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[5], b=andnotsel0sel1sel25, out=nandgnotsel0sel1sel25);
+    Nand(a=nandgnotsel0sel1sel25, b=nandgnotsel0sel1sel25, out=andgnotsel0sel1sel25);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel15);
+    Nand(a=nandsel0sel15, b=nandsel0sel15, out=andsel0sel15);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel15, b=sel[2], out=nandsel0sel1sel25);
+    Nand(a=nandsel0sel1sel25, b=nandsel0sel1sel25, out=andsel0sel1sel25);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[5], b=andsel0sel1sel25, out=nandhsel0sel1sel25);
+    Nand(a=nandhsel0sel1sel25, b=nandhsel0sel1sel25, out=andhsel0sel1sel25);
+
+
+    Nand(a=andanotsel0125, b=andanotsel0125, out=ora5);
+    Nand(a=andbsel0notsel125, b=andbsel0notsel125, out=orb5);
+    Nand(a=ora5, b=orb5, out=orab5);
+
+    Nand(a=orab5, b=orab5, out=nandorab5);
+    Nand(a=andcsel1notsel025, b=andcsel1notsel025, out=orc5);
+    Nand(a=nandorab5, b=orc5, out=orabc5);
+
+    Nand(a=orabc5, b=orabc5, out=nandorabc5);
+    Nand(a=anddsel0sel1notsel25, b=anddsel0sel1notsel25, out=ord5);
+    Nand(a=nandorabc5, b=ord5, out=orabcd5);
+
+    Nand(a=orabcd5, b=orabcd5, out=nandorabcd5);
+    Nand(a=andenotselnotsel1sel25, b=andenotselnotsel1sel25, out=ore5);
+    Nand(a=nandorabcd5, b=ore5, out=orabcde5);
+
+    Nand(a=orabcde5, b=orabcde5, out=nandorabcde5);
+    Nand(a=andfsel0notselsel25, b=andfsel0notselsel25, out=orf5);
+    Nand(a=nandorabcde5, b=orf5, out=orabcdef5);
+
+    Nand(a=orabcdef5, b=orabcdef5, out=nandorabcdef5);
+    Nand(a=andgnotsel0sel1sel25, b=andgnotsel0sel1sel25, out=org5);
+    Nand(a=nandorabcdef5, b=org5, out=orabcdefg5);
+
+    Nand(a=orabcdefg5, b=orabcdefg5, out=nandorabcdefg5);
+    Nand(a=andhsel0sel1sel25, b=andhsel0sel1sel25, out=orh5);
+    Nand(a=nandorabcdefg5, b=orh5, out=out[5]);
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel16);
+    Nand(a=nandnotsel0notsel16, b=nandnotsel0notsel16, out=andnotsel016);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel016, out=nandnotsel0126);
+    Nand(a=nandnotsel0126, b=nandnotsel0126, out=andnotsel0126);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[6], b=andnotsel0126, out=nandanotsel0126);
+    Nand(a=nandanotsel0126, b=nandanotsel0126, out=andanotsel0126);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel26);
+    Nand(a=nandnotsel1notsel26, b=nandnotsel1notsel26, out=andnotsel126);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel126, out=nandsel0notsel126);
+    Nand(a=nandsel0notsel126, b=nandsel0notsel126, out=andsel0notsel126);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[6], b=andsel0notsel126, out=nandbandsel0notsel126);
+    Nand(a=nandbandsel0notsel126, b=nandbandsel0notsel126, out=andbsel0notsel126);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel026);
+    Nand(a=nandnotsel026, b=nandnotsel026, out=andnotsel026);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel026, out=nandsel1andnotsel026);
+    Nand(a=nandsel1andnotsel026, b=nandsel1andnotsel026, out=andsel1notsel026);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[6], b=andsel1notsel026, out=nandcandsel1notsel026);
+    Nand(a=nandcandsel1notsel026, b=nandcandsel1notsel026, out=andcsel1notsel026);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel26);
+    Nand(a=nandsel1notsel26, b=nandsel1notsel26, out=andsel1notsel26);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel26, out=nandsel0sel1notsel26);
+    Nand(a=nandsel0sel1notsel26, b=nandsel0sel1notsel26, out=andsel0sel1notsel26);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[6], b=andsel0sel1notsel26, out=nanddsel0sel1notsel26);
+    Nand(a=nanddsel0sel1notsel26, b=nanddsel0sel1notsel26, out=anddsel0sel1notsel26);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel016);
+    Nand(a=nandnotsel016, b=nandnotsel016, out=andnotsel0notsel16);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel16, out=nandsel2notsel016);
+    Nand(a=nandsel2notsel016, b=nandsel2notsel016, out=andnotsel0notsel1sel26);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[6], b=andnotsel0notsel1sel26, out=nandenotsel01sel26);
+    Nand(a=nandenotsel01sel26, b=nandenotsel01sel26, out=andenotselnotsel1sel26);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel16);
+    Nand(a=nandsel0notsel16, b=nandsel0notsel16, out=andsel0notsel16);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel16, out=nandsel0notsel1sel26);
+    Nand(a=nandsel0notsel1sel26, b=nandsel0notsel1sel26, out=andsel0notsel1sel26);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[6], b=andsel0notsel1sel26, out=nandfsel0notselsel26);
+    Nand(a=nandfsel0notselsel26, b=nandfsel0notselsel26, out=andfsel0notselsel26);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel16);
+    Nand(a=nandnotsel0sel16, b=nandnotsel0sel16, out=andnotsel0sel16);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel16, out=nandnotsel0sel1sel26);
+    Nand(a=nandnotsel0sel1sel26, b=nandnotsel0sel1sel26, out=andnotsel0sel1sel26);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[6], b=andnotsel0sel1sel26, out=nandgnotsel0sel1sel26);
+    Nand(a=nandgnotsel0sel1sel26, b=nandgnotsel0sel1sel26, out=andgnotsel0sel1sel26);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel16);
+    Nand(a=nandsel0sel16, b=nandsel0sel16, out=andsel0sel16);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel16, b=sel[2], out=nandsel0sel1sel26);
+    Nand(a=nandsel0sel1sel26, b=nandsel0sel1sel26, out=andsel0sel1sel26);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[6], b=andsel0sel1sel26, out=nandhsel0sel1sel26);
+    Nand(a=nandhsel0sel1sel26, b=nandhsel0sel1sel26, out=andhsel0sel1sel26);
+
+
+    Nand(a=andanotsel0126, b=andanotsel0126, out=ora6);
+    Nand(a=andbsel0notsel126, b=andbsel0notsel126, out=orb6);
+    Nand(a=ora6, b=orb6, out=orab6);
+
+    Nand(a=orab6, b=orab6, out=nandorab6);
+    Nand(a=andcsel1notsel026, b=andcsel1notsel026, out=orc6);
+    Nand(a=nandorab6, b=orc6, out=orabc6);
+
+    Nand(a=orabc6, b=orabc6, out=nandorabc6);
+    Nand(a=anddsel0sel1notsel26, b=anddsel0sel1notsel26, out=ord6);
+    Nand(a=nandorabc6, b=ord6, out=orabcd6);
+
+    Nand(a=orabcd6, b=orabcd6, out=nandorabcd6);
+    Nand(a=andenotselnotsel1sel26, b=andenotselnotsel1sel26, out=ore6);
+    Nand(a=nandorabcd6, b=ore6, out=orabcde6);
+
+    Nand(a=orabcde6, b=orabcde6, out=nandorabcde6);
+    Nand(a=andfsel0notselsel26, b=andfsel0notselsel26, out=orf6);
+    Nand(a=nandorabcde6, b=orf6, out=orabcdef6);
+
+    Nand(a=orabcdef6, b=orabcdef6, out=nandorabcdef6);
+    Nand(a=andgnotsel0sel1sel26, b=andgnotsel0sel1sel26, out=org6);
+    Nand(a=nandorabcdef6, b=org6, out=orabcdefg6);
+
+    Nand(a=orabcdefg6, b=orabcdefg6, out=nandorabcdefg6);
+    Nand(a=andhsel0sel1sel26, b=andhsel0sel1sel26, out=orh6);
+    Nand(a=nandorabcdefg6, b=orh6, out=out[6]);
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel17);
+    Nand(a=nandnotsel0notsel17, b=nandnotsel0notsel17, out=andnotsel017);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel017, out=nandnotsel0127);
+    Nand(a=nandnotsel0127, b=nandnotsel0127, out=andnotsel0127);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[7], b=andnotsel0127, out=nandanotsel0127);
+    Nand(a=nandanotsel0127, b=nandanotsel0127, out=andanotsel0127);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel27);
+    Nand(a=nandnotsel1notsel27, b=nandnotsel1notsel27, out=andnotsel127);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel127, out=nandsel0notsel127);
+    Nand(a=nandsel0notsel127, b=nandsel0notsel127, out=andsel0notsel127);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[7], b=andsel0notsel127, out=nandbandsel0notsel127);
+    Nand(a=nandbandsel0notsel127, b=nandbandsel0notsel127, out=andbsel0notsel127);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel027);
+    Nand(a=nandnotsel027, b=nandnotsel027, out=andnotsel027);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel027, out=nandsel1andnotsel027);
+    Nand(a=nandsel1andnotsel027, b=nandsel1andnotsel027, out=andsel1notsel027);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[7], b=andsel1notsel027, out=nandcandsel1notsel027);
+    Nand(a=nandcandsel1notsel027, b=nandcandsel1notsel027, out=andcsel1notsel027);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel27);
+    Nand(a=nandsel1notsel27, b=nandsel1notsel27, out=andsel1notsel27);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel27, out=nandsel0sel1notsel27);
+    Nand(a=nandsel0sel1notsel27, b=nandsel0sel1notsel27, out=andsel0sel1notsel27);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[7], b=andsel0sel1notsel27, out=nanddsel0sel1notsel27);
+    Nand(a=nanddsel0sel1notsel27, b=nanddsel0sel1notsel27, out=anddsel0sel1notsel27);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel017);
+    Nand(a=nandnotsel017, b=nandnotsel017, out=andnotsel0notsel17);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel17, out=nandsel2notsel017);
+    Nand(a=nandsel2notsel017, b=nandsel2notsel017, out=andnotsel0notsel1sel27);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[7], b=andnotsel0notsel1sel27, out=nandenotsel01sel27);
+    Nand(a=nandenotsel01sel27, b=nandenotsel01sel27, out=andenotselnotsel1sel27);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel17);
+    Nand(a=nandsel0notsel17, b=nandsel0notsel17, out=andsel0notsel17);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel17, out=nandsel0notsel1sel27);
+    Nand(a=nandsel0notsel1sel27, b=nandsel0notsel1sel27, out=andsel0notsel1sel27);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[7], b=andsel0notsel1sel27, out=nandfsel0notselsel27);
+    Nand(a=nandfsel0notselsel27, b=nandfsel0notselsel27, out=andfsel0notselsel27);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel17);
+    Nand(a=nandnotsel0sel17, b=nandnotsel0sel17, out=andnotsel0sel17);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel17, out=nandnotsel0sel1sel27);
+    Nand(a=nandnotsel0sel1sel27, b=nandnotsel0sel1sel27, out=andnotsel0sel1sel27);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[7], b=andnotsel0sel1sel27, out=nandgnotsel0sel1sel27);
+    Nand(a=nandgnotsel0sel1sel27, b=nandgnotsel0sel1sel27, out=andgnotsel0sel1sel27);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel17);
+    Nand(a=nandsel0sel17, b=nandsel0sel17, out=andsel0sel17);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel17, b=sel[2], out=nandsel0sel1sel27);
+    Nand(a=nandsel0sel1sel27, b=nandsel0sel1sel27, out=andsel0sel1sel27);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[7], b=andsel0sel1sel27, out=nandhsel0sel1sel27);
+    Nand(a=nandhsel0sel1sel27, b=nandhsel0sel1sel27, out=andhsel0sel1sel27);
+
+
+    Nand(a=andanotsel0127, b=andanotsel0127, out=ora7);
+    Nand(a=andbsel0notsel127, b=andbsel0notsel127, out=orb7);
+    Nand(a=ora7, b=orb7, out=orab7);
+
+    Nand(a=orab7, b=orab7, out=nandorab7);
+    Nand(a=andcsel1notsel027, b=andcsel1notsel027, out=orc7);
+    Nand(a=nandorab7, b=orc7, out=orabc7);
+
+    Nand(a=orabc7, b=orabc7, out=nandorabc7);
+    Nand(a=anddsel0sel1notsel27, b=anddsel0sel1notsel27, out=ord7);
+    Nand(a=nandorabc7, b=ord7, out=orabcd7);
+
+    Nand(a=orabcd7, b=orabcd7, out=nandorabcd7);
+    Nand(a=andenotselnotsel1sel27, b=andenotselnotsel1sel27, out=ore7);
+    Nand(a=nandorabcd7, b=ore7, out=orabcde7);
+
+    Nand(a=orabcde7, b=orabcde7, out=nandorabcde7);
+    Nand(a=andfsel0notselsel27, b=andfsel0notselsel27, out=orf7);
+    Nand(a=nandorabcde7, b=orf7, out=orabcdef7);
+
+    Nand(a=orabcdef7, b=orabcdef7, out=nandorabcdef7);
+    Nand(a=andgnotsel0sel1sel27, b=andgnotsel0sel1sel27, out=org7);
+    Nand(a=nandorabcdef7, b=org7, out=orabcdefg7);
+
+    Nand(a=orabcdefg7, b=orabcdefg7, out=nandorabcdefg7);
+    Nand(a=andhsel0sel1sel27, b=andhsel0sel1sel27, out=orh7);
+    Nand(a=nandorabcdefg7, b=orh7, out=out[7]);
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel18);
+    Nand(a=nandnotsel0notsel18, b=nandnotsel0notsel18, out=andnotsel018);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel018, out=nandnotsel0128);
+    Nand(a=nandnotsel0128, b=nandnotsel0128, out=andnotsel0128);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[8], b=andnotsel0128, out=nandanotsel0128);
+    Nand(a=nandanotsel0128, b=nandanotsel0128, out=andanotsel0128);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel28);
+    Nand(a=nandnotsel1notsel28, b=nandnotsel1notsel28, out=andnotsel128);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel128, out=nandsel0notsel128);
+    Nand(a=nandsel0notsel128, b=nandsel0notsel128, out=andsel0notsel128);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[8], b=andsel0notsel128, out=nandbandsel0notsel128);
+    Nand(a=nandbandsel0notsel128, b=nandbandsel0notsel128, out=andbsel0notsel128);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel028);
+    Nand(a=nandnotsel028, b=nandnotsel028, out=andnotsel028);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel028, out=nandsel1andnotsel028);
+    Nand(a=nandsel1andnotsel028, b=nandsel1andnotsel028, out=andsel1notsel028);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[8], b=andsel1notsel028, out=nandcandsel1notsel028);
+    Nand(a=nandcandsel1notsel028, b=nandcandsel1notsel028, out=andcsel1notsel028);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel28);
+    Nand(a=nandsel1notsel28, b=nandsel1notsel28, out=andsel1notsel28);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel28, out=nandsel0sel1notsel28);
+    Nand(a=nandsel0sel1notsel28, b=nandsel0sel1notsel28, out=andsel0sel1notsel28);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[8], b=andsel0sel1notsel28, out=nanddsel0sel1notsel28);
+    Nand(a=nanddsel0sel1notsel28, b=nanddsel0sel1notsel28, out=anddsel0sel1notsel28);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel018);
+    Nand(a=nandnotsel018, b=nandnotsel018, out=andnotsel0notsel18);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel18, out=nandsel2notsel018);
+    Nand(a=nandsel2notsel018, b=nandsel2notsel018, out=andnotsel0notsel1sel28);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[8], b=andnotsel0notsel1sel28, out=nandenotsel01sel28);
+    Nand(a=nandenotsel01sel28, b=nandenotsel01sel28, out=andenotselnotsel1sel28);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel18);
+    Nand(a=nandsel0notsel18, b=nandsel0notsel18, out=andsel0notsel18);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel18, out=nandsel0notsel1sel28);
+    Nand(a=nandsel0notsel1sel28, b=nandsel0notsel1sel28, out=andsel0notsel1sel28);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[8], b=andsel0notsel1sel28, out=nandfsel0notselsel28);
+    Nand(a=nandfsel0notselsel28, b=nandfsel0notselsel28, out=andfsel0notselsel28);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel18);
+    Nand(a=nandnotsel0sel18, b=nandnotsel0sel18, out=andnotsel0sel18);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel18, out=nandnotsel0sel1sel28);
+    Nand(a=nandnotsel0sel1sel28, b=nandnotsel0sel1sel28, out=andnotsel0sel1sel28);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[8], b=andnotsel0sel1sel28, out=nandgnotsel0sel1sel28);
+    Nand(a=nandgnotsel0sel1sel28, b=nandgnotsel0sel1sel28, out=andgnotsel0sel1sel28);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel18);
+    Nand(a=nandsel0sel18, b=nandsel0sel18, out=andsel0sel18);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel18, b=sel[2], out=nandsel0sel1sel28);
+    Nand(a=nandsel0sel1sel28, b=nandsel0sel1sel28, out=andsel0sel1sel28);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[8], b=andsel0sel1sel28, out=nandhsel0sel1sel28);
+    Nand(a=nandhsel0sel1sel28, b=nandhsel0sel1sel28, out=andhsel0sel1sel28);
+
+
+    Nand(a=andanotsel0128, b=andanotsel0128, out=ora8);
+    Nand(a=andbsel0notsel128, b=andbsel0notsel128, out=orb8);
+    Nand(a=ora8, b=orb8, out=orab8);
+
+    Nand(a=orab8, b=orab8, out=nandorab8);
+    Nand(a=andcsel1notsel028, b=andcsel1notsel028, out=orc8);
+    Nand(a=nandorab8, b=orc8, out=orabc8);
+
+    Nand(a=orabc8, b=orabc8, out=nandorabc8);
+    Nand(a=anddsel0sel1notsel28, b=anddsel0sel1notsel28, out=ord8);
+    Nand(a=nandorabc8, b=ord8, out=orabcd8);
+
+    Nand(a=orabcd8, b=orabcd8, out=nandorabcd8);
+    Nand(a=andenotselnotsel1sel28, b=andenotselnotsel1sel28, out=ore8);
+    Nand(a=nandorabcd8, b=ore8, out=orabcde8);
+
+    Nand(a=orabcde8, b=orabcde8, out=nandorabcde8);
+    Nand(a=andfsel0notselsel28, b=andfsel0notselsel28, out=orf8);
+    Nand(a=nandorabcde8, b=orf8, out=orabcdef8);
+
+    Nand(a=orabcdef8, b=orabcdef8, out=nandorabcdef8);
+    Nand(a=andgnotsel0sel1sel28, b=andgnotsel0sel1sel28, out=org8);
+    Nand(a=nandorabcdef8, b=org8, out=orabcdefg8);
+
+    Nand(a=orabcdefg8, b=orabcdefg8, out=nandorabcdefg8);
+    Nand(a=andhsel0sel1sel28, b=andhsel0sel1sel28, out=orh8);
+    Nand(a=nandorabcdefg8, b=orh8, out=out[8]);
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel19);
+    Nand(a=nandnotsel0notsel19, b=nandnotsel0notsel19, out=andnotsel019);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel019, out=nandnotsel0129);
+    Nand(a=nandnotsel0129, b=nandnotsel0129, out=andnotsel0129);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[9], b=andnotsel0129, out=nandanotsel0129);
+    Nand(a=nandanotsel0129, b=nandanotsel0129, out=andanotsel0129);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel29);
+    Nand(a=nandnotsel1notsel29, b=nandnotsel1notsel29, out=andnotsel129);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel129, out=nandsel0notsel129);
+    Nand(a=nandsel0notsel129, b=nandsel0notsel129, out=andsel0notsel129);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[9], b=andsel0notsel129, out=nandbandsel0notsel129);
+    Nand(a=nandbandsel0notsel129, b=nandbandsel0notsel129, out=andbsel0notsel129);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel029);
+    Nand(a=nandnotsel029, b=nandnotsel029, out=andnotsel029);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel029, out=nandsel1andnotsel029);
+    Nand(a=nandsel1andnotsel029, b=nandsel1andnotsel029, out=andsel1notsel029);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[9], b=andsel1notsel029, out=nandcandsel1notsel029);
+    Nand(a=nandcandsel1notsel029, b=nandcandsel1notsel029, out=andcsel1notsel029);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel29);
+    Nand(a=nandsel1notsel29, b=nandsel1notsel29, out=andsel1notsel29);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel29, out=nandsel0sel1notsel29);
+    Nand(a=nandsel0sel1notsel29, b=nandsel0sel1notsel29, out=andsel0sel1notsel29);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[9], b=andsel0sel1notsel29, out=nanddsel0sel1notsel29);
+    Nand(a=nanddsel0sel1notsel29, b=nanddsel0sel1notsel29, out=anddsel0sel1notsel29);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel019);
+    Nand(a=nandnotsel019, b=nandnotsel019, out=andnotsel0notsel19);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel19, out=nandsel2notsel019);
+    Nand(a=nandsel2notsel019, b=nandsel2notsel019, out=andnotsel0notsel1sel29);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[9], b=andnotsel0notsel1sel29, out=nandenotsel01sel29);
+    Nand(a=nandenotsel01sel29, b=nandenotsel01sel29, out=andenotselnotsel1sel29);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel19);
+    Nand(a=nandsel0notsel19, b=nandsel0notsel19, out=andsel0notsel19);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel19, out=nandsel0notsel1sel29);
+    Nand(a=nandsel0notsel1sel29, b=nandsel0notsel1sel29, out=andsel0notsel1sel29);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[9], b=andsel0notsel1sel29, out=nandfsel0notselsel29);
+    Nand(a=nandfsel0notselsel29, b=nandfsel0notselsel29, out=andfsel0notselsel29);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel19);
+    Nand(a=nandnotsel0sel19, b=nandnotsel0sel19, out=andnotsel0sel19);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel19, out=nandnotsel0sel1sel29);
+    Nand(a=nandnotsel0sel1sel29, b=nandnotsel0sel1sel29, out=andnotsel0sel1sel29);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[9], b=andnotsel0sel1sel29, out=nandgnotsel0sel1sel29);
+    Nand(a=nandgnotsel0sel1sel29, b=nandgnotsel0sel1sel29, out=andgnotsel0sel1sel29);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel19);
+    Nand(a=nandsel0sel19, b=nandsel0sel19, out=andsel0sel19);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel19, b=sel[2], out=nandsel0sel1sel29);
+    Nand(a=nandsel0sel1sel29, b=nandsel0sel1sel29, out=andsel0sel1sel29);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[9], b=andsel0sel1sel29, out=nandhsel0sel1sel29);
+    Nand(a=nandhsel0sel1sel29, b=nandhsel0sel1sel29, out=andhsel0sel1sel29);
+
+
+    Nand(a=andanotsel0129, b=andanotsel0129, out=ora9);
+    Nand(a=andbsel0notsel129, b=andbsel0notsel129, out=orb9);
+    Nand(a=ora9, b=orb9, out=orab9);
+
+    Nand(a=orab9, b=orab9, out=nandorab9);
+    Nand(a=andcsel1notsel029, b=andcsel1notsel029, out=orc9);
+    Nand(a=nandorab9, b=orc9, out=orabc9);
+
+    Nand(a=orabc9, b=orabc9, out=nandorabc9);
+    Nand(a=anddsel0sel1notsel29, b=anddsel0sel1notsel29, out=ord9);
+    Nand(a=nandorabc9, b=ord9, out=orabcd9);
+
+    Nand(a=orabcd9, b=orabcd9, out=nandorabcd9);
+    Nand(a=andenotselnotsel1sel29, b=andenotselnotsel1sel29, out=ore9);
+    Nand(a=nandorabcd9, b=ore9, out=orabcde9);
+
+    Nand(a=orabcde9, b=orabcde9, out=nandorabcde9);
+    Nand(a=andfsel0notselsel29, b=andfsel0notselsel29, out=orf9);
+    Nand(a=nandorabcde9, b=orf9, out=orabcdef9);
+
+    Nand(a=orabcdef9, b=orabcdef9, out=nandorabcdef9);
+    Nand(a=andgnotsel0sel1sel29, b=andgnotsel0sel1sel29, out=org9);
+    Nand(a=nandorabcdef9, b=org9, out=orabcdefg9);
+
+    Nand(a=orabcdefg9, b=orabcdefg9, out=nandorabcdefg9);
+    Nand(a=andhsel0sel1sel29, b=andhsel0sel1sel29, out=orh9);
+    Nand(a=nandorabcdefg9, b=orh9, out=out[9]);
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel110);
+    Nand(a=nandnotsel0notsel110, b=nandnotsel0notsel110, out=andnotsel0110);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel0110, out=nandnotsel01210);
+    Nand(a=nandnotsel01210, b=nandnotsel01210, out=andnotsel01210);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[10], b=andnotsel01210, out=nandanotsel01210);
+    Nand(a=nandanotsel01210, b=nandanotsel01210, out=andanotsel01210);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel210);
+    Nand(a=nandnotsel1notsel210, b=nandnotsel1notsel210, out=andnotsel1210);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel1210, out=nandsel0notsel1210);
+    Nand(a=nandsel0notsel1210, b=nandsel0notsel1210, out=andsel0notsel1210);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[10], b=andsel0notsel1210, out=nandbandsel0notsel1210);
+    Nand(a=nandbandsel0notsel1210, b=nandbandsel0notsel1210, out=andbsel0notsel1210);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel0210);
+    Nand(a=nandnotsel0210, b=nandnotsel0210, out=andnotsel0210);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel0210, out=nandsel1andnotsel0210);
+    Nand(a=nandsel1andnotsel0210, b=nandsel1andnotsel0210, out=andsel1notsel0210);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[10], b=andsel1notsel0210, out=nandcandsel1notsel0210);
+    Nand(a=nandcandsel1notsel0210, b=nandcandsel1notsel0210, out=andcsel1notsel0210);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel210);
+    Nand(a=nandsel1notsel210, b=nandsel1notsel210, out=andsel1notsel210);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel210, out=nandsel0sel1notsel210);
+    Nand(a=nandsel0sel1notsel210, b=nandsel0sel1notsel210, out=andsel0sel1notsel210);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[10], b=andsel0sel1notsel210, out=nanddsel0sel1notsel210);
+    Nand(a=nanddsel0sel1notsel210, b=nanddsel0sel1notsel210, out=anddsel0sel1notsel210);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0110);
+    Nand(a=nandnotsel0110, b=nandnotsel0110, out=andnotsel0notsel110);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel110, out=nandsel2notsel0110);
+    Nand(a=nandsel2notsel0110, b=nandsel2notsel0110, out=andnotsel0notsel1sel210);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[10], b=andnotsel0notsel1sel210, out=nandenotsel01sel210);
+    Nand(a=nandenotsel01sel210, b=nandenotsel01sel210, out=andenotselnotsel1sel210);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel110);
+    Nand(a=nandsel0notsel110, b=nandsel0notsel110, out=andsel0notsel110);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel110, out=nandsel0notsel1sel210);
+    Nand(a=nandsel0notsel1sel210, b=nandsel0notsel1sel210, out=andsel0notsel1sel210);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[10], b=andsel0notsel1sel210, out=nandfsel0notselsel210);
+    Nand(a=nandfsel0notselsel210, b=nandfsel0notselsel210, out=andfsel0notselsel210);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel110);
+    Nand(a=nandnotsel0sel110, b=nandnotsel0sel110, out=andnotsel0sel110);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel110, out=nandnotsel0sel1sel210);
+    Nand(a=nandnotsel0sel1sel210, b=nandnotsel0sel1sel210, out=andnotsel0sel1sel210);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[10], b=andnotsel0sel1sel210, out=nandgnotsel0sel1sel210);
+    Nand(a=nandgnotsel0sel1sel210, b=nandgnotsel0sel1sel210, out=andgnotsel0sel1sel210);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel110);
+    Nand(a=nandsel0sel110, b=nandsel0sel110, out=andsel0sel110);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel110, b=sel[2], out=nandsel0sel1sel210);
+    Nand(a=nandsel0sel1sel210, b=nandsel0sel1sel210, out=andsel0sel1sel210);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[10], b=andsel0sel1sel210, out=nandhsel0sel1sel210);
+    Nand(a=nandhsel0sel1sel210, b=nandhsel0sel1sel210, out=andhsel0sel1sel210);
+
+
+    Nand(a=andanotsel01210, b=andanotsel01210, out=ora10);
+    Nand(a=andbsel0notsel1210, b=andbsel0notsel1210, out=orb10);
+    Nand(a=ora10, b=orb10, out=orab10);
+
+    Nand(a=orab10, b=orab10, out=nandorab10);
+    Nand(a=andcsel1notsel0210, b=andcsel1notsel0210, out=orc10);
+    Nand(a=nandorab10, b=orc10, out=orabc10);
+
+    Nand(a=orabc10, b=orabc10, out=nandorabc10);
+    Nand(a=anddsel0sel1notsel210, b=anddsel0sel1notsel210, out=ord10);
+    Nand(a=nandorabc10, b=ord10, out=orabcd10);
+
+    Nand(a=orabcd10, b=orabcd10, out=nandorabcd10);
+    Nand(a=andenotselnotsel1sel210, b=andenotselnotsel1sel210, out=ore10);
+    Nand(a=nandorabcd10, b=ore10, out=orabcde10);
+
+    Nand(a=orabcde10, b=orabcde10, out=nandorabcde10);
+    Nand(a=andfsel0notselsel210, b=andfsel0notselsel210, out=orf10);
+    Nand(a=nandorabcde10, b=orf10, out=orabcdef10);
+
+    Nand(a=orabcdef10, b=orabcdef10, out=nandorabcdef10);
+    Nand(a=andgnotsel0sel1sel210, b=andgnotsel0sel1sel210, out=org10);
+    Nand(a=nandorabcdef10, b=org10, out=orabcdefg10);
+
+    Nand(a=orabcdefg10, b=orabcdefg10, out=nandorabcdefg10);
+    Nand(a=andhsel0sel1sel210, b=andhsel0sel1sel210, out=orh10);
+    Nand(a=nandorabcdefg10, b=orh10, out=out[10]);
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel111);
+    Nand(a=nandnotsel0notsel111, b=nandnotsel0notsel111, out=andnotsel0111);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel0111, out=nandnotsel01211);
+    Nand(a=nandnotsel01211, b=nandnotsel01211, out=andnotsel01211);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[11], b=andnotsel01211, out=nandanotsel01211);
+    Nand(a=nandanotsel01211, b=nandanotsel01211, out=andanotsel01211);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel211);
+    Nand(a=nandnotsel1notsel211, b=nandnotsel1notsel211, out=andnotsel1211);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel1211, out=nandsel0notsel1211);
+    Nand(a=nandsel0notsel1211, b=nandsel0notsel1211, out=andsel0notsel1211);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[11], b=andsel0notsel1211, out=nandbandsel0notsel1211);
+    Nand(a=nandbandsel0notsel1211, b=nandbandsel0notsel1211, out=andbsel0notsel1211);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel0211);
+    Nand(a=nandnotsel0211, b=nandnotsel0211, out=andnotsel0211);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel0211, out=nandsel1andnotsel0211);
+    Nand(a=nandsel1andnotsel0211, b=nandsel1andnotsel0211, out=andsel1notsel0211);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[11], b=andsel1notsel0211, out=nandcandsel1notsel0211);
+    Nand(a=nandcandsel1notsel0211, b=nandcandsel1notsel0211, out=andcsel1notsel0211);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel211);
+    Nand(a=nandsel1notsel211, b=nandsel1notsel211, out=andsel1notsel211);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel211, out=nandsel0sel1notsel211);
+    Nand(a=nandsel0sel1notsel211, b=nandsel0sel1notsel211, out=andsel0sel1notsel211);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[11], b=andsel0sel1notsel211, out=nanddsel0sel1notsel211);
+    Nand(a=nanddsel0sel1notsel211, b=nanddsel0sel1notsel211, out=anddsel0sel1notsel211);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0111);
+    Nand(a=nandnotsel0111, b=nandnotsel0111, out=andnotsel0notsel111);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel111, out=nandsel2notsel0111);
+    Nand(a=nandsel2notsel0111, b=nandsel2notsel0111, out=andnotsel0notsel1sel211);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[11], b=andnotsel0notsel1sel211, out=nandenotsel01sel211);
+    Nand(a=nandenotsel01sel211, b=nandenotsel01sel211, out=andenotselnotsel1sel211);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel111);
+    Nand(a=nandsel0notsel111, b=nandsel0notsel111, out=andsel0notsel111);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel111, out=nandsel0notsel1sel211);
+    Nand(a=nandsel0notsel1sel211, b=nandsel0notsel1sel211, out=andsel0notsel1sel211);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[11], b=andsel0notsel1sel211, out=nandfsel0notselsel211);
+    Nand(a=nandfsel0notselsel211, b=nandfsel0notselsel211, out=andfsel0notselsel211);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel111);
+    Nand(a=nandnotsel0sel111, b=nandnotsel0sel111, out=andnotsel0sel111);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel111, out=nandnotsel0sel1sel211);
+    Nand(a=nandnotsel0sel1sel211, b=nandnotsel0sel1sel211, out=andnotsel0sel1sel211);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[11], b=andnotsel0sel1sel211, out=nandgnotsel0sel1sel211);
+    Nand(a=nandgnotsel0sel1sel211, b=nandgnotsel0sel1sel211, out=andgnotsel0sel1sel211);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel111);
+    Nand(a=nandsel0sel111, b=nandsel0sel111, out=andsel0sel111);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel111, b=sel[2], out=nandsel0sel1sel211);
+    Nand(a=nandsel0sel1sel211, b=nandsel0sel1sel211, out=andsel0sel1sel211);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[11], b=andsel0sel1sel211, out=nandhsel0sel1sel211);
+    Nand(a=nandhsel0sel1sel211, b=nandhsel0sel1sel211, out=andhsel0sel1sel211);
+
+
+    Nand(a=andanotsel01211, b=andanotsel01211, out=ora11);
+    Nand(a=andbsel0notsel1211, b=andbsel0notsel1211, out=orb11);
+    Nand(a=ora11, b=orb11, out=orab11);
+
+    Nand(a=orab11, b=orab11, out=nandorab11);
+    Nand(a=andcsel1notsel0211, b=andcsel1notsel0211, out=orc11);
+    Nand(a=nandorab11, b=orc11, out=orabc11);
+
+    Nand(a=orabc11, b=orabc11, out=nandorabc11);
+    Nand(a=anddsel0sel1notsel211, b=anddsel0sel1notsel211, out=ord11);
+    Nand(a=nandorabc11, b=ord11, out=orabcd11);
+
+    Nand(a=orabcd11, b=orabcd11, out=nandorabcd11);
+    Nand(a=andenotselnotsel1sel211, b=andenotselnotsel1sel211, out=ore11);
+    Nand(a=nandorabcd11, b=ore11, out=orabcde11);
+
+    Nand(a=orabcde11, b=orabcde11, out=nandorabcde11);
+    Nand(a=andfsel0notselsel211, b=andfsel0notselsel211, out=orf11);
+    Nand(a=nandorabcde11, b=orf11, out=orabcdef11);
+
+    Nand(a=orabcdef11, b=orabcdef11, out=nandorabcdef11);
+    Nand(a=andgnotsel0sel1sel211, b=andgnotsel0sel1sel211, out=org11);
+    Nand(a=nandorabcdef11, b=org11, out=orabcdefg11);
+
+    Nand(a=orabcdefg11, b=orabcdefg11, out=nandorabcdefg11);
+    Nand(a=andhsel0sel1sel211, b=andhsel0sel1sel211, out=orh11);
+    Nand(a=nandorabcdefg11, b=orh11, out=out[11]);
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel112);
+    Nand(a=nandnotsel0notsel112, b=nandnotsel0notsel112, out=andnotsel0112);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel0112, out=nandnotsel01212);
+    Nand(a=nandnotsel01212, b=nandnotsel01212, out=andnotsel01212);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[12], b=andnotsel01212, out=nandanotsel01212);
+    Nand(a=nandanotsel01212, b=nandanotsel01212, out=andanotsel01212);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel212);
+    Nand(a=nandnotsel1notsel212, b=nandnotsel1notsel212, out=andnotsel1212);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel1212, out=nandsel0notsel1212);
+    Nand(a=nandsel0notsel1212, b=nandsel0notsel1212, out=andsel0notsel1212);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[12], b=andsel0notsel1212, out=nandbandsel0notsel1212);
+    Nand(a=nandbandsel0notsel1212, b=nandbandsel0notsel1212, out=andbsel0notsel1212);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel0212);
+    Nand(a=nandnotsel0212, b=nandnotsel0212, out=andnotsel0212);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel0212, out=nandsel1andnotsel0212);
+    Nand(a=nandsel1andnotsel0212, b=nandsel1andnotsel0212, out=andsel1notsel0212);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[12], b=andsel1notsel0212, out=nandcandsel1notsel0212);
+    Nand(a=nandcandsel1notsel0212, b=nandcandsel1notsel0212, out=andcsel1notsel0212);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel212);
+    Nand(a=nandsel1notsel212, b=nandsel1notsel212, out=andsel1notsel212);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel212, out=nandsel0sel1notsel212);
+    Nand(a=nandsel0sel1notsel212, b=nandsel0sel1notsel212, out=andsel0sel1notsel212);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[12], b=andsel0sel1notsel212, out=nanddsel0sel1notsel212);
+    Nand(a=nanddsel0sel1notsel212, b=nanddsel0sel1notsel212, out=anddsel0sel1notsel212);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0112);
+    Nand(a=nandnotsel0112, b=nandnotsel0112, out=andnotsel0notsel112);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel112, out=nandsel2notsel0112);
+    Nand(a=nandsel2notsel0112, b=nandsel2notsel0112, out=andnotsel0notsel1sel212);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[12], b=andnotsel0notsel1sel212, out=nandenotsel01sel212);
+    Nand(a=nandenotsel01sel212, b=nandenotsel01sel212, out=andenotselnotsel1sel212);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel112);
+    Nand(a=nandsel0notsel112, b=nandsel0notsel112, out=andsel0notsel112);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel112, out=nandsel0notsel1sel212);
+    Nand(a=nandsel0notsel1sel212, b=nandsel0notsel1sel212, out=andsel0notsel1sel212);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[12], b=andsel0notsel1sel212, out=nandfsel0notselsel212);
+    Nand(a=nandfsel0notselsel212, b=nandfsel0notselsel212, out=andfsel0notselsel212);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel112);
+    Nand(a=nandnotsel0sel112, b=nandnotsel0sel112, out=andnotsel0sel112);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel112, out=nandnotsel0sel1sel212);
+    Nand(a=nandnotsel0sel1sel212, b=nandnotsel0sel1sel212, out=andnotsel0sel1sel212);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[12], b=andnotsel0sel1sel212, out=nandgnotsel0sel1sel212);
+    Nand(a=nandgnotsel0sel1sel212, b=nandgnotsel0sel1sel212, out=andgnotsel0sel1sel212);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel112);
+    Nand(a=nandsel0sel112, b=nandsel0sel112, out=andsel0sel112);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel112, b=sel[2], out=nandsel0sel1sel212);
+    Nand(a=nandsel0sel1sel212, b=nandsel0sel1sel212, out=andsel0sel1sel212);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[12], b=andsel0sel1sel212, out=nandhsel0sel1sel212);
+    Nand(a=nandhsel0sel1sel212, b=nandhsel0sel1sel212, out=andhsel0sel1sel212);
+
+
+    Nand(a=andanotsel01212, b=andanotsel01212, out=ora12);
+    Nand(a=andbsel0notsel1212, b=andbsel0notsel1212, out=orb12);
+    Nand(a=ora12, b=orb12, out=orab12);
+
+    Nand(a=orab12, b=orab12, out=nandorab12);
+    Nand(a=andcsel1notsel0212, b=andcsel1notsel0212, out=orc12);
+    Nand(a=nandorab12, b=orc12, out=orabc12);
+
+    Nand(a=orabc12, b=orabc12, out=nandorabc12);
+    Nand(a=anddsel0sel1notsel212, b=anddsel0sel1notsel212, out=ord12);
+    Nand(a=nandorabc12, b=ord12, out=orabcd12);
+
+    Nand(a=orabcd12, b=orabcd12, out=nandorabcd12);
+    Nand(a=andenotselnotsel1sel212, b=andenotselnotsel1sel212, out=ore12);
+    Nand(a=nandorabcd12, b=ore12, out=orabcde12);
+
+    Nand(a=orabcde12, b=orabcde12, out=nandorabcde12);
+    Nand(a=andfsel0notselsel212, b=andfsel0notselsel212, out=orf12);
+    Nand(a=nandorabcde12, b=orf12, out=orabcdef12);
+
+    Nand(a=orabcdef12, b=orabcdef12, out=nandorabcdef12);
+    Nand(a=andgnotsel0sel1sel212, b=andgnotsel0sel1sel212, out=org12);
+    Nand(a=nandorabcdef12, b=org12, out=orabcdefg12);
+
+    Nand(a=orabcdefg12, b=orabcdefg12, out=nandorabcdefg12);
+    Nand(a=andhsel0sel1sel212, b=andhsel0sel1sel212, out=orh12);
+    Nand(a=nandorabcdefg12, b=orh12, out=out[12]);
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel113);
+    Nand(a=nandnotsel0notsel113, b=nandnotsel0notsel113, out=andnotsel0113);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel0113, out=nandnotsel01213);
+    Nand(a=nandnotsel01213, b=nandnotsel01213, out=andnotsel01213);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[13], b=andnotsel01213, out=nandanotsel01213);
+    Nand(a=nandanotsel01213, b=nandanotsel01213, out=andanotsel01213);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel213);
+    Nand(a=nandnotsel1notsel213, b=nandnotsel1notsel213, out=andnotsel1213);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel1213, out=nandsel0notsel1213);
+    Nand(a=nandsel0notsel1213, b=nandsel0notsel1213, out=andsel0notsel1213);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[13], b=andsel0notsel1213, out=nandbandsel0notsel1213);
+    Nand(a=nandbandsel0notsel1213, b=nandbandsel0notsel1213, out=andbsel0notsel1213);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel0213);
+    Nand(a=nandnotsel0213, b=nandnotsel0213, out=andnotsel0213);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel0213, out=nandsel1andnotsel0213);
+    Nand(a=nandsel1andnotsel0213, b=nandsel1andnotsel0213, out=andsel1notsel0213);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[13], b=andsel1notsel0213, out=nandcandsel1notsel0213);
+    Nand(a=nandcandsel1notsel0213, b=nandcandsel1notsel0213, out=andcsel1notsel0213);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel213);
+    Nand(a=nandsel1notsel213, b=nandsel1notsel213, out=andsel1notsel213);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel213, out=nandsel0sel1notsel213);
+    Nand(a=nandsel0sel1notsel213, b=nandsel0sel1notsel213, out=andsel0sel1notsel213);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[13], b=andsel0sel1notsel213, out=nanddsel0sel1notsel213);
+    Nand(a=nanddsel0sel1notsel213, b=nanddsel0sel1notsel213, out=anddsel0sel1notsel213);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0113);
+    Nand(a=nandnotsel0113, b=nandnotsel0113, out=andnotsel0notsel113);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel113, out=nandsel2notsel0113);
+    Nand(a=nandsel2notsel0113, b=nandsel2notsel0113, out=andnotsel0notsel1sel213);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[13], b=andnotsel0notsel1sel213, out=nandenotsel01sel213);
+    Nand(a=nandenotsel01sel213, b=nandenotsel01sel213, out=andenotselnotsel1sel213);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel113);
+    Nand(a=nandsel0notsel113, b=nandsel0notsel113, out=andsel0notsel113);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel113, out=nandsel0notsel1sel213);
+    Nand(a=nandsel0notsel1sel213, b=nandsel0notsel1sel213, out=andsel0notsel1sel213);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[13], b=andsel0notsel1sel213, out=nandfsel0notselsel213);
+    Nand(a=nandfsel0notselsel213, b=nandfsel0notselsel213, out=andfsel0notselsel213);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel113);
+    Nand(a=nandnotsel0sel113, b=nandnotsel0sel113, out=andnotsel0sel113);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel113, out=nandnotsel0sel1sel213);
+    Nand(a=nandnotsel0sel1sel213, b=nandnotsel0sel1sel213, out=andnotsel0sel1sel213);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[13], b=andnotsel0sel1sel213, out=nandgnotsel0sel1sel213);
+    Nand(a=nandgnotsel0sel1sel213, b=nandgnotsel0sel1sel213, out=andgnotsel0sel1sel213);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel113);
+    Nand(a=nandsel0sel113, b=nandsel0sel113, out=andsel0sel113);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel113, b=sel[2], out=nandsel0sel1sel213);
+    Nand(a=nandsel0sel1sel213, b=nandsel0sel1sel213, out=andsel0sel1sel213);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[13], b=andsel0sel1sel213, out=nandhsel0sel1sel213);
+    Nand(a=nandhsel0sel1sel213, b=nandhsel0sel1sel213, out=andhsel0sel1sel213);
+
+
+    Nand(a=andanotsel01213, b=andanotsel01213, out=ora13);
+    Nand(a=andbsel0notsel1213, b=andbsel0notsel1213, out=orb13);
+    Nand(a=ora13, b=orb13, out=orab13);
+
+    Nand(a=orab13, b=orab13, out=nandorab13);
+    Nand(a=andcsel1notsel0213, b=andcsel1notsel0213, out=orc13);
+    Nand(a=nandorab13, b=orc13, out=orabc13);
+
+    Nand(a=orabc13, b=orabc13, out=nandorabc13);
+    Nand(a=anddsel0sel1notsel213, b=anddsel0sel1notsel213, out=ord13);
+    Nand(a=nandorabc13, b=ord13, out=orabcd13);
+
+    Nand(a=orabcd13, b=orabcd13, out=nandorabcd13);
+    Nand(a=andenotselnotsel1sel213, b=andenotselnotsel1sel213, out=ore13);
+    Nand(a=nandorabcd13, b=ore13, out=orabcde13);
+
+    Nand(a=orabcde13, b=orabcde13, out=nandorabcde13);
+    Nand(a=andfsel0notselsel213, b=andfsel0notselsel213, out=orf13);
+    Nand(a=nandorabcde13, b=orf13, out=orabcdef13);
+
+    Nand(a=orabcdef13, b=orabcdef13, out=nandorabcdef13);
+    Nand(a=andgnotsel0sel1sel213, b=andgnotsel0sel1sel213, out=org13);
+    Nand(a=nandorabcdef13, b=org13, out=orabcdefg13);
+
+    Nand(a=orabcdefg13, b=orabcdefg13, out=nandorabcdefg13);
+    Nand(a=andhsel0sel1sel213, b=andhsel0sel1sel213, out=orh13);
+    Nand(a=nandorabcdefg13, b=orh13, out=out[13]);
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel114);
+    Nand(a=nandnotsel0notsel114, b=nandnotsel0notsel114, out=andnotsel0114);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel0114, out=nandnotsel01214);
+    Nand(a=nandnotsel01214, b=nandnotsel01214, out=andnotsel01214);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[14], b=andnotsel01214, out=nandanotsel01214);
+    Nand(a=nandanotsel01214, b=nandanotsel01214, out=andanotsel01214);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel214);
+    Nand(a=nandnotsel1notsel214, b=nandnotsel1notsel214, out=andnotsel1214);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel1214, out=nandsel0notsel1214);
+    Nand(a=nandsel0notsel1214, b=nandsel0notsel1214, out=andsel0notsel1214);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[14], b=andsel0notsel1214, out=nandbandsel0notsel1214);
+    Nand(a=nandbandsel0notsel1214, b=nandbandsel0notsel1214, out=andbsel0notsel1214);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel0214);
+    Nand(a=nandnotsel0214, b=nandnotsel0214, out=andnotsel0214);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel0214, out=nandsel1andnotsel0214);
+    Nand(a=nandsel1andnotsel0214, b=nandsel1andnotsel0214, out=andsel1notsel0214);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[14], b=andsel1notsel0214, out=nandcandsel1notsel0214);
+    Nand(a=nandcandsel1notsel0214, b=nandcandsel1notsel0214, out=andcsel1notsel0214);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel214);
+    Nand(a=nandsel1notsel214, b=nandsel1notsel214, out=andsel1notsel214);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel214, out=nandsel0sel1notsel214);
+    Nand(a=nandsel0sel1notsel214, b=nandsel0sel1notsel214, out=andsel0sel1notsel214);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[14], b=andsel0sel1notsel214, out=nanddsel0sel1notsel214);
+    Nand(a=nanddsel0sel1notsel214, b=nanddsel0sel1notsel214, out=anddsel0sel1notsel214);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0114);
+    Nand(a=nandnotsel0114, b=nandnotsel0114, out=andnotsel0notsel114);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel114, out=nandsel2notsel0114);
+    Nand(a=nandsel2notsel0114, b=nandsel2notsel0114, out=andnotsel0notsel1sel214);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[14], b=andnotsel0notsel1sel214, out=nandenotsel01sel214);
+    Nand(a=nandenotsel01sel214, b=nandenotsel01sel214, out=andenotselnotsel1sel214);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel114);
+    Nand(a=nandsel0notsel114, b=nandsel0notsel114, out=andsel0notsel114);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel114, out=nandsel0notsel1sel214);
+    Nand(a=nandsel0notsel1sel214, b=nandsel0notsel1sel214, out=andsel0notsel1sel214);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[14], b=andsel0notsel1sel214, out=nandfsel0notselsel214);
+    Nand(a=nandfsel0notselsel214, b=nandfsel0notselsel214, out=andfsel0notselsel214);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel114);
+    Nand(a=nandnotsel0sel114, b=nandnotsel0sel114, out=andnotsel0sel114);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel114, out=nandnotsel0sel1sel214);
+    Nand(a=nandnotsel0sel1sel214, b=nandnotsel0sel1sel214, out=andnotsel0sel1sel214);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[14], b=andnotsel0sel1sel214, out=nandgnotsel0sel1sel214);
+    Nand(a=nandgnotsel0sel1sel214, b=nandgnotsel0sel1sel214, out=andgnotsel0sel1sel214);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel114);
+    Nand(a=nandsel0sel114, b=nandsel0sel114, out=andsel0sel114);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel114, b=sel[2], out=nandsel0sel1sel214);
+    Nand(a=nandsel0sel1sel214, b=nandsel0sel1sel214, out=andsel0sel1sel214);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[14], b=andsel0sel1sel214, out=nandhsel0sel1sel214);
+    Nand(a=nandhsel0sel1sel214, b=nandhsel0sel1sel214, out=andhsel0sel1sel214);
+
+
+    Nand(a=andanotsel01214, b=andanotsel01214, out=ora14);
+    Nand(a=andbsel0notsel1214, b=andbsel0notsel1214, out=orb14);
+    Nand(a=ora14, b=orb14, out=orab14);
+
+    Nand(a=orab14, b=orab14, out=nandorab14);
+    Nand(a=andcsel1notsel0214, b=andcsel1notsel0214, out=orc14);
+    Nand(a=nandorab14, b=orc14, out=orabc14);
+
+    Nand(a=orabc14, b=orabc14, out=nandorabc14);
+    Nand(a=anddsel0sel1notsel214, b=anddsel0sel1notsel214, out=ord14);
+    Nand(a=nandorabc14, b=ord14, out=orabcd14);
+
+    Nand(a=orabcd14, b=orabcd14, out=nandorabcd14);
+    Nand(a=andenotselnotsel1sel214, b=andenotselnotsel1sel214, out=ore14);
+    Nand(a=nandorabcd14, b=ore14, out=orabcde14);
+
+    Nand(a=orabcde14, b=orabcde14, out=nandorabcde14);
+    Nand(a=andfsel0notselsel214, b=andfsel0notselsel214, out=orf14);
+    Nand(a=nandorabcde14, b=orf14, out=orabcdef14);
+
+    Nand(a=orabcdef14, b=orabcdef14, out=nandorabcdef14);
+    Nand(a=andgnotsel0sel1sel214, b=andgnotsel0sel1sel214, out=org14);
+    Nand(a=nandorabcdef14, b=org14, out=orabcdefg14);
+
+    Nand(a=orabcdefg14, b=orabcdefg14, out=nandorabcdefg14);
+    Nand(a=andhsel0sel1sel214, b=andhsel0sel1sel214, out=orh14);
+    Nand(a=nandorabcdefg14, b=orh14, out=out[14]);
+
+    /* INPUT A */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0notsel115);
+    Nand(a=nandnotsel0notsel115, b=nandnotsel0notsel115, out=andnotsel0115);
+
+    /* (and (not sel0) (not sel1) (not sel2)) */
+    Nand(a=notsel2, b=andnotsel0115, out=nandnotsel01215);
+    Nand(a=nandnotsel01215, b=nandnotsel01215, out=andnotsel01215);
+
+    /* (and a (not sel0) (not sel1) (not sel2)) */
+    Nand(a=a[15], b=andnotsel01215, out=nandanotsel01215);
+    Nand(a=nandanotsel01215, b=nandanotsel01215, out=andanotsel01215);
+
+    /* INPUT B */
+    /* (and (not sel1) (not sel2)) */
+    Nand(a=notsel1, b=notsel2, out=nandnotsel1notsel215);
+    Nand(a=nandnotsel1notsel215, b=nandnotsel1notsel215, out=andnotsel1215);
+
+    /* (and sel0 (not sel1) (not sel2)) */
+    Nand(a=sel[0], b=andnotsel1215, out=nandsel0notsel1215);
+    Nand(a=nandsel0notsel1215, b=nandsel0notsel1215, out=andsel0notsel1215);
+
+    /* (and b sel0 (not sel1) (not sel2)) */
+    Nand(a=b[15], b=andsel0notsel1215, out=nandbandsel0notsel1215);
+    Nand(a=nandbandsel0notsel1215, b=nandbandsel0notsel1215, out=andbsel0notsel1215);
+
+    /* INPUT C */
+    /* (and (not sel0) (not sel2)) */
+    Nand(a=notsel0, b=notsel2, out=nandnotsel0215);
+    Nand(a=nandnotsel0215, b=nandnotsel0215, out=andnotsel0215);
+
+    /* (and sel1 (not sel0) (not sel2)) */
+    Nand(a=sel[1], b=andnotsel0215, out=nandsel1andnotsel0215);
+    Nand(a=nandsel1andnotsel0215, b=nandsel1andnotsel0215, out=andsel1notsel0215);
+
+    /* (and c sel1 (not sel0) (not sel2)) */
+    Nand(a=c[15], b=andsel1notsel0215, out=nandcandsel1notsel0215);
+    Nand(a=nandcandsel1notsel0215, b=nandcandsel1notsel0215, out=andcsel1notsel0215);
+
+    /* INPUT D */
+    /* (and sel1 (not sel2)) */
+    Nand(a=sel[1], b=notsel2, out=nandsel1notsel215);
+    Nand(a=nandsel1notsel215, b=nandsel1notsel215, out=andsel1notsel215);
+
+    /* (and sel0 sel1 (not sel2)) */
+    Nand(a=sel[0], b=andsel1notsel215, out=nandsel0sel1notsel215);
+    Nand(a=nandsel0sel1notsel215, b=nandsel0sel1notsel215, out=andsel0sel1notsel215);
+
+    /* (and d sel0 sel1 (not sel2)) */
+    Nand(a=d[15], b=andsel0sel1notsel215, out=nanddsel0sel1notsel215);
+    Nand(a=nanddsel0sel1notsel215, b=nanddsel0sel1notsel215, out=anddsel0sel1notsel215);
+
+    /* INPUT E */
+    /* (and (not sel0) (not sel1)) */
+    Nand(a=notsel0, b=notsel1, out=nandnotsel0115);
+    Nand(a=nandnotsel0115, b=nandnotsel0115, out=andnotsel0notsel115);
+
+    /* (and (not sel0) (not sel1) sel2) */
+    Nand(a=sel[2], b=andnotsel0notsel115, out=nandsel2notsel0115);
+    Nand(a=nandsel2notsel0115, b=nandsel2notsel0115, out=andnotsel0notsel1sel215);
+
+    /* (and e (not sel0) (not sel1) sel2) */
+    Nand(a=e[15], b=andnotsel0notsel1sel215, out=nandenotsel01sel215);
+    Nand(a=nandenotsel01sel215, b=nandenotsel01sel215, out=andenotselnotsel1sel215);
+
+    /* INPUT F */
+    /* (and sel0 (not sel1)) */
+    Nand(a=sel[0], b=notsel1, out=nandsel0notsel115);
+    Nand(a=nandsel0notsel115, b=nandsel0notsel115, out=andsel0notsel115);
+
+    /* (and sel0 (not sel1) sel2) */
+    Nand(a=sel[2], b=andsel0notsel115, out=nandsel0notsel1sel215);
+    Nand(a=nandsel0notsel1sel215, b=nandsel0notsel1sel215, out=andsel0notsel1sel215);
+
+    /* (and f sel0 (not sel1) sel2) */
+    Nand(a=f[15], b=andsel0notsel1sel215, out=nandfsel0notselsel215);
+    Nand(a=nandfsel0notselsel215, b=nandfsel0notselsel215, out=andfsel0notselsel215);
+
+    /* INPUT G */
+    /* (and (not sel0) sel1) */
+    Nand(a=notsel0, b=sel[1], out=nandnotsel0sel115);
+    Nand(a=nandnotsel0sel115, b=nandnotsel0sel115, out=andnotsel0sel115);
+
+    /* (and (not sel0) sel1 sel2) */
+    Nand(a=sel[2], b=andnotsel0sel115, out=nandnotsel0sel1sel215);
+    Nand(a=nandnotsel0sel1sel215, b=nandnotsel0sel1sel215, out=andnotsel0sel1sel215);
+
+    /* (and g (not sel0) sel1 sel2) */
+    Nand(a=g[15], b=andnotsel0sel1sel215, out=nandgnotsel0sel1sel215);
+    Nand(a=nandgnotsel0sel1sel215, b=nandgnotsel0sel1sel215, out=andgnotsel0sel1sel215);
+
+    /* INPUT H */
+    /* (and sel0 sel1) */
+    Nand(a=sel[0], b=sel[1], out=nandsel0sel115);
+    Nand(a=nandsel0sel115, b=nandsel0sel115, out=andsel0sel115);
+
+    /* (and sel0 sel1 sel2) */
+    Nand(a=andsel0sel115, b=sel[2], out=nandsel0sel1sel215);
+    Nand(a=nandsel0sel1sel215, b=nandsel0sel1sel215, out=andsel0sel1sel215);
+
+    /* (and h sel0 sel1 sel2)) */
+    Nand(a=h[15], b=andsel0sel1sel215, out=nandhsel0sel1sel215);
+    Nand(a=nandhsel0sel1sel215, b=nandhsel0sel1sel215, out=andhsel0sel1sel215);
+
+
+    Nand(a=andanotsel01215, b=andanotsel01215, out=ora15);
+    Nand(a=andbsel0notsel1215, b=andbsel0notsel1215, out=orb15);
+    Nand(a=ora15, b=orb15, out=orab15);
+
+    Nand(a=orab15, b=orab15, out=nandorab15);
+    Nand(a=andcsel1notsel0215, b=andcsel1notsel0215, out=orc15);
+    Nand(a=nandorab15, b=orc15, out=orabc15);
+
+    Nand(a=orabc15, b=orabc15, out=nandorabc15);
+    Nand(a=anddsel0sel1notsel215, b=anddsel0sel1notsel215, out=ord15);
+    Nand(a=nandorabc15, b=ord15, out=orabcd15);
+
+    Nand(a=orabcd15, b=orabcd15, out=nandorabcd15);
+    Nand(a=andenotselnotsel1sel215, b=andenotselnotsel1sel215, out=ore15);
+    Nand(a=nandorabcd15, b=ore15, out=orabcde15);
+
+    Nand(a=orabcde15, b=orabcde15, out=nandorabcde15);
+    Nand(a=andfsel0notselsel215, b=andfsel0notselsel215, out=orf15);
+    Nand(a=nandorabcde15, b=orf15, out=orabcdef15);
+
+    Nand(a=orabcdef15, b=orabcdef15, out=nandorabcdef15);
+    Nand(a=andgnotsel0sel1sel215, b=andgnotsel0sel1sel215, out=org15);
+    Nand(a=nandorabcdef15, b=org15, out=orabcdefg15);
+
+    Nand(a=orabcdefg15, b=orabcdefg15, out=nandorabcdefg15);
+    Nand(a=andhsel0sel1sel215, b=andhsel0sel1sel215, out=orh15);
+    Nand(a=nandorabcdefg15, b=orh15, out=out[15]);
+
 }
