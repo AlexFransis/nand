@@ -1,0 +1,64 @@
+    /* 
+        (or
+            (and a (not sel0) (not sel1) (not sel2))
+            (and b sel0 (not sel1) (not sel2))
+            (and c (not sel0) sel1 (not sel2))
+            (and d sel0 sel1 (not sel2))
+            (and e (not sel0) (not sel1) sel2)
+            (and f sel0 (not sel1) sel2)
+            (and g (not sel0) sel1 sel2)
+            (and h sel0 sel1 sel2))
+    */
+
+
+CHIP Mux8Way {
+	IN a, b, c, d,
+	   e, f, g, h,
+	   sel[3];
+	OUT out;
+
+	PARTS:
+	Not(in=sel[0], out=notsel0);
+	Not(in=sel[1], out=notsel1);
+	Not(in=sel[2], out=notsel2);
+
+	And(a=a, b=notsel0, out=anotsel0);
+	And(a=anotsel0, b=notsel1, out=anotsel01);
+	And(a=anotsel01, b=notsel2, out=anotsel012);
+
+	And(a=b, b=sel[0], out=bsel0);
+	And(a=bsel0, b=notsel1, out=bsel0notsel1);
+	And(a=bsel0notsel1, b=notsel2, out=bsel0notsel12);
+
+	And(a=c, b=notsel0, out=cnotsel0);
+	And(a=cnotsel0, b=sel[1], out=csel1notsel0);
+	And(a=csel1notsel0, b=notsel2, out=csel1notsel02);
+
+	And(a=d, b=sel[0], out=dsel0);
+	And(a=dsel0, b=sel[1], out=dsel01);
+	And(a=dsel01, b=notsel2, out=dsel01notsel2);
+
+	And(a=e, b=notsel0, out=enotsel0);
+	And(a=enotsel0, b=notsel1, out=enotsel01);
+	And(a=enotsel01, b=sel[2], out=enotsel01sel2);
+
+	And(a=f, b=sel[0], out=fsel0);
+	And(a=fsel0, b=notsel1, out=fsel0notsel1);
+	And(a=fsel0notsel1, b=sel[2], out=fsel02notsel1);
+
+	And(a=g, b=notsel0, out=gnotsel0);
+	And(a=gnotsel0, b=sel[1], out=gnotsel0sel1);
+	And(a=gnotsel0sel1, b=sel[2], out=gnotsel0sel12);
+
+	And(a=h, b=sel[0], out=hsel0);
+	And(a=hsel0, b=sel[1], out=hsel01);
+	And(a=hsel01, b=sel[2], out=hsel012);
+
+	Or(a=anotsel012, b=bsel0notsel12, out=orab);
+	Or(a=orab, b=csel1notsel02, out=orabc);
+	Or(a=orabc, b=dsel01notsel2, out=orabcd);
+	Or(a=orabcd, b=enotsel01sel2, out=orabcde);
+	Or(a=orabcde, b=fsel02notsel1, out=orabcdef);
+	Or(a=orabcdef, b=gnotsel0sel12, out=orabcdefg);
+	Or(a=orabcdefg, b=hsel012, out=out);
+}
