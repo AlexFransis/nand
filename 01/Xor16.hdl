@@ -4,164 +4,20 @@ CHIP Xor16 {
 	OUT out[16];
 	
 	PARTS:
-	    Nand(a=a[0], b=a[0], out=nota0);
-    Nand(a=b[0], b=b[0], out=notb0);
-    Nand(a=nota0, b=b[0], out=nandnotab0);
-    Nand(a=nandnotab0, b=nandnotab0, out=notaandb0);
-    Nand(a=a[0], b=notb0, out=nandnotba0);
-    Nand(a=nandnotba0, b=nandnotba0, out=notbanda0);
-    Nand(a=notaandb0, b=notaandb0, out=ora0);
-    Nand(a=notbanda0, b=notbanda0, out=orb0);
-    Nand(a=ora0, b=orb0, out=out[0]);
-
-    Nand(a=a[1], b=a[1], out=nota1);
-    Nand(a=b[1], b=b[1], out=notb1);
-    Nand(a=nota1, b=b[1], out=nandnotab1);
-    Nand(a=nandnotab1, b=nandnotab1, out=notaandb1);
-    Nand(a=a[1], b=notb1, out=nandnotba1);
-    Nand(a=nandnotba1, b=nandnotba1, out=notbanda1);
-    Nand(a=notaandb1, b=notaandb1, out=ora1);
-    Nand(a=notbanda1, b=notbanda1, out=orb1);
-    Nand(a=ora1, b=orb1, out=out[1]);
-
-    Nand(a=a[2], b=a[2], out=nota2);
-    Nand(a=b[2], b=b[2], out=notb2);
-    Nand(a=nota2, b=b[2], out=nandnotab2);
-    Nand(a=nandnotab2, b=nandnotab2, out=notaandb2);
-    Nand(a=a[2], b=notb2, out=nandnotba2);
-    Nand(a=nandnotba2, b=nandnotba2, out=notbanda2);
-    Nand(a=notaandb2, b=notaandb2, out=ora2);
-    Nand(a=notbanda2, b=notbanda2, out=orb2);
-    Nand(a=ora2, b=orb2, out=out[2]);
-    
-    Nand(a=a[3], b=a[3], out=nota3);
-    Nand(a=b[3], b=b[3], out=notb3);
-    Nand(a=nota3, b=b[3], out=nandnotab3);
-    Nand(a=nandnotab3, b=nandnotab3, out=notaandb3);
-    Nand(a=a[3], b=notb3, out=nandnotba3);
-    Nand(a=nandnotba3, b=nandnotba3, out=notbanda3);
-    Nand(a=notaandb3, b=notaandb3, out=ora3);
-    Nand(a=notbanda3, b=notbanda3, out=orb3);
-    Nand(a=ora3, b=orb3, out=out[3]);
-    
-    Nand(a=a[4], b=a[4], out=nota4);
-    Nand(a=b[4], b=b[4], out=notb4);
-    Nand(a=nota4, b=b[4], out=nandnotab4);
-    Nand(a=nandnotab4, b=nandnotab4, out=notaandb4);
-    Nand(a=a[4], b=notb4, out=nandnotba4);
-    Nand(a=nandnotba4, b=nandnotba4, out=notbanda4);
-    Nand(a=notaandb4, b=notaandb4, out=ora4);
-    Nand(a=notbanda4, b=notbanda4, out=orb4);
-    Nand(a=ora4, b=orb4, out=out[4]);
-    
-    Nand(a=a[5], b=a[5], out=nota5);
-    Nand(a=b[5], b=b[5], out=notb5);
-    Nand(a=nota5, b=b[5], out=nandnotab5);
-    Nand(a=nandnotab5, b=nandnotab5, out=notaandb5);
-    Nand(a=a[5], b=notb5, out=nandnotba5);
-    Nand(a=nandnotba5, b=nandnotba5, out=notbanda5);
-    Nand(a=notaandb5, b=notaandb5, out=ora5);
-    Nand(a=notbanda5, b=notbanda5, out=orb5);
-    Nand(a=ora5, b=orb5, out=out[5]);
-    
-    Nand(a=a[6], b=a[6], out=nota6);
-    Nand(a=b[6], b=b[6], out=notb6);
-    Nand(a=nota6, b=b[6], out=nandnotab6);
-    Nand(a=nandnotab6, b=nandnotab6, out=notaandb6);
-    Nand(a=a[6], b=notb6, out=nandnotba6);
-    Nand(a=nandnotba6, b=nandnotba6, out=notbanda6);
-    Nand(a=notaandb6, b=notaandb6, out=ora6);
-    Nand(a=notbanda6, b=notbanda6, out=orb6);
-    Nand(a=ora6, b=orb6, out=out[6]);
-    
-    Nand(a=a[7], b=a[7], out=nota7);
-    Nand(a=b[7], b=b[7], out=notb7);
-    Nand(a=nota7, b=b[7], out=nandnotab7);
-    Nand(a=nandnotab7, b=nandnotab7, out=notaandb7);
-    Nand(a=a[7], b=notb7, out=nandnotba7);
-    Nand(a=nandnotba7, b=nandnotba7, out=notbanda7);
-    Nand(a=notaandb7, b=notaandb7, out=ora7);
-    Nand(a=notbanda7, b=notbanda7, out=orb7);
-    Nand(a=ora7, b=orb7, out=out[7]);
-    
-    Nand(a=a[8], b=a[8], out=nota8);
-    Nand(a=b[8], b=b[8], out=notb8);
-    Nand(a=nota8, b=b[8], out=nandnotab8);
-    Nand(a=nandnotab8, b=nandnotab8, out=notaandb8);
-    Nand(a=a[8], b=notb8, out=nandnotba8);
-    Nand(a=nandnotba8, b=nandnotba8, out=notbanda8);
-    Nand(a=notaandb8, b=notaandb8, out=ora8);
-    Nand(a=notbanda8, b=notbanda8, out=orb8);
-    Nand(a=ora8, b=orb8, out=out[8]);
-    
-    Nand(a=a[9], b=a[9], out=nota9);
-    Nand(a=b[9], b=b[9], out=notb9);
-    Nand(a=nota9, b=b[9], out=nandnotab9);
-    Nand(a=nandnotab9, b=nandnotab9, out=notaandb9);
-    Nand(a=a[9], b=notb9, out=nandnotba9);
-    Nand(a=nandnotba9, b=nandnotba9, out=notbanda9);
-    Nand(a=notaandb9, b=notaandb9, out=ora9);
-    Nand(a=notbanda9, b=notbanda9, out=orb9);
-    Nand(a=ora9, b=orb9, out=out[9]);
-    
-    Nand(a=a[10], b=a[10], out=nota10);
-    Nand(a=b[10], b=b[10], out=notb10);
-    Nand(a=nota10, b=b[10], out=nandnotab10);
-    Nand(a=nandnotab10, b=nandnotab10, out=notaandb10);
-    Nand(a=a[10], b=notb10, out=nandnotba10);
-    Nand(a=nandnotba10, b=nandnotba10, out=notbanda10);
-    Nand(a=notaandb10, b=notaandb10, out=ora10);
-    Nand(a=notbanda10, b=notbanda10, out=orb10);
-    Nand(a=ora10, b=orb10, out=out[10]);
-    
-    Nand(a=a[11], b=a[11], out=nota11);
-    Nand(a=b[11], b=b[11], out=notb11);
-    Nand(a=nota11, b=b[11], out=nandnotab11);
-    Nand(a=nandnotab11, b=nandnotab11, out=notaandb11);
-    Nand(a=a[11], b=notb11, out=nandnotba11);
-    Nand(a=nandnotba11, b=nandnotba11, out=notbanda11);
-    Nand(a=notaandb11, b=notaandb11, out=ora11);
-    Nand(a=notbanda11, b=notbanda11, out=orb11);
-    Nand(a=ora11, b=orb11, out=out[11]);
-    
-    Nand(a=a[12], b=a[12], out=nota12);
-    Nand(a=b[12], b=b[12], out=notb12);
-    Nand(a=nota12, b=b[12], out=nandnotab12);
-    Nand(a=nandnotab12, b=nandnotab12, out=notaandb12);
-    Nand(a=a[12], b=notb12, out=nandnotba12);
-    Nand(a=nandnotba12, b=nandnotba12, out=notbanda12);
-    Nand(a=notaandb12, b=notaandb12, out=ora12);
-    Nand(a=notbanda12, b=notbanda12, out=orb12);
-    Nand(a=ora12, b=orb12, out=out[12]);
-    
-    Nand(a=a[13], b=a[13], out=nota13);
-    Nand(a=b[13], b=b[13], out=notb13);
-    Nand(a=nota13, b=b[13], out=nandnotab13);
-    Nand(a=nandnotab13, b=nandnotab13, out=notaandb13);
-    Nand(a=a[13], b=notb13, out=nandnotba13);
-    Nand(a=nandnotba13, b=nandnotba13, out=notbanda13);
-    Nand(a=notaandb13, b=notaandb13, out=ora13);
-    Nand(a=notbanda13, b=notbanda13, out=orb13);
-    Nand(a=ora13, b=orb13, out=out[13]);
-    
-    Nand(a=a[14], b=a[14], out=nota14);
-    Nand(a=b[14], b=b[14], out=notb14);
-    Nand(a=nota14, b=b[14], out=nandnotab14);
-    Nand(a=nandnotab14, b=nandnotab14, out=notaandb14);
-    Nand(a=a[14], b=notb14, out=nandnotba14);
-    Nand(a=nandnotba14, b=nandnotba14, out=notbanda14);
-    Nand(a=notaandb14, b=notaandb14, out=ora14);
-    Nand(a=notbanda14, b=notbanda14, out=orb14);
-    Nand(a=ora14, b=orb14, out=out[14]);
-    
-    Nand(a=a[15], b=a[15], out=nota15);
-    Nand(a=b[15], b=b[15], out=notb15);
-    Nand(a=nota15, b=b[15], out=nandnotab15);
-    Nand(a=nandnotab15, b=nandnotab15, out=notaandb15);
-    Nand(a=a[15], b=notb15, out=nandnotba15);
-    Nand(a=nandnotba15, b=nandnotba15, out=notbanda15);
-    Nand(a=notaandb15, b=notaandb15, out=ora15);
-    Nand(a=notbanda15, b=notbanda15, out=orb15);
-    Nand(a=ora15, b=orb15, out=out[15]);
-
+	Xor(a=a[0], b=b[0], out=out[0]);
+	Xor(a=a[1], b=b[1], out=out[1]);
+	Xor(a=a[2], b=b[2], out=out[2]);
+	Xor(a=a[3], b=b[3], out=out[3]);
+	Xor(a=a[4], b=b[4], out=out[4]);
+	Xor(a=a[5], b=b[5], out=out[5]);
+	Xor(a=a[6], b=b[6], out=out[6]);
+	Xor(a=a[7], b=b[7], out=out[7]);
+	Xor(a=a[8], b=b[8], out=out[8]);
+	Xor(a=a[9], b=b[9], out=out[9]);
+	Xor(a=a[10], b=b[10], out=out[10]);
+	Xor(a=a[11], b=b[11], out=out[11]);
+	Xor(a=a[12], b=b[12], out=out[12]);
+	Xor(a=a[13], b=b[13], out=out[13]);
+	Xor(a=a[14], b=b[14], out=out[14]);
+	Xor(a=a[15], b=b[15], out=out[15]);
 }
