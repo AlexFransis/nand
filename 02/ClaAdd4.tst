@@ -6,7 +6,7 @@
 load ClaAdd4.hdl,
 output-file ClaAdd4.out,
 compare-to ClaAdd4.cmp,
-output-list a%B1.4.1 b%B1.4.1 cin%B2.1.2 out%B1.4.1 carry%B3.1.3;
+output-list a%B1.4.1 b%B1.4.1 cin%B2.1.2 sum%B1.4.1 carry%B3.1.3;
 
 set a %B0000,
 set b %B0000,
