@@ -1,0 +1,7 @@
+CHIP zxycontrol {
+	IN a[16], zxy;
+	OUT out[16];
+
+	PARTS:
+	Mux16(a=a, b=false, sel=zxy, out=out);
+}

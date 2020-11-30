@@ -26,6 +26,11 @@
 // if (out == 0) set zr = 1
 // if (out < 0) set ng = 1
 
+/*
+|        x         |        y         |zx |nx |zy |ny | f |no |       out        |zr |ng |
+| 0000000000010001 | 0000000000000011 | 1 | 1 | 1 | 1 | 1 | 1 | 0000000000000001 | 0 | 0 |
+*/
+
 CHIP ALU {
     IN  
         x[16], y[16],  // 16-bit inputs        
@@ -42,5 +47,10 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+	zxycontrol(a=x, zxy=zx, out=x1);
+	nxycontrol(a=x1, nxy=nx, out=x2);
+	zxycontrol(a=y, zxy=zy, out=y1);
+	nxycontrol(a=y1, nxy=ny, out=y2);
+	fcontrol(a=x2, b=y2, f=f, out=fxy);
+	nocontrol(a=fxy, no=no, out=out);
 }

@@ -1,0 +1,8 @@
+CHIP nxycontrol {
+	IN a[16], nxy;
+	OUT out[16];
+
+	PARTS:
+	Not16(in=a, out=nota);
+	Mux16(a=a, b=nota, sel=nxy, out=out);
+}
