@@ -52,5 +52,5 @@ CHIP ALU {
 	zxycontrol(a=y, zxy=zy, out=y1);
 	nxycontrol(a=y1, nxy=ny, out=y2);
 	fcontrol(a=x2, b=y2, f=f, out=fxy);
-	nocontrol(a=fxy, no=no, out=out);
+	nocontrol(a=fxy, no=no, out=out, zr=zr, ng=ng);
 }

@@ -6,11 +6,12 @@ CHIP nocontrol {
 	Not16(in=a, out=nota);
 	Mux16(a=a, b=nota, sel=no, out=out);
 	Mux16(a=a, b=nota, sel=no, out=noa);
-	/* out == 0 */
-	Xor16(a=noa b=true, out=xora);
-	And16(a=xora, true, out=andxoraa);
-	Not16(in=andxoraa, out=za);
 
-	/* out < 0 */
+	/* out == 0 ? zr = 1 : zr = 0 */
+	Or16Way(in=noa, out=or16);
+	Not(in=or16, out=za);
+	And(a=za, b=true, out=zr);
 
+	/* out < 0 ? ng = 1 : ng = 0 */
+	IsNeg16(in=noa, out=ng);
 }
