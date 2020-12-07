@@ -123,3 +123,11 @@ output;
 
 tock,
 output;
+
+set reset 0,
+set inc 0,
+tick,
+output;
+
+tock,
+output;
