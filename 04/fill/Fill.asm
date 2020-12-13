@@ -1,14 +1,35 @@
-// This file is part of www.nand2tetris.org
-// and the book "The Elements of Computing Systems"
-// by Nisan and Schocken, MIT Press.
-// File name: projects/04/Fill.asm
+@SCREEN
+M=!M
+A=A+1
+M=!M
+A=A+1
+M=!M
+@SCREEN
+M=!M
 
-// Runs an infinite loop that listens to the keyboard input.
-// When a key is pressed (any key), the program blackens the screen,
-// i.e. writes "black" in every pixel;
-// the screen should remain fully black as long as the key is pressed. 
-// When no key is pressed, the program clears the screen, i.e. writes
-// "white" in every pixel;
-// the screen should remain fully clear as long as no key is pressed.
-
-// Put your code here.
+//@32
+//@256
+//M=A
+//
+//(LOOP1)
+//	@256
+//	MD=A-1
+//	@END
+//	D;JEQ
+//	@32
+//	M=A
+//	(LOOP2)
+//		@SCREEN
+//		M=!M
+//		@32
+//		MD=M-1
+//		@LOOP1
+//		D;JEQ
+//		@SCREEN
+//		A=A+1
+//		@LOOP2
+//		0;JMP
+//	
+//(END)
+//	@END
+//	0;JMP
