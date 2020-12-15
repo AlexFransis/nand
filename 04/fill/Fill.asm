@@ -14,10 +14,10 @@ D;JNE
 
 (SHOULDFILLBLACK)
 @state
-D=M-1
+D=M
 @KBDLOOP 
-D;JEQ // state == black ? goto kbdloop : fill black
-@FILLBLACK
+D;JNE // state == black ? goto kbdloop : fill black
+@FILL
 0;JMP
 
 (SHOULDFILLWHITE)
@@ -25,37 +25,21 @@ D;JEQ // state == black ? goto kbdloop : fill black
 D=M
 @KBDLOOP
 D;JEQ // state == white ? goto kbdloop : fill white
-@FILLWHITE
+@FILL
 0;JMP
 
-(FILLBLACK)
-@8191
-D=M
-@SCREEN
-A=A+D
-M=!M
-@8191
-MD=M+1
-D=D-A // curr word - total words < 0 ? goto loop : continue
-@FILLBLACK
-D;JLE
-@state
-M=1 // black
-@KBDLOOP
-0;JMP
-
-(FILLWHITE)
-@8191
-D=M
-@SCREEN
-A=A+D
-M=0
-@8191
-MD=M+1
-D=D-A // curr word - total words < 0 ? goto loop : continue
-@FILLWHITE
-D;JLE
-@state
-M=0 // white
-@KBDLOOP
-0;JMP
+	(FILL)
+	@8191
+	D=M
+	@SCREEN
+	A=A+D
+	M=!M
+	@8191
+	MD=M+1
+	D=D-A // curr word - total words < 0 ? goto loop : continue
+	@FILL
+	D;JLE
+	@state
+	M=!M // toggle state
+	@KBDLOOP
+	0;JMP
