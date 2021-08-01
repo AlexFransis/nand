@@ -39,5 +39,57 @@ CHIP CPU {
         pc[15];          // address of next instruction
 
     PARTS:
-    // Put your code here:
+    /**
+     * 16 BIT INSTRUCTION
+     * I XX A CCCCCC DDD JJJ
+     *
+     * I = A OR C INSTRUCTION 	=> instruction[15]
+     * X = UNUSED
+     * A = @A or M[A] 			=> instruction[12]
+     * C = COMPUTATION FUNCTION	=> instruction[6..11]
+     * D = OUTPUT DESTINATION	=> instruction[3..5]
+     * J = JUMP DESTINATION		=> instruction[0..2]
+     *
+     */
+
+    // --------------- M[A] OR @A --------------
+    Mux16(a=aOut, b=inM, sel=instruction[12], out=mAOrA); // A1
+
+    // --------------- COMPUTE -----------------
+    And(a=instruction[11], b=instruction[15], out=zx); // C1
+    And(a=instruction[10], b=instruction[15], out=nx); // C2
+    And(a=instruction[9], b=instruction[15], out=zy);  // C3
+    And(a=instruction[8], b=instruction[15], out=ny);  // C4
+    And(a=instruction[7], b=instruction[15], out=f);   // C5
+    And(a=instruction[6], b=instruction[15], out=no);  // C6
+    ALU(x=dOut, y=mAOrA, zx=zx, nx=nx, zy=zy, ny=ny, f=f, no=no, out=aluOut, out=outM, zr=zr, ng=neg);
+
+    // ------------- POSITIVE OUT --------------
+    Or(a=zr, b=neg, out=notPos);
+    Not(in=notPos, out=pos);
+
+    // --------------- A REG ---------------
+    Mux16(a=instruction, b=aluOut, sel=instruction[15], out=aInstruction);
+	Not(in=instruction[15], out=notInstruction);
+    Or(a=notInstruction, b=instruction[5], out=loadA);
+    ARegister(in=aInstruction, load=loadA, out=aOut, out[0..14]=addressM); // D1
+
+    // --------------- D REG ---------------
+    And(a=instruction[15], b=instruction[4], out=loadD);
+    DRegister(in=aluOut, load=loadD, out=dOut); // D2
+
+    // --------------- M[A] ----------------
+    And(a=instruction[15], b=instruction[3], out=writeM); // D3
+
+    // ------------- JMP BITS --------------
+    And(a=instruction[0], b=pos, out=j1); // J1
+    And(a=instruction[1], b=zr, out=j2);  // J2
+    And(a=instruction[2], b=neg, out=j3); // J3
+
+	Or(a=j1, b=j2, out=j12);
+	Or(a=j12, b=j3, out=j123);
+	And(a=instruction[15], b=j123, out=jmp);
+
+    // ------------- PC --------------
+	PC(in=aOut, load=jmp, reset=reset, inc=true, out[0..14]=pc);
 }
