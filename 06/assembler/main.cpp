@@ -34,70 +34,64 @@ int main(int argc, char **argv)
 			parser.advance();
 			std::string curr_line = parser.current_line();
 
-			if (curr_line.empty()) {
-				continue;
-			}
+			if (curr_line.empty())
+                                continue;
 
 			Command c_type = parser.command_type(curr_line);
 			switch (c_type) {
-				case A_COMMAND:
-					{
-						std::string val = parser.symbol(curr_line);
-						uint16_t immediate = code.immediate(val);
+                                case A_COMMAND: {
+                                        std::string val = parser.symbol(curr_line);
+                                        uint16_t immediate = code.immediate(val);
 
-						// left most bit of A_COMMAND
-						out_file << 0;
+                                        // left most bit of A_COMMAND
+                                        out_file << 0;
 
-						// 15 bit val
-						for (int i = 14; i >= 0; --i) {
-							bool bit = (1 << i) & immediate;
-							out_file << bit;
-						}
+                                        // 15 bit val
+                                        for (int i = 14; i >= 0; --i) {
+                                                bool bit = (1 << i) & immediate;
+                                                out_file << bit;
+                                        }
 
-						out_file << std::endl;
-						break;
-					}
-				case L_COMMAND:
-					{
-						std::string curr_sym = parser.symbol(curr_line);
-						break;
-					}
-				case C_COMMAND:
-					{
-						uint8_t dest_code = code.dest(parser.dest(curr_line));
-						uint8_t comp_code = code.comp(parser.comp(curr_line));
-						uint8_t jump_code = code.jump(parser.jump(curr_line));
+                                        out_file << std::endl;
+                                        break;
+                                }
+                                case L_COMMAND: {
+                                        std::string curr_sym = parser.symbol(curr_line);
+                                        break;
+                                }
+                                case C_COMMAND: {
+                                        uint8_t dest_code = code.dest(parser.dest(curr_line));
+                                        uint8_t comp_code = code.comp(parser.comp(curr_line));
+                                        uint8_t jump_code = code.jump(parser.jump(curr_line));
 
-						// left most bit of C_COMMAND
-						out_file << 1;
+                                        // left most bit of C_COMMAND
+                                        out_file << 1;
 
-						// two unused bits
-						out_file << 1;
-						out_file << 1;
+                                        // two unused bits
+                                        out_file << 1;
+                                        out_file << 1;
 
-						// 7 bit comp => a c6 c5 c4 c3 c2 c1
-						for (int i = 6; i >= 0; --i) {
-							bool bit = (1 << i) & comp_code;
-							out_file << bit;
-						}
+                                        // 7 bit comp => a c6 c5 c4 c3 c2 c1
+                                        for (int i = 6; i >= 0; --i) {
+                                                bool bit = (1 << i) & comp_code;
+                                                out_file << bit;
+                                        }
 
-						// 3 bit dest => d1 d2 d3
-						for (int i = 2; i >= 0; --i) {
-							bool bit = (1 << i) & dest_code;
-							out_file << bit;
-						}
+                                        // 3 bit dest => d1 d2 d3
+                                        for (int i = 2; i >= 0; --i) {
+                                                bool bit = (1 << i) & dest_code;
+                                                out_file << bit;
+                                        }
 
-						// 3 bit jump => j1 j2 j3
-						for (int i = 2; i >= 0; --i) {
-							bool bit = (1 << i) & jump_code;
-							out_file << bit;
-						}
+                                        // 3 bit jump => j1 j2 j3
+                                        for (int i = 2; i >= 0; --i) {
+                                                bool bit = (1 << i) & jump_code;
+                                                out_file << bit;
+                                        }
 
-						out_file << std::endl;
-						break;
-                    }
-                default:
-                    break;
+                                        out_file << std::endl;
+                                        break;
+                                }
 			}
 		}
 
