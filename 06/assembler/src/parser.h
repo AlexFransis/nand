@@ -1,3 +1,6 @@
+#include <fstream>
+
+
 enum Command {
 	A_COMMAND, // @xxx where xxx is a symbol or decimal
 	C_COMMAND, // dest=comp;jump
@@ -10,16 +13,18 @@ class Parser {
 	private:
 		std::ifstream& 			m_fstream;
 		std::string 			m_line;
+		std::string				m_file_name;
 
-		bool 					has_more_commands() const;
-		void 					advance();
 		std::string 			trim_ws(const std::string&);
 		std::string 			trim_comments(const std::string&);
 
 	public:
-		Parser(std::ifstream&);
+		Parser(std::ifstream&, const std::string&);
+		~Parser();
 
-		void					parse();
+		bool 					has_more_commands() const;
+		void 					advance();
+		std::string				current_line() const;
 		Command 				command_type(const std::string&);
 		std::string 			symbol(const std::string&);
 		std::string 			dest(const std::string&);
