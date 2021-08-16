@@ -105,5 +105,5 @@ std::string Parser::jump(const std::string &curr_line) {
 	assert(command_type(curr_line) == C_COMMAND);
 	const std::string jump = ";";
 	size_t pos = curr_line.find_first_of(jump);
-	return pos == std::string::npos ? std::string() : curr_line.substr(pos);
+	return pos == std::string::npos ? std::string() : curr_line.substr(pos + 1);
 }

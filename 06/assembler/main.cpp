@@ -62,27 +62,26 @@ int main(int argc, char** argv) {
 					}
 				case C_COMMAND:
 					{
-						std::string curr_dest = parser.dest(curr_line);
-						std::string curr_comp = parser.comp(curr_line);
-						std::string curr_jump = parser.jump(curr_line);
-						uint8_t dest_code = code.dest(curr_dest);
-						uint8_t comp_code = code.comp(curr_comp);
-						uint8_t jump_code = code.jump(curr_jump);
+						uint8_t dest_code = code.dest(parser.dest(curr_line));
+						uint8_t comp_code = code.comp(parser.comp(curr_line));
+						uint8_t jump_code = code.jump(parser.jump(curr_line));
 
 						// left most bit of C_COMMAND
 						out_file << 1;
+
 						// two unused bits
 						out_file << 1;
 						out_file << 1;
+
 						// 7 bit comp => a c6 c5 c4 c3 c2 c1
-						for (int i = 12; i >= 6; --i) {
-							bool bit = (1 << i) & (comp_code << 6);
+						for (int i = 6; i >= 0; --i) {
+							bool bit = (1 << i) & comp_code;
 							out_file << bit;
 						}
 
 						// 3 bit dest => d1 d2 d3
-						for (int i = 5; i >= 3; --i) {
-							bool bit = (1 << i) & (dest_code << 3);
+						for (int i = 2; i >= 0; --i) {
+							bool bit = (1 << i) & dest_code;
 							out_file << bit;
 						}
 
