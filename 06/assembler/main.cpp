@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
 
 						out_file << std::endl;
 						break;
-m				}
+				}
 			}
 		}
 
