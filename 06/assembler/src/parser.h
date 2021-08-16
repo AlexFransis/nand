@@ -2,9 +2,9 @@
 
 
 enum Command {
-	A_COMMAND, // @xxx where xxx is a symbol or decimal
+	A_COMMAND, // \@xxx where xxx is a symbol or decimal
 	C_COMMAND, // dest=comp;jump
-	L_COMMAND // (xxx) where xxx is as symbol
+	L_COMMAND // (xxx) where xxx is a label
 
 };
 
@@ -13,13 +13,11 @@ class Parser {
 	private:
 		std::ifstream& 			m_fstream;
 		std::string 			m_line;
-		std::string				m_file_name;
-
 		std::string 			trim_ws(const std::string&);
 		std::string 			trim_comments(const std::string&);
 
 	public:
-		Parser(std::ifstream&, const std::string&);
+		Parser(std::ifstream&);
 		~Parser();
 
 		bool 					has_more_commands() const;

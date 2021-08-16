@@ -23,12 +23,12 @@ int main(int argc, char** argv) {
 		return 1;
 	}
 
-	std::ofstream out_file;
-	out_file.open(file_name.substr(0, pos) + out_ext);
-	
 	if (f_stream.is_open()) {
-		Parser parser (f_stream, file_name);
+		std::ofstream out_file;
+		out_file.open(file_name.substr(0, pos) + out_ext);
+		Parser parser (f_stream);
 		Code code;
+
 		while (parser.has_more_commands()) {
 			parser.advance();
 			std::string curr_line = parser.current_line();
@@ -46,13 +46,14 @@ int main(int argc, char** argv) {
 
 						// left most bit of A_COMMAND
 						out_file << 0;
+
 						// 15 bit val
 						for (int i = 14; i >= 0; --i) {
 							bool bit = (1 << i) & immediate;
 							out_file << bit;
 						}
-						out_file << std::endl;
 
+						out_file << std::endl;
 						break;
 					}
 				case L_COMMAND:
@@ -93,13 +94,12 @@ int main(int argc, char** argv) {
 
 						out_file << std::endl;
 						break;
-					}
+m				}
 			}
 		}
-	}
 
 	out_file.close();
+	}
 
 	return 0;
 }
-

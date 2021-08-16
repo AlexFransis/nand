@@ -2,8 +2,8 @@
 #include "parser.h"
 
 
-Parser::Parser(std::ifstream &fstream, const std::string &file_name)
-	:m_fstream(fstream), m_file_name(file_name)
+Parser::Parser(std::ifstream &fstream)
+	:m_fstream(fstream)
 {
 }
 
@@ -64,24 +64,24 @@ Command Parser::command_type(const std::string &curr_line){
 
 std::string Parser::symbol(const std::string &curr_line) {
 	assert(command_type(curr_line) == A_COMMAND || command_type(curr_line) == L_COMMAND);
-	const std::string symbols = "@(";
-	size_t pos = curr_line.find_first_of(symbols);
+	const std::string delim = "@(";
+	size_t pos = curr_line.find_first_of(delim);
 	return (pos == std::string::npos) ? std::string() : curr_line.substr(pos + 1);
 }
 
 std::string Parser::dest(const std::string &curr_line) {
 	assert(command_type(curr_line) == C_COMMAND);
-	const std::string dest = "=";
-	size_t pos = curr_line.find_first_of(dest);
+	const std::string delim = "=";
+	size_t pos = curr_line.find_first_of(delim);
 	return (pos == std::string::npos) ? std::string() : curr_line.substr(0, pos);
 }
 
 std::string Parser::comp(const std::string &curr_line) {
 	assert(command_type(curr_line) == C_COMMAND);
-	const std::string comp1 = "=";
-	const std::string comp2 = ";";
-	size_t pos1 = curr_line.find_first_of(comp1);
-	size_t pos2 = curr_line.find_first_of(comp2);
+	const std::string delim1 = "=";
+	const std::string delim2 = ";";
+	size_t pos1 = curr_line.find_first_of(delim1);
+	size_t pos2 = curr_line.find_first_of(delim2);
 
 	// D=A+1
 	if (pos1 != std::string::npos && pos2 == std::string::npos) {
@@ -103,7 +103,7 @@ std::string Parser::comp(const std::string &curr_line) {
 
 std::string Parser::jump(const std::string &curr_line) {
 	assert(command_type(curr_line) == C_COMMAND);
-	const std::string jump = ";";
-	size_t pos = curr_line.find_first_of(jump);
+	const std::string delim = ";";
+	size_t pos = curr_line.find_first_of(delim);
 	return pos == std::string::npos ? std::string() : curr_line.substr(pos + 1);
 }
