@@ -59,19 +59,23 @@ Code::Code()
 	};
 }
 
-uint8_t Code::dest(const std::string& s) {
+uint8_t Code::dest(const std::string &s)
+{
 	return dest_table[s];
 }
 
-uint8_t Code::jump(const std::string& s) {
+uint8_t Code::jump(const std::string &s)
+{
 	return jump_table[s];
 }
 
-uint8_t Code::comp(const std::string& s) {
+uint8_t Code::comp(const std::string &s)
+{
 	return comp_table[s];
 }
 
-uint16_t Code::immediate(const std::string& s) {
+uint16_t Code::immediate(const std::string &s)
+{
 	int val;
 	try {
 		val = std::stoi(s);
