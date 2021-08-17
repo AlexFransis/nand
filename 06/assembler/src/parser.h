@@ -11,26 +11,28 @@ enum Command {
 
 
 class Parser {
-	private:
-		std::ifstream& 			m_fstream;
-		std::string 			m_line;
-		std::string 			trim_ws(const std::string&);
-		std::string 			trim_comments(const std::string&);
-                bool 				is_valid_command(const std::string&);
-                bool 				is_comment(const std::string&);
-                bool 				is_ws(const std::string&);
+private:
+        std::ifstream& 			m_fstream;
+        std::string 			m_line;
+        unsigned int 			m_location_counter;
+        std::string 			trim_ws(const std::string&);
+        std::string 			trim_comments(const std::string&);
+        bool 				is_valid_command(const std::string&);
+        bool 				is_comment(const std::string&);
+        bool 				is_ws(const std::string&);
 
 
-	public:
-		Parser(std::ifstream&);
-		~Parser();
+public:
+        Parser(std::ifstream&);
+        ~Parser();
 
-		bool 				has_more_commands() const;
-		void 				advance();
-		std::string			current_line() const;
-		Command 			command_type(const std::string&);
-		std::string 			symbol(const std::string&);
-		std::string 			dest(const std::string&);
-		std::string 			comp(const std::string&);
-		std::string 			jump(const std::string&);
+        bool 				has_more_commands() const;
+        void 				advance();
+        unsigned int			lc() const;
+        std::string			current_line() const;
+        Command 			command_type(const std::string&);
+        std::string 			symbol(const std::string&);
+        std::string 			dest(const std::string&);
+        std::string 			comp(const std::string&);
+        std::string 			jump(const std::string&);
 };

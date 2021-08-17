@@ -4,6 +4,7 @@
 #include <bitset>
 #include "src/parser.h"
 #include "src/code.h"
+#include "src/symbol_table.h"
 
 
 int main(int argc, char **argv)
@@ -24,12 +25,31 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
+
 	if (f_stream.is_open()) {
 		std::ofstream out_file;
 		out_file.open(file_name.substr(0, pos) + out_ext);
 		Parser parser (f_stream);
 		Code code;
+                SymbolTable symbol_table;
 
+                // first pass
+                while (parser.has_more_commands()) {
+                        parser.advance();
+			std::string curr_line = parser.current_line();
+
+			Command c_type = parser.command_type(curr_line);
+                        if (c_type == L_COMMAND) {
+                                std::string curr_sym = parser.symbol(curr_line);
+                                symbol_table.add(curr_sym, parser.lc());
+                        }
+                }
+
+                // reset stream
+                f_stream.clear();
+                f_stream.seekg(0);
+
+                // second pass
 		while (parser.has_more_commands()) {
 			parser.advance();
 			std::string curr_line = parser.current_line();
@@ -37,23 +57,29 @@ int main(int argc, char **argv)
 			Command c_type = parser.command_type(curr_line);
 			switch (c_type) {
                                 case A_COMMAND: {
-                                        std::string val = parser.symbol(curr_line);
-                                        uint16_t immediate = code.immediate(val);
+                                        std::string symbol = parser.symbol(curr_line);
+                                        uint16_t addr;
+                                        if (std::isdigit(symbol.front())) {
+                                                addr = code.immediate(symbol);
+                                        }
+                                        else {
+                                                if (!symbol_table.contains(symbol)) {
+                                                        symbol_table.add(symbol);
+                                                }
+                                                addr = symbol_table.get_address(symbol);
+
+                                        }
 
                                         // left most bit of A_COMMAND
                                         out_file << 0;
 
                                         // 15 bit val
                                         for (int i = 14; i >= 0; --i) {
-                                                bool bit = (1 << i) & immediate;
+                                                bool bit = (1 << i) & addr;
                                                 out_file << bit;
                                         }
 
                                         out_file << std::endl;
-                                        break;
-                                }
-                                case L_COMMAND: {
-                                        std::string curr_sym = parser.symbol(curr_line);
                                         break;
                                 }
                                 case C_COMMAND: {
@@ -89,6 +115,8 @@ int main(int argc, char **argv)
                                         out_file << std::endl;
                                         break;
                                 }
+                                default:
+                                        break;
 			}
 		}
 

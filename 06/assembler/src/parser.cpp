@@ -3,7 +3,9 @@
 
 
 Parser::Parser(std::ifstream &fstream)
-	:m_fstream(fstream)
+	:m_fstream(fstream),
+         m_line(std::string()),
+         m_location_counter(0)
 {
 }
 
@@ -49,7 +51,7 @@ bool Parser::is_valid_command(const std::string &s)
                 return false;
         if (is_comment(s))
                 return false;
-        if (command_type(s) == INVALID)
+        if (command_type(trim_comments(trim_ws(s))) == INVALID)
                 return false;
 
         return true;
@@ -86,11 +88,19 @@ void Parser::advance()
 	std::string no_comments = trim_comments(line);
 	std::string no_ws = trim_ws(no_comments);
 	m_line = no_ws;
+
+        if (command_type(m_line) == A_COMMAND || command_type(m_line) == C_COMMAND)
+                m_location_counter++;
 }
 
 std::string Parser::current_line() const
 {
 	return m_line;
+}
+
+unsigned int Parser::lc() const
+{
+        return m_location_counter;
 }
 
 Command Parser::command_type(const std::string &curr_line)
@@ -120,10 +130,27 @@ Command Parser::command_type(const std::string &curr_line)
 
 std::string Parser::symbol(const std::string &curr_line)
 {
-	assert(command_type(curr_line) == A_COMMAND || command_type(curr_line) == L_COMMAND);
-	const std::string delim = "@(";
-	size_t pos = curr_line.find_first_of(delim);
-	return (pos == std::string::npos) ? std::string() : curr_line.substr(pos + 1);
+        Command c_type = command_type(curr_line);
+	assert(c_type == A_COMMAND || c_type == L_COMMAND);
+
+        const std::string a_delim = "@";
+	const std::string l_delim1 = "(";
+	const std::string l_delim2 = ")";
+
+        if (c_type == A_COMMAND) {
+                size_t pos = curr_line.find_first_of(a_delim);
+                return (pos == std::string::npos) ? std::string() : curr_line.substr(pos + 1);
+        }
+
+        if (c_type == L_COMMAND) {
+                size_t pos1 = curr_line.find_first_of(l_delim1);
+                size_t pos2 = curr_line.find_first_of(l_delim2);
+                return ((pos1 == std::string::npos) || (pos2 == std::string::npos))
+                        ? std::string()
+                        : curr_line.substr(pos1 + 1, pos2 - 1);
+        }
+
+        return std::string();
 }
 
 std::string Parser::dest(const std::string &curr_line)
