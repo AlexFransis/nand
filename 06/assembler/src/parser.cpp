@@ -39,15 +39,52 @@ std::string Parser::trim_comments(const std::string &s)
 
 bool Parser::has_more_commands() const
 {
-	return !m_fstream.eof();
+        int c = m_fstream.peek();
+	return !(c == EOF);
+}
+
+bool Parser::is_valid_command(const std::string &s)
+{
+        if (is_ws(s))
+                return false;
+        if (is_comment(s))
+                return false;
+        if (command_type(s) == INVALID)
+                return false;
+
+        return true;
+}
+
+bool Parser::is_comment(const std::string &s)
+{
+        std::string no_ws = trim_ws(s);
+        std::string delim = "//";
+        size_t pos = no_ws.find_first_of(delim);
+
+        if (pos == 0)
+                return true;
+
+        return false;
+}
+
+bool Parser::is_ws(const std::string &s)
+{
+        std::string no_ws = trim_ws(s);
+        if (no_ws.empty())
+                return true;
+
+        return false;
 }
 
 void Parser::advance()
 {
 	std::string line;
-	std::getline(m_fstream, line);
-	const std::string no_comments = trim_comments(line);
-	const std::string no_ws = trim_ws(no_comments);
+        do {
+                std::getline(m_fstream, line);
+        } while (!is_valid_command(line));
+
+	std::string no_comments = trim_comments(line);
+	std::string no_ws = trim_ws(no_comments);
 	m_line = no_ws;
 }
 
@@ -65,10 +102,20 @@ Command Parser::command_type(const std::string &curr_line)
 	}
 
 	if (first_char == '(') {
+                const std::string delim = ")";
+                size_t pos = curr_line.find_first_of(delim);
+                if (pos == std::string::npos)
+                        return INVALID;
 		return L_COMMAND;
 	}
 
-	return C_COMMAND;
+	const std::string delim = ";=";
+        size_t pos = curr_line.find_first_of(delim);
+        if (pos != std::string::npos) {
+                return C_COMMAND;
+        }
+
+        return INVALID;
 }
 
 std::string Parser::symbol(const std::string &curr_line)

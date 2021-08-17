@@ -34,9 +34,6 @@ int main(int argc, char **argv)
 			parser.advance();
 			std::string curr_line = parser.current_line();
 
-			if (curr_line.empty())
-                                continue;
-
 			Command c_type = parser.command_type(curr_line);
 			switch (c_type) {
                                 case A_COMMAND: {
