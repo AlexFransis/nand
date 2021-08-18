@@ -9,7 +9,6 @@ enum Command {
 
 };
 
-
 class Parser {
 private:
         std::ifstream& 			m_fstream;
