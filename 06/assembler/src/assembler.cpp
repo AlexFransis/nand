@@ -48,19 +48,25 @@ void Assembler::translate()
                                 case A_COMMAND: {
                                         std::string symbol = parser.symbol(curr_line);
                                         uint16_t addr;
+
+                                        // @1234
                                         if (std::isdigit(symbol.front())) {
                                                 addr = code.immediate(symbol);
+                                                std::string instr = assemble_ainstr(addr);
+                                                m_ostream << instr << std::endl;
+                                                break;
                                         }
-                                        else {
-                                                if (!symbol_table.contains(symbol)) {
-                                                        symbol_table.add(symbol);
-                                                }
-                                                addr = symbol_table.get_address(symbol);
 
+                                        // @symbol
+                                        if (!symbol_table.contains(symbol)) {
+                                                symbol_table.add(symbol);
                                         }
+
+                                        addr = symbol_table.get_address(symbol);
                                         std::string instr = assemble_ainstr(addr);
                                         m_ostream << instr << std::endl;
                                         break;
+
                                 }
                                 case C_COMMAND: {
                                         uint8_t dest_code = code.dest(parser.dest(curr_line));
