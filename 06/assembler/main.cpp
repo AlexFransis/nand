@@ -21,8 +21,6 @@ int main(int argc, char **argv)
         }
 
         std::string file_name = file.substr(0, pos);
-
-
         Assembler assembler (file_name, f_stream);
 
         try {
@@ -31,7 +29,6 @@ int main(int argc, char **argv)
         catch (...) {
                 std::cerr << "Could not assemble file: <" << file_name << "> " << std::endl;
         }
-
 
 	return 0;
 }
