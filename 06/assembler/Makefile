@@ -3,9 +3,8 @@ CFLAGS=-std=c++17 -Wall
 OFILES=main.o parser.o code.o assembler.o symbol_table.o
 
 main: $(OFILES)
-	$(CC) $(CFLAGS) parser.o code.o assembler.o symbol_table.o main.o -o main
+	$(CC) $(CFLAGS) $(OFILES) -o main
 	rm -f $(OFILES)
-
 
 main.o: main.cpp
 	$(CC) $(CFLAGS) -c main.cpp
