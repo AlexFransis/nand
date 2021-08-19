@@ -4,7 +4,6 @@ OFILES=main.o parser.o code.o assembler.o symbol_table.o
 
 main: $(OFILES)
 	$(CC) $(CFLAGS) $(OFILES) -o main
-	rm -f $(OFILES)
 
 main.o: main.cpp
 	$(CC) $(CFLAGS) -c main.cpp
