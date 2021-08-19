@@ -6,8 +6,8 @@
 class Code {
 private:
         std::unordered_map<std::string, uint8_t> 	m_dest_table;
-        std::unordered_map<std::string, uint8_t> 	m_comp_table;
         std::unordered_map<std::string, uint8_t> 	m_jump_table;
+        std::unordered_map<std::string, uint8_t> 	m_comp_table;
 
 public:
         Code();
