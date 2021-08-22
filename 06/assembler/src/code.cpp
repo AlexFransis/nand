@@ -1,3 +1,4 @@
+#include <stdexcept>
 #include "code.h"
 
 Code::Code():
