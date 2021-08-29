@@ -26,7 +26,7 @@ int main(int argc, char** argv)
                 return 1;
         }
 
-        VMTranslator translator (input, input_type == "-d" ? INPUT_TYPE::D : INPUT_TYPE::F);
+        VMTranslator translator (input, input_type == "-d" ? INPUT_TYPE::DIR : INPUT_TYPE::FILE);
 
         try {
                 translator.translate();

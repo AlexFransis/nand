@@ -8,9 +8,9 @@
 #include <vector>
 #include "command.h"
 
-enum INPUT_TYPE {
-        D, // dir
-        F // file
+enum class INPUT_TYPE {
+        DIR,
+        FILE
 };
 
 class VMTranslator {

@@ -43,7 +43,7 @@ void VMTranslator::translate()
 {
         // TODO: remove IO from translator class
         // get file or files from dir
-        if (m_input_type == INPUT_TYPE::D) {
+        if (m_input_type == INPUT_TYPE::DIR) {
                 if (!fs::exists(m_path) || !fs::is_directory(m_path)) {
                         throw std::domain_error("Invalid directory path");
                 }
@@ -56,7 +56,7 @@ void VMTranslator::translate()
                 std::copy(paths.begin(), paths.end(), std::back_inserter(m_files));
         }
 
-        if (m_input_type == INPUT_TYPE::F) {
+        if (m_input_type == INPUT_TYPE::FILE) {
                 if (!fs::exists(m_path) || !is_valid(m_path)) {
                         throw std::domain_error("Invalid file path");
                 }
@@ -65,11 +65,11 @@ void VMTranslator::translate()
         }
 
         std::string out_ext = ".asm";
-        if (m_input_type == INPUT_TYPE::F) {
+        if (m_input_type == INPUT_TYPE::FILE) {
                 m_ofstream.open(m_path.replace_extension(out_ext));
         }
 
-        if (m_input_type == INPUT_TYPE::D) {
+        if (m_input_type == INPUT_TYPE::DIR) {
                 // create a file in the directory passed
                 fs::path out = m_path / m_path.stem().replace_extension(out_ext);
                 m_ofstream.open(out);
@@ -77,32 +77,32 @@ void VMTranslator::translate()
 
         std::vector<fs::path>::const_iterator it = m_files.begin();
         while (it != m_files.end()) {
-                m_ifstream.open(*it);
                 m_ifstream.clear();
                 m_ifstream.seekg(0);
+                m_ifstream.open(*it);
 
                 Parser parser (m_ifstream);
 
                 while (parser.has_more_commands()) {
                         parser.advance();
-                        Command c = parser.current_line();
-                        std::string result = translate_command(c);
+                        Command c = parser.parse();
+                        // std::string result = translate_command(c);
 
-                        // m_ofstream << "Command type: " << command.command_type() << std::endl
-                        //            << "Arg1: " << command.arg1() << std::endl
-                        //            << "Arg2: " << command.arg2() << std::endl;
+                        m_ofstream << "Command type: " << c.command_type() << std::endl
+                                   << "Arg1: " << c.arg1() << std::endl
+                                   << "Arg2: " << c.arg2() << std::endl;
                 }
 
                 ++it;
         }
 }
 
-std::string VMTranslator::translate_command(const Command &c)
-{
-        if (c.command_type() == COMMAND_TYPE::C_PUSH || c.command_type() == COMMAND_TYPE::C_POP) {
+// std::string VMTranslator::translate_command(const Command &c)
+// {
+//         if (c.command_type() == COMMAND_TYPE::C_PUSH || c.command_type() == COMMAND_TYPE::C_POP) {
 
-        }
+//         }
 
-        if (c.command_type() == COMMAND_TYPE::C_ARITHMETIC) {
-        }
-}
+//         if (c.command_type() == COMMAND_TYPE::C_ARITHMETIC) {
+//         }
+// }
