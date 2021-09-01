@@ -9,6 +9,7 @@
 Parser::Parser(std::ifstream &ifstream)
         : m_ifstream(ifstream),
           m_command_rules({
+                        // command : < command_type , nb_args >
                         {"add", 	std::make_pair("C_ARITHMETIC", 0)},
                         {"sub", 	std::make_pair("C_ARITHMETIC", 0)},
                         {"neg", 	std::make_pair("C_ARITHMETIC", 0)},
@@ -123,12 +124,12 @@ std::vector<std::string> Parser::tokenize(const std::string &s)
         return splits;
 }
 
-Command Parser::parse() {
+VMCommand Parser::parse() {
         return parse(m_current_line);
 }
 
 
-Command Parser::parse(const std::string &s)
+VMCommand Parser::parse(const std::string &s)
 {
         typedef std::unordered_map<std::string, std::pair<std::string, unsigned int>> command_rules;
         typedef std::vector<std::string>::size_type vec_size;
@@ -159,5 +160,5 @@ Command Parser::parse(const std::string &s)
                 std::domain_error("Line: " + std::to_string(m_line_number) + ": invalid args.");
         }
 
-        return Command (command_type, args);
+        return VMCommand (command_type, command, args);
 }

@@ -1,25 +1,21 @@
-#include "command.h"
+#include "vm_command.h"
 #include <iterator>
 #include <stdexcept>
 #include <algorithm>
 #include <string>
 #include <vector>
 
-Command::Command(const std::string &type)
-        : m_type(type),
-          m_args(std::vector<std::string>())
-{
-}
 
-Command::Command(const std::string &type, const std::vector<std::string> &args)
-        : m_type(type),
+VMCommand::VMCommand(const std::string &type, const std::string &command, const std::vector<std::string> &args)
+        : m_command_type(type),
+          m_command(command),
           m_args(std::vector<std::string>())
 {
         std::copy(args.begin(), args.end(), std::back_inserter(m_args));
 }
 
 
-std::string Command::arg1()
+std::string VMCommand::arg1() const
 {
         if (m_args.size() > 0) {
                 return m_args[0];
@@ -28,7 +24,7 @@ std::string Command::arg1()
         return std::string();
 }
 
-std::string Command::arg2()
+std::string VMCommand::arg2() const
 {
         if (m_args.size() > 1)
         {

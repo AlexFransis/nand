@@ -6,7 +6,7 @@
 #include <filesystem>
 #include <unordered_map>
 #include <vector>
-#include "command.h"
+#include "vm_command.h"
 
 class Parser {
 private:
@@ -29,8 +29,8 @@ public:
         inline std::string 			current_line() const {return m_current_line;};
         bool					has_more_commands() const;
         void					advance();
-        Command					parse();
-        Command					parse(const std::string &s);
+        VMCommand				parse();
+        VMCommand				parse(const std::string &s);
 };
 
 #endif

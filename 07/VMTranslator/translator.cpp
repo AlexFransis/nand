@@ -1,23 +1,22 @@
-#include "translator.h"
-#include "parser.h"
+#include <iostream>
+#include <list>
 #include <ostream>
 #include <stdexcept>
 #include <vector>
-#include <cassert>
+#include <string>
+#include <cstdio>
+#include "translator.h"
+#include "parser.h"
+#include "asm_commands.h"
 
 namespace fs = std::filesystem;
 
-bool VMTranslator::is_valid(const fs::path &file) {
-        std::string valid_ext = ".vm";
-        return file.extension() == valid_ext;
-}
-
-std::vector<fs::path> VMTranslator::get_valid_files(const fs::path &dir) {
+std::vector<fs::path> VMTranslator::traverse_dir(const fs::path &dir, const std::string &ext) {
         std::vector<fs::path> ret;
         for (const fs::directory_entry &e :
                      fs::recursive_directory_iterator(dir)) {
                 fs::path file_p = e.path();
-                if (is_valid(file_p)) {
+                if (file_p.extension() == ext) {
                         ret.push_back(file_p);
                 }
         }
@@ -39,70 +38,79 @@ VMTranslator::~VMTranslator()
         m_ofstream.close();
 }
 
-void VMTranslator::translate()
+void VMTranslator::begin()
 {
         // TODO: remove IO from translator class
-        // get file or files from dir
-        if (m_input_type == INPUT_TYPE::DIR) {
-                if (!fs::exists(m_path) || !fs::is_directory(m_path)) {
-                        throw std::domain_error("Invalid directory path");
-                }
-
-                std::vector<fs::path> paths = get_valid_files(m_path);
-                if (paths.size() == 0) {
-                        throw std::domain_error("No valid files in directory");
-                }
-
-                std::copy(paths.begin(), paths.end(), std::back_inserter(m_files));
-        }
-
-        if (m_input_type == INPUT_TYPE::FILE) {
-                if (!fs::exists(m_path) || !is_valid(m_path)) {
-                        throw std::domain_error("Invalid file path");
-                }
-
-                m_files.push_back(m_path);
-        }
-
         std::string out_ext = ".asm";
-        if (m_input_type == INPUT_TYPE::FILE) {
-                m_ofstream.open(m_path.replace_extension(out_ext));
-        }
+        std::string in_ext = ".vm";
 
-        if (m_input_type == INPUT_TYPE::DIR) {
-                // create a file in the directory passed
-                fs::path out = m_path / m_path.stem().replace_extension(out_ext);
-                m_ofstream.open(out);
-        }
+        m_files = get_valid_files(m_input_type, in_ext);
+        open_output(m_input_type, out_ext);
 
         std::vector<fs::path>::const_iterator it = m_files.begin();
         while (it != m_files.end()) {
+                std::cout << "Starting translation of file: " << *it << std::endl;
                 m_ifstream.clear();
                 m_ifstream.seekg(0);
                 m_ifstream.open(*it);
 
                 Parser parser (m_ifstream);
-
                 while (parser.has_more_commands()) {
                         parser.advance();
-                        Command c = parser.parse();
-                        // std::string result = translate_command(c);
+                        VMCommand c = parser.parse();
+                        ASMCommands a;
+                        std::list<std::string> asm_lines = a.get_asm_commands(c);
 
-                        m_ofstream << "Command type: " << c.command_type() << std::endl
-                                   << "Arg1: " << c.arg1() << std::endl
-                                   << "Arg2: " << c.arg2() << std::endl;
+                        for (const std::string &s : asm_lines)
+                        {
+                                m_ofstream << s;
+                        }
                 }
 
+                std::cout << "Translation complete of file: " << *it << std::endl;
                 ++it;
         }
 }
 
-// std::string VMTranslator::translate_command(const Command &c)
-// {
-//         if (c.command_type() == COMMAND_TYPE::C_PUSH || c.command_type() == COMMAND_TYPE::C_POP) {
+std::vector<fs::path> VMTranslator::get_valid_files(INPUT_TYPE input, const std::string &ext)
+{
+        std::vector<fs::path> ret;
+        if (m_input_type == INPUT_TYPE::DIR) {
+                if (!fs::exists(m_path) || !fs::is_directory(m_path)) {
+                        throw std::domain_error("Invalid directory path");
+                }
 
-//         }
+                std::vector<fs::path> files = traverse_dir(m_path, ext);
+                if (files.size() == 0) {
+                        throw std::domain_error("No valid files in directory");
+                }
 
-//         if (c.command_type() == COMMAND_TYPE::C_ARITHMETIC) {
-//         }
-// }
+                std::copy(files.begin(), files.end(), std::back_inserter(ret));
+        }
+
+        if (m_input_type == INPUT_TYPE::FILE) {
+                if (!fs::exists(m_path) || m_path.extension() != ext) {
+                        throw std::domain_error("Invalid file path");
+                }
+
+                ret.push_back(m_path);
+        }
+
+        return ret;
+}
+
+void VMTranslator::open_output(INPUT_TYPE input, const std::string &ext)
+{
+        if (m_input_type == INPUT_TYPE::FILE) {
+                fs::path out = m_path.replace_extension(ext);
+                std::cout << "Opening output file: " << out << std::endl;
+                m_ofstream.open(out);
+        }
+
+        if (m_input_type == INPUT_TYPE::DIR) {
+                // create a file in the directory passed
+                fs::path out = m_path / m_path.stem().replace_extension(ext);
+                std::cout << "Opening output file: " << out << std::endl;
+                m_ofstream.open(out);
+        }
+}

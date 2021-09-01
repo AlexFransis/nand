@@ -29,7 +29,7 @@ int main(int argc, char** argv)
         VMTranslator translator (input, input_type == "-d" ? INPUT_TYPE::DIR : INPUT_TYPE::FILE);
 
         try {
-                translator.translate();
+                translator.begin();
         } catch (const std::domain_error &err) {
                 std::cerr << err.what() << std::endl;
         }
