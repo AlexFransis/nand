@@ -63,7 +63,7 @@ void VMTranslator::begin()
 
                         for (const std::string &s : asm_lines)
                         {
-                                m_ofstream << s;
+                                m_ofstream << s << std::endl;
                         }
                 }
 
