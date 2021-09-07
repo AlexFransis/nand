@@ -1,5 +1,3 @@
-#include "asm_commands.h"
-#include "vm_command.h"
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
@@ -7,6 +5,8 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include "asm_commands.h"
+#include "vm_command.h"
 
 typedef std::vector<std::string> commands;
 typedef std::unordered_map<std::string, commands> command_table;
@@ -28,23 +28,19 @@ ASMCommands::ASMCommands()
 
 std::list<std::string> ASMCommands::get_asm_commands(const VMCommand &command)
 {
-        std::string c_type = command.command();
         std::list<std::string> asm_commands;
-        std::unordered_map<int, bool> collision_check;
 
-        get_asm_commands_aux(m_asm_rules, to_brackets(c_type), std::back_inserter(asm_commands));
-        resolve_placeholders(m_asm_rules, command, asm_commands, collision_check);
+        get_asm_commands_aux(m_asm_rules, to_brackets(command.command()), asm_commands);
+        resolve_placeholders(m_asm_rules, command, asm_commands);
 
         return asm_commands;
 }
 
-template<class insert_iterator>
-void ASMCommands::get_asm_commands_aux(const command_table &c_table,
-                                       const std::string &command,
-                                       insert_iterator insert)
+void ASMCommands::get_asm_commands_aux(const command_table &c_table, const std::string &command,
+                                       std::list<std::string> &asm_commands)
 {
         if (!is_bracketed(command)) {
-                *insert++ = command;
+                asm_commands.push_back(command);
                 return;
         }
 
@@ -55,11 +51,13 @@ void ASMCommands::get_asm_commands_aux(const command_table &c_table,
 
         commands commands = found->second;
         commands::const_iterator it = commands.begin();
+
         while (it != commands.end()) {
-                get_asm_commands_aux(c_table, *it, insert);
+                get_asm_commands_aux(c_table, *it, asm_commands);
                 ++it;
         }
 }
+
 bool ASMCommands::is_valid_index(const std::string &segment, const std::string &str_index)
 {
         std::string::const_iterator it = str_index.begin();
@@ -68,7 +66,7 @@ bool ASMCommands::is_valid_index(const std::string &segment, const std::string &
                 ++it;
         }
 
-        uint16_t index = std::stoi(str_index);
+        int index = std::stoi(str_index);
         if (index < 0) return false;
         if (segment == "constant") return index <= 32767;
         if (segment == "pointer") return index <= 1;
@@ -77,22 +75,21 @@ bool ASMCommands::is_valid_index(const std::string &segment, const std::string &
         return true;
 }
 
-void ASMCommands::resolve_placeholders(const command_table &c_table,
-                                       const VMCommand &command,
-                                       std::list<std::string> &asm_commands,
-                                       std::unordered_map<int, bool> &collision_check)
+std::string ASMCommands::get_uuid()
 {
-        // validate there are no collisions during the lifetime of the translator
-        int int_rand = 0;
-        do {
-                int_rand = std::rand() % 2000;
+        std::string alphanumeric = "0123456789abcdefghijklmnopqrstuvwxyz";
+        char uuid[16];
+        for (int i = 0; i < 16; i++) {
+                uuid[i] = alphanumeric[std::rand() % (alphanumeric.length() - 1)];
         }
-        while (collision_check.count(int_rand) == 1);
-        std::pair<int, bool> valid (int_rand, true);
-        collision_check.insert(valid);
 
-        std::string rand = std::to_string(int_rand);
+        return std::string(uuid);
+}
 
+void ASMCommands::resolve_placeholders(const command_table &c_table, const VMCommand &command,
+                                       std::list<std::string> &asm_commands)
+{
+        std::string uuid = get_uuid();
         std::list<std::string>::iterator it = asm_commands.begin();
         while (it != asm_commands.end()) {
                 size_t delim_start = it->find("{{");
@@ -133,10 +130,10 @@ void ASMCommands::resolve_placeholders(const command_table &c_table,
                                 it->erase(delim_start, (delim_end + 2) - delim_start);
                         }
 
-                        if (placeholder == "rand") {
-                                it->insert(delim_start, rand);
-                                delim_start = delim_start + rand.length();
-                                delim_end = delim_end + rand.length();
+                        if (placeholder == "uuid") {
+                                it->insert(delim_start, uuid);
+                                delim_start = delim_start + uuid.length();
+                                delim_end = delim_end + uuid.length();
                                 it->erase(delim_start, (delim_end + 2) - delim_start);
                         }
                 }
@@ -162,54 +159,56 @@ command_table ASMCommands::init_rules()
                 {"<load>", 		{"M=D"}},
                 {"<increment>", 	{"@SP", "AM=M+1"}},
                 {"<decrement>", 	{"@SP", "AM=M-1"}},
-                {"<double-dec>", 	{"@SP", "AM=M-1", "A=A-1"}},
+                {"<double-dec>", 	{"@SP", "M=M-1", "AM=M-1"}},
 
                 // ===== C_ARITHMETIC =====
-                {"<compute-add>", 	{"MD=M+D"}},
-                {"<compute-sub>", 	{"MD=M-D"}},
-                {"<compute-neg>", 	{"MD=-D"}},
                 {"<compute-eq>", 	{"<compute-sub>",
-                                         "@eqtrue__{{rand}}",
+                                         "@eqtrue__{{uuid}}",
                                          "D;JEQ",
                                          "MD=0",
-                                         "@eqend__{{rand}}",
+                                         "@eqend__{{uuid}}",
                                          "0;JMP",
-                                         "(eqtrue__{{rand}})",
+                                         "(eqtrue__{{uuid}})",
                                          "@SP",
                                          "A=M",
                                          "MD=-1",
-                                         "(eqend__{{rand}})"}},
+                                         "(eqend__{{uuid}})"}},
+
                 {"<compute-gt>", 	{"<compute-sub>",
-                                         "@gttrue__{{rand}}",
+                                         "@gttrue__{{uuid}}",
                                          "D;JLT",
                                          "MD=0",
-                                         "@gtend__{{rand}}",
+                                         "@gtend__{{uuid}}",
                                          "0;JMP",
-                                         "(gttrue__{{rand}})",
+                                         "(gttrue__{{uuid}})",
                                          "@SP",
                                          "A=M",
                                          "MD=-1",
-                                         "(gtend__{{rand}})"}},
+                                         "(gtend__{{uuid}})"}},
+
                 {"<compute-lt>", 	{"<compute-sub>",
-                                         "@lttrue__{{rand}}",
+                                         "@lttrue__{{uuid}}",
                                          "D;JGT",
                                          "MD=0",
-                                         "@ltend__{{rand}}",
+                                         "@ltend__{{uuid}}",
                                          "0;JMP",
-                                         "(lttrue__{{rand}})",
+                                         "(lttrue__{{uuid}})",
                                          "@SP",
                                          "A=M",
                                          "MD=-1",
-                                         "(ltend__{{rand}})"}},
+                                         "(ltend__{{uuid}})"}},
                 {"<compute-and>", 	{"MD=M&D"}},
                 {"<compute-or>", 	{"MD=M|D"}},
                 {"<compute-not>", 	{"MD=!D"}},
+                {"<compute-add>", 	{"MD=M+D"}},
+                {"<compute-sub>", 	{"MD=M-D"}},
+                {"<compute-neg>", 	{"MD=-D"}},
 
                 // ===== VM COMMANDS =====
                 {"<push>", 		{"<store>", "<move>", "<increment>"}},
                 {"<pop>", 		{"<decrement>", "<move>"}},
 
-                {"<add>", 		{"<decrement>", "<decrement>", "<compute-add>", "<increment>"}},
+                {"<add>", 		{"<double-dec>", "<compute-add>", "<increment>"}},
                 {"<sub>", 		{"<decrement>", "<decrement>", "<compute-sub>", "<increment>"}},
                 {"<eq>", 		{"<decrement>", "<decrement>", "<compute-eq>", "<increment>"}},
                 {"<gt>", 		{"<decrement>", "<decrement>", "<compute-gt>", "<increment>"}},

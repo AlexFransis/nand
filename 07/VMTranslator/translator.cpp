@@ -11,19 +11,6 @@
 
 namespace fs = std::filesystem;
 
-std::vector<fs::path> VMTranslator::traverse_dir(const fs::path &dir, const std::string &ext) {
-        std::vector<fs::path> ret;
-        for (const fs::directory_entry &e :
-                     fs::recursive_directory_iterator(dir)) {
-                fs::path file_p = e.path();
-                if (file_p.extension() == ext) {
-                        ret.push_back(file_p);
-                }
-        }
-
-        return ret;
-}
-
 VMTranslator::VMTranslator(const std::string &path, INPUT_TYPE input)
         :m_path(fs::path(path)),
          m_input_type(input)
@@ -55,10 +42,10 @@ void VMTranslator::begin()
                 m_ifstream.open(*it);
 
                 Parser parser (m_ifstream);
+                ASMCommands a;
                 while (parser.has_more_commands()) {
                         parser.advance();
                         VMCommand c = parser.parse();
-                        ASMCommands a;
                         std::list<std::string> asm_lines = a.get_asm_commands(c);
 
                         for (const std::string &s : asm_lines)
@@ -74,7 +61,7 @@ void VMTranslator::begin()
 
 std::vector<fs::path> VMTranslator::get_valid_files(INPUT_TYPE input, const std::string &ext)
 {
-        std::vector<fs::path> ret;
+        std::vector<fs::path> result;
         if (m_input_type == INPUT_TYPE::DIR) {
                 if (!fs::exists(m_path) || !fs::is_directory(m_path)) {
                         throw std::domain_error("Invalid directory path");
@@ -85,7 +72,7 @@ std::vector<fs::path> VMTranslator::get_valid_files(INPUT_TYPE input, const std:
                         throw std::domain_error("No valid files in directory");
                 }
 
-                std::copy(files.begin(), files.end(), std::back_inserter(ret));
+                std::copy(files.begin(), files.end(), std::back_inserter(result));
         }
 
         if (m_input_type == INPUT_TYPE::FILE) {
@@ -93,10 +80,10 @@ std::vector<fs::path> VMTranslator::get_valid_files(INPUT_TYPE input, const std:
                         throw std::domain_error("Invalid file path");
                 }
 
-                ret.push_back(m_path);
+                result.push_back(m_path);
         }
 
-        return ret;
+        return result;
 }
 
 void VMTranslator::open_output(INPUT_TYPE input, const std::string &ext)
@@ -113,4 +100,16 @@ void VMTranslator::open_output(INPUT_TYPE input, const std::string &ext)
                 std::cout << "Opening output file: " << out << std::endl;
                 m_ofstream.open(out);
         }
+}
+
+std::vector<fs::path> VMTranslator::traverse_dir(const fs::path &dir, const std::string &ext) {
+        std::vector<fs::path> ret;
+        for (const fs::directory_entry &e : fs::recursive_directory_iterator(dir)) {
+                fs::path file_p = e.path();
+                if (file_p.extension() == ext) {
+                        ret.push_back(file_p);
+                }
+        }
+
+        return ret;
 }

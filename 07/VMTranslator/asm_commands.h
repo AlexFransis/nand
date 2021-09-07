@@ -19,18 +19,13 @@ private:
         bool					is_valid_index(const std::string &segment,
                                                                const std::string &str_index);
         command_table 				init_rules();
-        /*
-         * Recursively builds a list of ASM commands from the command table.
-         * Counts the number of placeholders that need to be resolved.
-         */
-        template<class insert_iterator>
+        std::string 				get_uuid();
         void					get_asm_commands_aux(const command_table &c_table,
                                                                      const std::string &command,
-                                                                     insert_iterator insert);
+                                                                     std::list<std::string> &asm_commands);
         void					resolve_placeholders(const command_table &c_table,
                                                                      const VMCommand &command,
-                                                                     std::list<std::string> &asm_commands,
-                                                                     std::unordered_map<int, bool> &collision_check);
+                                                                     std::list<std::string> &asm_commands);
 
 public:
         ASMCommands();
