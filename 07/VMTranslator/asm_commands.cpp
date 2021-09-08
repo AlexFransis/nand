@@ -78,10 +78,12 @@ bool ASMCommands::is_valid_index(const std::string &segment, const std::string &
 std::string ASMCommands::get_uuid()
 {
         std::string alphanumeric = "0123456789abcdefghijklmnopqrstuvwxyz";
-        char uuid[16];
+        char uuid[17];
         for (int i = 0; i < 16; i++) {
-                uuid[i] = alphanumeric[std::rand() % (alphanumeric.length() - 1)];
+                int rand = std::rand() % alphanumeric.length();
+                uuid[i] = alphanumeric[rand];
         }
+        uuid[16] = '\0';
 
         return std::string(uuid);
 }
@@ -147,7 +149,7 @@ command_table ASMCommands::init_rules()
         return {
                 // MEMORY ACCESS
                 {"<argument>", 		{"@ARG"}},
-                {"<local>", 		{"@LCL"}},
+                {"<local>", 		{"<constant>", "@LCL", "A=M+D", "D=M"}},
                 {"<static>", 		{"@R{{index}}"}},
                 {"<constant>", 		{"@{{index}}", "D=A"}},
                 {"<this>", 		{"@THIS"}},
@@ -165,37 +167,43 @@ command_table ASMCommands::init_rules()
                 {"<compute-eq>", 	{"<compute-sub>",
                                          "@eqtrue__{{uuid}}",
                                          "D;JEQ",
-                                         "MD=0",
+                                         "@SP",
+                                         "A=M",
+                                         "M=0",
                                          "@eqend__{{uuid}}",
                                          "0;JMP",
                                          "(eqtrue__{{uuid}})",
                                          "@SP",
                                          "A=M",
-                                         "MD=-1",
+                                         "M=-1",
                                          "(eqend__{{uuid}})"}},
 
                 {"<compute-gt>", 	{"<compute-sub>",
                                          "@gttrue__{{uuid}}",
-                                         "D;JLT",
-                                         "MD=0",
+                                         "D;JGT",
+                                         "@SP",
+                                         "A=M",
+                                         "M=0",
                                          "@gtend__{{uuid}}",
                                          "0;JMP",
                                          "(gttrue__{{uuid}})",
                                          "@SP",
                                          "A=M",
-                                         "MD=-1",
+                                         "M=-1",
                                          "(gtend__{{uuid}})"}},
 
                 {"<compute-lt>", 	{"<compute-sub>",
                                          "@lttrue__{{uuid}}",
-                                         "D;JGT",
-                                         "MD=0",
+                                         "D;JLT",
+                                         "@SP",
+                                         "A=M",
+                                         "M=0",
                                          "@ltend__{{uuid}}",
                                          "0;JMP",
                                          "(lttrue__{{uuid}})",
                                          "@SP",
                                          "A=M",
-                                         "MD=-1",
+                                         "M=-1",
                                          "(ltend__{{uuid}})"}},
                 {"<compute-and>", 	{"MD=M&D"}},
                 {"<compute-or>", 	{"MD=M|D"}},
@@ -209,12 +217,12 @@ command_table ASMCommands::init_rules()
                 {"<pop>", 		{"<decrement>", "<move>"}},
 
                 {"<add>", 		{"<double-dec>", "<compute-add>", "<increment>"}},
-                {"<sub>", 		{"<decrement>", "<decrement>", "<compute-sub>", "<increment>"}},
-                {"<eq>", 		{"<decrement>", "<decrement>", "<compute-eq>", "<increment>"}},
-                {"<gt>", 		{"<decrement>", "<decrement>", "<compute-gt>", "<increment>"}},
-                {"<lt>", 		{"<decrement>", "<decrement>", "<compute-lt>", "<increment>"}},
-                {"<or>", 		{"<decrement>", "<decrement>", "<compute-or>", "<increment>"}},
-                {"<and>", 		{"<decrement>", "<decrement>", "<compute-and>", "<increment>"}},
+                {"<sub>", 		{"<double-dec>", "<compute-sub>", "<increment>"}},
+                {"<eq>", 		{"<double-dec>", "<compute-eq>", "<increment>"}},
+                {"<gt>", 		{"<double-dec>", "<compute-gt>", "<increment>"}},
+                {"<lt>", 		{"<double-dec>", "<compute-lt>", "<increment>"}},
+                {"<or>", 		{"<double-dec>", "<compute-or>", "<increment>"}},
+                {"<and>", 		{"<double-dec>", "<compute-and>", "<increment>"}},
                 {"<neg>", 		{"<decrement>", "<compute-neg>", "<increment>"}},
                 {"<not>", 		{"<decrement>", "<compute-not>", "<increment>"}},
         };
