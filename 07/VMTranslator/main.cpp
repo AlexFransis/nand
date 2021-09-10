@@ -34,5 +34,7 @@ int main(int argc, char** argv)
                 std::cerr << err.what() << std::endl;
         }
 
+        std::cout << "[INFO] Translation completed" << std::endl;
+
         return 0;
 }

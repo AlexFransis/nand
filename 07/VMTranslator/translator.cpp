@@ -36,16 +36,16 @@ void VMTranslator::begin()
 
         std::vector<fs::path>::const_iterator it = m_files.begin();
         while (it != m_files.end()) {
-                std::cout << "Starting translation of file: " << *it << std::endl;
+                std::cout << "[INFO] Begin translation: " << std::string(fs::absolute(it->filename())) << std::endl;
                 m_ifstream.clear();
                 m_ifstream.seekg(0);
                 m_ifstream.open(*it);
 
                 Parser parser (m_ifstream);
-                ASMCommands a;
                 while (parser.has_more_commands()) {
                         parser.advance();
                         VMCommand c = parser.parse();
+                        ASMCommands a;
                         std::list<std::string> asm_lines = a.get_asm_commands(c);
 
                         for (const std::string &s : asm_lines)
@@ -54,7 +54,6 @@ void VMTranslator::begin()
                         }
                 }
 
-                std::cout << "Translation complete of file: " << *it << std::endl;
                 ++it;
         }
 }
@@ -90,14 +89,14 @@ void VMTranslator::open_output(INPUT_TYPE input, const std::string &ext)
 {
         if (m_input_type == INPUT_TYPE::FILE) {
                 fs::path out = m_path.replace_extension(ext);
-                std::cout << "Opening output file: " << out << std::endl;
+                std::cout << "[INFO] Opening output file: " << std::string(fs::absolute(out.filename())) << std::endl;
                 m_ofstream.open(out);
         }
 
         if (m_input_type == INPUT_TYPE::DIR) {
                 // create a file in the directory passed
                 fs::path out = m_path / m_path.stem().replace_extension(ext);
-                std::cout << "Opening output file: " << out << std::endl;
+                std::cout << "[INFO] Opening output file: " << std::string(fs::absolute(out.filename())) << std::endl;
                 m_ofstream.open(out);
         }
 }
