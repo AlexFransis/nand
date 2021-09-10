@@ -55,9 +55,10 @@ std::string ASMCommands::get_uuid()
         return std::string(uuid);
 }
 
-ASMCommands::ASMCommands()
+ASMCommands::ASMCommands(const std::string &filename)
         : m_asm_rules(init_rules()),
-          m_uuid(get_uuid())
+          m_uuid(get_uuid()),
+          m_filename(filename)
 {
 }
 
@@ -140,6 +141,16 @@ commands ASMCommands::resolve_placeholder(const command_table &c_table, const VM
                 return { uuid };
         }
 
+        if (placeholder == "filename") {
+                std::string filename = s;
+                filename.insert(delim_start, m_filename);
+                delim_start = delim_start + m_filename.length();
+                delim_end = delim_end + m_filename.length();
+                filename.erase(delim_start, (delim_end + 2) - delim_start);
+
+                return { filename };
+        }
+
         return std::vector<std::string>();
 }
 
@@ -149,7 +160,7 @@ command_table ASMCommands::init_rules()
                 // MEMORY ACCESS
                 {"<argument>", 		{"<constant>", "@ARG", "D=M+D", "@R13", "AM=D", "D=M"}},
                 {"<local>", 		{"<constant>", "@LCL", "D=M+D", "@R13", "AM=D", "D=M"}},
-                {"<static>", 		{"@R{{index}}"}},
+                {"<static>", 		{"@{{filename}}.{{index}}", "D=A", "@R13", "AM=D", "D=M"}},
                 {"<constant>", 		{"@{{index}}", "D=A"}},
                 {"<this>", 		{"<constant>", "@THIS", "D=M+D", "@R13", "AM=D", "D=M"}},
                 {"<that>", 		{"<constant>", "@THAT", "D=M+D", "@R13", "AM=D", "D=M"}},

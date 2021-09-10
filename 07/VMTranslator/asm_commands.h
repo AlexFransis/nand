@@ -16,6 +16,7 @@ class ASMCommands {
 private:
         command_table				m_asm_rules;
         std::string				m_uuid;
+        std::string				m_filename;
         bool					is_bracketed(const std::string &s);
         bool					is_placeholder(const std::string &s);
         bool					is_valid_index(const std::string &segment,
@@ -30,7 +31,7 @@ private:
                                                                      const VMCommand &vm,
                                                                      std::list<std::string> &asm_commands);
 public:
-        ASMCommands();
+        ASMCommands(const std::string &filename);
 
         std::list<std::string>			get_asm_commands(const VMCommand &command);
 };
