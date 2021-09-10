@@ -79,20 +79,21 @@ void ASMCommands::get_asm_commands_aux(const command_table &c_table, const std::
 
         if (is_placeholder(command)) {
                 commands resolved = resolve_placeholder(c_table, vm, command);
-                for (const std::string &c : resolved) {
-                        get_asm_commands_aux(c_table, c, vm, asm_commands);
+                commands::const_iterator it = resolved.begin();
+                while (it != resolved.end()) {
+                        get_asm_commands_aux(c_table, *it, vm, asm_commands);
+                        ++it;
                 }
                 return;
         }
 
         command_table::const_iterator found = c_table.find(command);
         if (found == c_table.end()) {
-                std::domain_error("Invalid command: " + command);
+                std::domain_error("[ERROR] Invalid command: " + command);
         }
 
         commands commands = found->second;
         commands::iterator it = commands.begin();
-
         while (it != commands.end()) {
                 get_asm_commands_aux(c_table, *it, vm, asm_commands);
                 ++it;
@@ -109,23 +110,21 @@ commands ASMCommands::resolve_placeholder(const command_table &c_table, const VM
         if (placeholder == "segment") {
                 command_table::const_iterator segment = m_asm_rules.find(to_brackets(vm.arg1()));
                 if (segment == m_asm_rules.end()) {
-                        std::domain_error("could not resolve arg: " + vm.arg1());
+                        std::domain_error("[ERROR] Could not resolve arg: " + vm.arg1());
                 }
 
                 return segment->second;
         }
 
         if (placeholder == "index") {
-                std::string seg = vm.arg1();
-                std::string i = vm.arg2();
-                if (!is_valid_index(seg, i)) {
-                        std::domain_error("invalid index: " + i);
+                if (!is_valid_index(vm.arg1(), vm.arg2())) {
+                        std::domain_error("[ERROR] Invalid index: " + vm.arg2());
                 }
 
                 std::string index = s;
-                index.insert(delim_start, i);
-                delim_start = delim_start + i.length();
-                delim_end = delim_end + i.length();
+                index.insert(delim_start, vm.arg2());
+                delim_start = delim_start + vm.arg2().length();
+                delim_end = delim_end + vm.arg2().length();
                 index.erase(delim_start, (delim_end + 2) - delim_start);
 
                 return { index };

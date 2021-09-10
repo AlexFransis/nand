@@ -32,6 +32,7 @@ int main(int argc, char** argv)
                 translator.begin();
         } catch (const std::domain_error &err) {
                 std::cerr << err.what() << std::endl;
+                return 1;
         }
 
         std::cout << "[INFO] Translation completed" << std::endl;

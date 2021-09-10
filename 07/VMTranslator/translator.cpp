@@ -63,12 +63,12 @@ std::vector<fs::path> VMTranslator::get_valid_files(INPUT_TYPE input, const std:
         std::vector<fs::path> result;
         if (m_input_type == INPUT_TYPE::DIR) {
                 if (!fs::exists(m_path) || !fs::is_directory(m_path)) {
-                        throw std::domain_error("Invalid directory path");
+                        throw std::domain_error("[ERROR] Invalid directory path");
                 }
 
                 std::vector<fs::path> files = traverse_dir(m_path, ext);
                 if (files.size() == 0) {
-                        throw std::domain_error("No valid files in directory");
+                        throw std::domain_error("[ERROR] No valid files in directory");
                 }
 
                 std::copy(files.begin(), files.end(), std::back_inserter(result));
@@ -76,7 +76,7 @@ std::vector<fs::path> VMTranslator::get_valid_files(INPUT_TYPE input, const std:
 
         if (m_input_type == INPUT_TYPE::FILE) {
                 if (!fs::exists(m_path) || m_path.extension() != ext) {
-                        throw std::domain_error("Invalid file path");
+                        throw std::domain_error("[ERROR] Invalid file path");
                 }
 
                 result.push_back(m_path);
