@@ -116,14 +116,16 @@ commands ASMCommands::resolve_placeholder(const command_table &c_table, const VM
         }
 
         if (placeholder == "index") {
-                if (!is_valid_index(vm.arg1(), vm.arg2())) {
-                        std::domain_error("invalid index: " + vm.arg2());
+                std::string seg = vm.arg1();
+                std::string i = vm.arg2();
+                if (!is_valid_index(seg, i)) {
+                        std::domain_error("invalid index: " + i);
                 }
 
                 std::string index = s;
-                index.insert(delim_start, index);
-                delim_start = delim_start + index.length();
-                delim_end = delim_end + index.length();
+                index.insert(delim_start, i);
+                delim_start = delim_start + i.length();
+                delim_end = delim_end + i.length();
                 index.erase(delim_start, (delim_end + 2) - delim_start);
 
                 return { index };
@@ -152,8 +154,8 @@ command_table ASMCommands::init_rules()
                 {"<constant>", 		{"@{{index}}", "D=A"}},
                 {"<this>", 		{"<constant>", "@THIS", "D=M+D", "@R13", "AM=D", "D=M"}},
                 {"<that>", 		{"<constant>", "@THAT", "D=M+D", "@R13", "AM=D", "D=M"}},
-                {"<pointer>", 		{"<this>", "<that>"}},
-                {"<temp>", 		{"@R{{index}}"}},
+                {"<pointer>", 		{"<constant>", "@R3", "D=A+D", "@R13", "AM=D", "D=M"}},
+                {"<temp>", 		{"<constant>", "@R5", "D=A+D", "@R13", "AM=D", "D=M"}},
                 {"<move>", 		{"{{segment}}"}},
                 {"<push-stack>", 	{"@SP", "A=M", "M=D"}},
                 {"<pop-stack>", 	{"@SP", "A=M", "D=M", "@R13", "A=M", "M=D"}},
@@ -212,7 +214,7 @@ command_table ASMCommands::init_rules()
 
                 // ===== VM COMMANDS =====
                 {"<push>", 		{"<move>", "<push-stack>", "<increment>"}},
-                {"<pop>", 		{"<move>", "<pop-stack>", "<decrement>"}},
+                {"<pop>", 		{"<decrement>", "<move>", "<pop-stack>"}},
 
                 {"<add>", 		{"<double-dec>", "<compute-add>", "<increment>"}},
                 {"<sub>", 		{"<double-dec>", "<compute-sub>", "<increment>"}},
