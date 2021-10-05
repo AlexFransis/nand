@@ -10,7 +10,7 @@
 
 bool ASMCommands::is_bracketed(const std::string &s)
 {
-        return s.size() > 1 && *(s.begin()) == '<' && *--(s.end()) == '>';
+        return s.size() > 1 && *(s.begin()) == '<' && *(--(s.end())) == '>';
 }
 
 bool ASMCommands::is_placeholder(const std::string &s)
