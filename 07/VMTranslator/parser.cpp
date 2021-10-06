@@ -117,7 +117,7 @@ std::vector<std::string> split(const std::string &s, char delimiter) {
 std::vector<std::string> Parser::tokenize(const std::string &s)
 {
         std::vector<std::string> splits = split(s, ' ');
-        // to lower only the command
+        // tolower only the command
         std::vector<std::string>::iterator it = splits.begin();
         std::transform(it->begin(), it->end(), it->begin(), ::tolower);
 

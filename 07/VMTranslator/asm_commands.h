@@ -21,8 +21,8 @@ private:
         bool					is_placeholder(const std::string &s);
         bool					is_valid_index(const std::string &segment,
                                                                const std::string &str_index);
-        command_table 				init_rules();
-        std::string 				get_uuid();
+        command_table 				init_rules() const;
+        std::string 				get_uuid() const;
         commands				resolve_placeholder(const command_table &c_table,
                                                                     const VMCommand &vm,
                                                                     const std::string &s);

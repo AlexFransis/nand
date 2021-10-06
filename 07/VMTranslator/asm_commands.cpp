@@ -42,7 +42,7 @@ bool ASMCommands::is_valid_index(const std::string &segment, const std::string &
         return true;
 }
 
-std::string ASMCommands::get_uuid()
+std::string ASMCommands::get_uuid() const
 {
         std::string alphanumeric = "0123456789abcdefghijklmnopqrstuvwxyz";
         char uuid[17];
@@ -154,18 +154,26 @@ commands ASMCommands::resolve_placeholder(const command_table &c_table, const VM
         return std::vector<std::string>();
 }
 
-command_table ASMCommands::init_rules()
+command_table ASMCommands::init_rules() const
 {
         return {
-                // MEMORY ACCESS
-                {"<argument>", 		{"<constant>", "@ARG", "D=M+D", "@R13", "AM=D", "D=M"}},
-                {"<local>", 		{"<constant>", "@LCL", "D=M+D", "@R13", "AM=D", "D=M"}},
-                {"<static>", 		{"@{{filename}}.{{index}}", "D=A", "@R13", "AM=D", "D=M"}},
-                {"<constant>", 		{"@{{index}}", "D=A"}},
-                {"<this>", 		{"<constant>", "@THIS", "D=M+D", "@R13", "AM=D", "D=M"}},
-                {"<that>", 		{"<constant>", "@THAT", "D=M+D", "@R13", "AM=D", "D=M"}},
-                {"<pointer>", 		{"<constant>", "@R3", "D=A+D", "@R13", "AM=D", "D=M"}},
-                {"<temp>", 		{"<constant>", "@R5", "D=A+D", "@R13", "AM=D", "D=M"}},
+                // ===== MEMORY ACCESS =====
+                {"<push>", 		{"<move>", "<push-stack>", "<increment>"}},
+                {"<pop>", 		{"<decrement>", "<move>", "<pop-stack>"}},
+
+                // ===== C_ARITHMETIC ======
+                {"<add>", 		{"<double-dec>", "<compute-add>", "<increment>"}},
+                {"<sub>", 		{"<double-dec>", "<compute-sub>", "<increment>"}},
+                {"<eq>", 		{"<double-dec>", "<compute-eq>", "<increment>"}},
+                {"<gt>", 		{"<double-dec>", "<compute-gt>", "<increment>"}},
+                {"<lt>", 		{"<double-dec>", "<compute-lt>", "<increment>"}},
+                {"<or>", 		{"<double-dec>", "<compute-or>", "<increment>"}},
+                {"<and>", 		{"<double-dec>", "<compute-and>", "<increment>"}},
+                {"<neg>", 		{"<decrement>", "<compute-neg>", "<increment>"}},
+                {"<not>", 		{"<decrement>", "<compute-not>", "<increment>"}},
+
+
+                // STACK OPERATIONS
                 {"<move>", 		{"{{segment}}"}},
                 {"<push-stack>", 	{"@SP", "A=M", "M=D"}},
                 {"<pop-stack>", 	{"@SP", "A=M", "D=M", "@R13", "A=M", "M=D"}},
@@ -173,7 +181,17 @@ command_table ASMCommands::init_rules()
                 {"<decrement>", 	{"@SP", "AM=M-1"}},
                 {"<double-dec>", 	{"@SP", "M=M-1", "AM=M-1"}},
 
-                // ===== C_ARITHMETIC =====
+                // SEGMENTS
+                {"<static>", 		{"@{{filename}}.{{index}}", "D=A", "@R13", "AM=D", "D=M"}},
+                {"<constant>", 		{"@{{index}}", "D=A"}},
+                {"<argument>", 		{"<constant>", "@ARG", "D=M+D", "@R13", "AM=D", "D=M"}},
+                {"<local>", 		{"<constant>", "@LCL", "D=M+D", "@R13", "AM=D", "D=M"}},
+                {"<this>", 		{"<constant>", "@THIS", "D=M+D", "@R13", "AM=D", "D=M"}},
+                {"<that>", 		{"<constant>", "@THAT", "D=M+D", "@R13", "AM=D", "D=M"}},
+                {"<pointer>", 		{"<constant>", "@R3", "D=A+D", "@R13", "AM=D", "D=M"}},
+                {"<temp>", 		{"<constant>", "@R5", "D=A+D", "@R13", "AM=D", "D=M"}},
+
+                // COMPUTATIONS
                 {"<compute-eq>", 	{"<compute-sub>",
                                          "@eqtrue__{{uuid}}",
                                          "D;JEQ",
@@ -220,20 +238,6 @@ command_table ASMCommands::init_rules()
                 {"<compute-not>", 	{"MD=!D"}},
                 {"<compute-add>", 	{"MD=M+D"}},
                 {"<compute-sub>", 	{"MD=M-D"}},
-                {"<compute-neg>", 	{"MD=-D"}},
-
-                // ===== VM COMMANDS =====
-                {"<push>", 		{"<move>", "<push-stack>", "<increment>"}},
-                {"<pop>", 		{"<decrement>", "<move>", "<pop-stack>"}},
-
-                {"<add>", 		{"<double-dec>", "<compute-add>", "<increment>"}},
-                {"<sub>", 		{"<double-dec>", "<compute-sub>", "<increment>"}},
-                {"<eq>", 		{"<double-dec>", "<compute-eq>", "<increment>"}},
-                {"<gt>", 		{"<double-dec>", "<compute-gt>", "<increment>"}},
-                {"<lt>", 		{"<double-dec>", "<compute-lt>", "<increment>"}},
-                {"<or>", 		{"<double-dec>", "<compute-or>", "<increment>"}},
-                {"<and>", 		{"<double-dec>", "<compute-and>", "<increment>"}},
-                {"<neg>", 		{"<decrement>", "<compute-neg>", "<increment>"}},
-                {"<not>", 		{"<decrement>", "<compute-not>", "<increment>"}},
+                {"<compute-neg>", 	{"MD=-D"}}
         };
 }
