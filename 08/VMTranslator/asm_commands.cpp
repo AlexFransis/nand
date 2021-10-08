@@ -157,11 +157,11 @@ commands ASMCommands::resolve_placeholder(const command_table &c_table, const VM
 command_table ASMCommands::init_rules() const
 {
         return {
-                // ===== MEMORY ACCESS =====
+                // ===== MEMORY ACCESS =================
                 {"<push>", 		{"<move>", "<push-stack>", "<increment>"}},
                 {"<pop>", 		{"<decrement>", "<move>", "<pop-stack>"}},
 
-                // ===== C_ARITHMETIC ======
+                // ===== C_ARITHMETIC ==================
                 {"<add>", 		{"<double-dec>", "<compute-add>", "<increment>"}},
                 {"<sub>", 		{"<double-dec>", "<compute-sub>", "<increment>"}},
                 {"<eq>", 		{"<double-dec>", "<compute-eq>", "<increment>"}},
@@ -172,6 +172,15 @@ command_table ASMCommands::init_rules() const
                 {"<neg>", 		{"<decrement>", "<compute-neg>", "<increment>"}},
                 {"<not>", 		{"<decrement>", "<compute-not>", "<increment>"}},
 
+                // ===== PROGRAM FLOW ==================
+                {"<label>", 		{}},
+                {"<goto>", 		{}},
+                {"<if-goto>", 		{}},
+
+                // ===== FUNCTIONS =====================
+                {"<function>", 		{}},
+                {"<call>", 		{}},
+                {"<return>", 		{}},
 
                 // STACK OPERATIONS
                 {"<move>", 		{"{{segment}}"}},

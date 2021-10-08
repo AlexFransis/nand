@@ -11,7 +11,7 @@ private:
         std::string 			m_command;
         std::vector<std::string>	m_args;
 
-      public:
+public:
         VMCommand(const std::string &type, const std::string &command);
         VMCommand(const std::string &type, const std::string &command, const std::vector<std::string> &args);
 

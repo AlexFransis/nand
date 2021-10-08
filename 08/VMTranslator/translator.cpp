@@ -40,12 +40,13 @@ void VMTranslator::begin()
                 m_ifstream.clear();
                 m_ifstream.seekg(0);
                 m_ifstream.open(*it);
+                std::string filename = it->stem();
 
                 Parser p (m_ifstream);
                 while (p.has_more_commands()) {
                         p.advance();
-                        VMCommand vm = p.parse();
-                        ASMCommands a(it->stem());
+                        VMCommand vm = p.parse_current();
+                        ASMCommands a (filename);
                         std::list<std::string> asm_lines = a.get_asm_commands(vm);
 
                         for (const std::string &s : asm_lines)

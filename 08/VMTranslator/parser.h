@@ -26,10 +26,10 @@ private:
 public:
         Parser(std::ifstream &ifstream);
 
-        inline std::string 			current_line() const {return m_current_line;};
+        inline std::string 			current_line() {return m_current_line;};
         bool					has_more_commands() const;
         void					advance();
-        VMCommand				parse();
+        VMCommand				parse_current();
         VMCommand				parse(const std::string &s);
 };
 

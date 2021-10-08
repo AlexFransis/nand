@@ -124,10 +124,10 @@ std::vector<std::string> Parser::tokenize(const std::string &s)
         return splits;
 }
 
-VMCommand Parser::parse() {
+VMCommand Parser::parse_current()
+{
         return parse(m_current_line);
 }
-
 
 VMCommand Parser::parse(const std::string &s)
 {
