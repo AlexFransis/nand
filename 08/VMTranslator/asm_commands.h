@@ -17,12 +17,16 @@ private:
         command_table				m_asm_rules;
         std::string				m_uuid;
         std::string				m_filename;
+        std::string				m_curr_func;
+
         bool					is_bracketed(const std::string &s);
         bool					is_placeholder(const std::string &s);
         bool					is_valid_index(const std::string &segment,
                                                                const std::string &str_index);
+
+        std::string 				create_uuid() const;
         command_table 				init_rules() const;
-        std::string 				get_uuid() const;
+
         commands				resolve_placeholder(const command_table &c_table,
                                                                     const VMCommand &vm,
                                                                     const std::string &s);

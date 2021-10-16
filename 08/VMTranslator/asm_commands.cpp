@@ -42,7 +42,7 @@ bool ASMCommands::is_valid_index(const std::string &segment, const std::string &
         return true;
 }
 
-std::string ASMCommands::get_uuid() const
+std::string ASMCommands::create_uuid() const
 {
         std::string alphanumeric = "0123456789abcdefghijklmnopqrstuvwxyz";
         char uuid[17];
@@ -57,8 +57,9 @@ std::string ASMCommands::get_uuid() const
 
 ASMCommands::ASMCommands(const std::string &filename)
         : m_asm_rules(init_rules()),
-          m_uuid(get_uuid()),
-          m_filename(filename)
+          m_uuid(create_uuid()),
+          m_filename(filename),
+          m_curr_func("NULL")
 {
 }
 
@@ -90,7 +91,7 @@ void ASMCommands::get_asm_commands_aux(const command_table &c_table, const std::
 
         command_table::const_iterator found = c_table.find(command);
         if (found == c_table.end()) {
-                std::domain_error("[ERROR] Invalid command: " + command);
+                std::domain_error("[ERR] Invalid command: " + command);
         }
 
         commands commands = found->second;
@@ -108,10 +109,20 @@ commands ASMCommands::resolve_placeholder(const command_table &c_table, const VM
         size_t delim_end = s.find("}}");
         std::string placeholder = s.substr(delim_start + 2, delim_end - (delim_start + 2));
 
+        auto replace = [&delim_start, &delim_end] (const std::string &placeholder, const std::string &arg) -> std::string {
+                std::string result = placeholder;
+                result.insert(delim_start, arg);
+                delim_start = delim_start + arg.length();
+                delim_end = delim_end + arg.length();
+                result.erase(delim_start, (delim_end + 2) - delim_start);
+
+                return result;
+        };
+
         if (placeholder == "segment") {
                 command_table::const_iterator segment = m_asm_rules.find(to_brackets(vm.arg1()));
                 if (segment == m_asm_rules.end()) {
-                        std::domain_error("[ERROR] Could not resolve arg: " + vm.arg1());
+                        std::domain_error("[ERR] Could not resolve arg: " + vm.arg1());
                 }
 
                 return segment->second;
@@ -119,36 +130,36 @@ commands ASMCommands::resolve_placeholder(const command_table &c_table, const VM
 
         if (placeholder == "index") {
                 if (!is_valid_index(vm.arg1(), vm.arg2())) {
-                        std::domain_error("[ERROR] Invalid index: " + vm.arg2());
+                        std::domain_error("[ERR] Invalid index: " + vm.arg2());
                 }
 
-                std::string index = s;
-                index.insert(delim_start, vm.arg2());
-                delim_start = delim_start + vm.arg2().length();
-                delim_end = delim_end + vm.arg2().length();
-                index.erase(delim_start, (delim_end + 2) - delim_start);
+                std::string index = replace(s, vm.arg2());
 
                 return { index };
         }
 
         if (placeholder == "uuid") {
-                std::string uuid = s;
-                uuid.insert(delim_start, m_uuid);
-                delim_start = delim_start + m_uuid.length();
-                delim_end = delim_end + m_uuid.length();
-                uuid.erase(delim_start, (delim_end + 2) - delim_start);
+                std::string uuid = replace(s, m_uuid);
 
                 return { uuid };
         }
 
         if (placeholder == "filename") {
-                std::string filename = s;
-                filename.insert(delim_start, m_filename);
-                delim_start = delim_start + m_filename.length();
-                delim_end = delim_end + m_filename.length();
-                filename.erase(delim_start, (delim_end + 2) - delim_start);
+                std::string filename = replace(s, m_filename);
 
                 return { filename };
+        }
+
+        if (placeholder == "function") {
+                std::string function = replace(s, m_curr_func);
+
+                return { function };
+        }
+
+        if (placeholder == "label") {
+                std::string label = replace(s, vm.arg1());
+
+                return { label };
         }
 
         return std::vector<std::string>();
@@ -173,9 +184,9 @@ command_table ASMCommands::init_rules() const
                 {"<not>", 		{"<decrement>", "<compute-not>", "<increment>"}},
 
                 // ===== PROGRAM FLOW ==================
-                {"<label>", 		{}},
-                {"<goto>", 		{}},
-                {"<if-goto>", 		{}},
+                {"<label>", 		{"({{function}}${{label}})"}},
+                {"<goto>", 		{"@{{function}}${{label}}", "0;JMP"}},
+                {"<if-goto>", 		{"<decrement>", "D=M", "@{{function}}${{label}}", "D;JNE"}},
 
                 // ===== FUNCTIONS =====================
                 {"<function>", 		{}},
