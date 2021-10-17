@@ -55,6 +55,14 @@ std::string CommandTranslator::generate_uuid() const
         return std::string(uuid);
 }
 
+void CommandTranslator::replace(size_t delim_start, size_t delim_end, std::string &placeholder, const std::string &arg)
+{
+        placeholder.insert(delim_start, arg);
+        delim_start = delim_start + arg.length();
+        delim_end = delim_end + arg.length();
+        placeholder.erase(delim_start, (delim_end + 2) - delim_start);
+}
+
 CommandTranslator::CommandTranslator(const std::string &filename)
         : m_instr_table(init_instr_table()),
           m_uuid(std::string()),
@@ -72,17 +80,17 @@ std::list<std::string> CommandTranslator::translate_command(const Command &comma
         return asm_instrs;
 }
 
-// TODO: Make this function TCO
 void CommandTranslator::translate_command_aux(const std::string &command, const Command &vm, std::list<std::string> &asm_instrs)
 {
+        // TODO: Make this function TCO
         if (!is_bracketed(command) && !is_placeholder(command)) {
                 asm_instrs.push_back(command);
                 return;
         }
 
         if (is_placeholder(command)) {
-                instrs resolved = resolve_placeholder(command, vm);
-                instrs::const_iterator it = resolved.begin();
+                std::vector<std::string> resolved = resolve_placeholder(command, vm);
+                std::vector<std::string>::const_iterator it = resolved.begin();
                 while (it != resolved.end()) {
                         translate_command_aux(*it, vm, asm_instrs);
                         ++it;
@@ -101,14 +109,6 @@ void CommandTranslator::translate_command_aux(const std::string &command, const 
                 translate_command_aux(*it, vm, asm_instrs);
                 ++it;
         }
-}
-
-void CommandTranslator::replace(size_t delim_start, size_t delim_end, std::string &placeholder, const std::string &arg)
-{
-        placeholder.insert(delim_start, arg);
-        delim_start = delim_start + arg.length();
-        delim_end = delim_end + arg.length();
-        placeholder.erase(delim_start, (delim_end + 2) - delim_start);
 }
 
 std::vector<std::string> CommandTranslator::resolve_placeholder(const std::string &s, const Command &vm)
