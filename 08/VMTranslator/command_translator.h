@@ -1,6 +1,7 @@
 #ifndef GUARD_command_translator_h
 #define GUARD_command_translator_h
 
+#include <cstddef>
 #include <cstdint>
 #include <string>
 #include <unordered_map>
@@ -27,7 +28,11 @@ private:
         std::string 				generate_uuid() const;
         instr_table 				init_instr_table() const;
 
-        instrs					resolve_placeholder(const std::string &placeholder, const Command &vm);
+        void					replace(size_t delim_start,
+                                                        size_t delim_end,
+                                                        std::string &placeholder,
+                                                        const std::string &arg);
+        std::vector<std::string>		resolve_placeholder(const std::string &placeholder, const Command &vm);
         void					translate_command_aux(const std::string &command,
                                                                       const Command &vm,
                                                                       std::list<std::string> &asm_instrs);

@@ -67,7 +67,7 @@ std::list<std::string> CommandTranslator::translate_command(const Command &comma
 {
         std::list<std::string> asm_instrs;
         m_uuid = generate_uuid();
-        translate_command_aux(to_brackets(command.command()), command, asm_instrs);
+        translate_command_aux(to_brackets(command.name()), command, asm_instrs);
 
         return asm_instrs;
 }
@@ -103,61 +103,63 @@ void CommandTranslator::translate_command_aux(const std::string &command, const 
         }
 }
 
-instrs CommandTranslator::resolve_placeholder(const std::string &s, const Command &vm)
+void CommandTranslator::replace(size_t delim_start, size_t delim_end, std::string &placeholder, const std::string &arg)
+{
+        placeholder.insert(delim_start, arg);
+        delim_start = delim_start + arg.length();
+        delim_end = delim_end + arg.length();
+        placeholder.erase(delim_start, (delim_end + 2) - delim_start);
+}
+
+std::vector<std::string> CommandTranslator::resolve_placeholder(const std::string &s, const Command &vm)
 {
         assert(is_placeholder(s));
-        size_t delim_start = s.find("{{");
-        size_t delim_end = s.find("}}");
-        std::string placeholder = s.substr(delim_start + 2, delim_end - (delim_start + 2));
-
-        auto replace = [&delim_start, &delim_end] (const std::string &placeholder, const std::string &arg) -> std::string {
-                std::string result = placeholder;
-                result.insert(delim_start, arg);
-                delim_start = delim_start + arg.length();
-                delim_end = delim_end + arg.length();
-                result.erase(delim_start, (delim_end + 2) - delim_start);
-
-                return result;
-        };
-
-        if (placeholder == "segment") {
-                instr_table::const_iterator segment = m_instr_table.find(to_brackets(vm.arg1()));
-                if (segment == m_instr_table.end()) {
-                        std::domain_error("[ERR] Could not resolve arg: " + vm.arg1());
+        std::string resolved = s;
+        size_t delim_start = resolved.find("{{");
+        while (delim_start != std::string::npos) {
+                size_t delim_end = resolved.find("}}");
+                if (delim_end == std::string::npos) {
+                        std::domain_error("[ERR] Invalid placeholder: " + s);
                 }
 
-                return segment->second;
-        }
+                std::string placeholder = resolved.substr(delim_start + 2, delim_end - (delim_start + 2));
 
-        if (placeholder == "index") {
-                if (!is_valid_index(vm.arg1(), vm.arg2())) {
-                        std::domain_error("[ERR] Invalid index: " + vm.arg2());
+                if (placeholder == "segment") {
+                        instr_table::const_iterator segment = m_instr_table.find(to_brackets(vm.arg1()));
+                        if (segment == m_instr_table.end()) {
+                                std::domain_error("[ERR] Could not resolve arg: " + vm.arg1());
+                        }
+
+                        return segment->second;
                 }
-                std::string index = replace(s, vm.arg2());
-                return { index };
+
+                if (placeholder == "index") {
+                        if (!is_valid_index(vm.arg1(), vm.arg2())) {
+                                std::domain_error("[ERR] Invalid index: " + vm.arg2());
+                        }
+                        replace(delim_start, delim_end, resolved, vm.arg2());
+                }
+
+                if (placeholder == "uuid") {
+                        replace(delim_start, delim_end, resolved, m_uuid);
+                }
+
+                if (placeholder == "filename") {
+                        replace(delim_start, delim_end, resolved, m_filename);
+                }
+
+                if (placeholder == "function") {
+                        replace(delim_start, delim_end, resolved, m_curr_func);
+                }
+
+                if (placeholder == "label") {
+                        replace(delim_start, delim_end, resolved, vm.arg1());
+                }
+
+                delim_start = resolved.find("{{");
         }
 
-        if (placeholder == "uuid") {
-                std::string uuid = replace(s, m_uuid);
-                return { uuid };
-        }
-
-        if (placeholder == "filename") {
-                std::string filename = replace(s, m_filename);
-                return { filename };
-        }
-
-        if (placeholder == "function") {
-                std::string function = replace(s, m_curr_func);
-                return { function };
-        }
-
-        if (placeholder == "label") {
-                std::string label = replace(s, vm.arg1());
-                return { label };
-        }
-
-        return std::vector<std::string>();
+        return { resolved };
 }
 
 instr_table CommandTranslator::init_instr_table() const
