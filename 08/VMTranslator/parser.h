@@ -6,7 +6,7 @@
 #include <filesystem>
 #include <unordered_map>
 #include <vector>
-#include "vm_command.h"
+#include "command.h"
 
 class Parser {
 private:
@@ -14,7 +14,6 @@ private:
         std::string						m_current_line;
         unsigned int						m_line_number;
         // < key: command, val: < first: command_type, second: nb args > >
-        // < push : < C_PUSH : 2 > >
         std::unordered_map<std::string,
                 std::pair<std::string, unsigned int>> 		m_command_rules;
 
@@ -29,8 +28,8 @@ public:
         inline std::string 			current_line() {return m_current_line;};
         bool					has_more_commands() const;
         void					advance();
-        VMCommand				parse_current();
-        VMCommand				parse(const std::string &s);
+        Command					parse_current();
+        Command					parse(const std::string &s);
 };
 
 #endif

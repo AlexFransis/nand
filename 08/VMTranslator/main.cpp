@@ -26,10 +26,10 @@ int main(int argc, char** argv)
                 return 1;
         }
 
-        VMTranslator translator (input, input_type == "-d" ? INPUT_TYPE::DIR : INPUT_TYPE::FILE);
+        FileHandler handler (input, input_type == "-d" ? INPUT_TYPE::DIR : INPUT_TYPE::FILE);
 
         try {
-                translator.begin();
+                handler.begin();
         } catch (const std::domain_error &err) {
                 std::cerr << err.what() << std::endl;
                 return 1;

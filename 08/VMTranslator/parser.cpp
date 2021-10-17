@@ -124,12 +124,12 @@ std::vector<std::string> Parser::tokenize(const std::string &s)
         return splits;
 }
 
-VMCommand Parser::parse_current()
+Command Parser::parse_current()
 {
         return parse(m_current_line);
 }
 
-VMCommand Parser::parse(const std::string &s)
+Command Parser::parse(const std::string &s)
 {
         typedef std::unordered_map<std::string, std::pair<std::string, unsigned int>> command_rules;
         typedef std::vector<std::string>::size_type vec_size;
@@ -160,5 +160,5 @@ VMCommand Parser::parse(const std::string &s)
                 std::domain_error("[ERR] Line: " + std::to_string(m_line_number) + ": invalid args");
         }
 
-        return VMCommand (command_type, command, args);
+        return Command (command_type, command, args);
 }

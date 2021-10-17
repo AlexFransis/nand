@@ -63,7 +63,7 @@ CommandTranslator::CommandTranslator(const std::string &filename)
 {
 }
 
-std::list<std::string> CommandTranslator::translate_command(const VMCommand &command)
+std::list<std::string> CommandTranslator::translate_command(const Command &command)
 {
         std::list<std::string> asm_instrs;
         m_uuid = generate_uuid();
@@ -73,7 +73,7 @@ std::list<std::string> CommandTranslator::translate_command(const VMCommand &com
 }
 
 // TODO: Make this function TCO
-void CommandTranslator::translate_command_aux(const std::string &command, const VMCommand &vm, std::list<std::string> &asm_instrs)
+void CommandTranslator::translate_command_aux(const std::string &command, const Command &vm, std::list<std::string> &asm_instrs)
 {
         if (!is_bracketed(command) && !is_placeholder(command)) {
                 asm_instrs.push_back(command);
@@ -103,7 +103,7 @@ void CommandTranslator::translate_command_aux(const std::string &command, const 
         }
 }
 
-instrs CommandTranslator::resolve_placeholder(const std::string &s, const VMCommand &vm)
+instrs CommandTranslator::resolve_placeholder(const std::string &s, const Command &vm)
 {
         assert(is_placeholder(s));
         size_t delim_start = s.find("{{");

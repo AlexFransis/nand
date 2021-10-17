@@ -5,13 +5,13 @@
 #include <vector>
 #include <string>
 #include <cstdio>
-#include "translator.h"
-#include "parser.h"
 #include "command_translator.h"
+#include "parser.h"
+#include "translator.h"
 
 namespace fs = std::filesystem;
 
-VMTranslator::VMTranslator(const std::string &path, INPUT_TYPE input)
+FileHandler::FileHandler(const std::string &path, INPUT_TYPE input)
         :m_path(fs::path(path)),
          m_input_type(input)
 {
@@ -19,15 +19,14 @@ VMTranslator::VMTranslator(const std::string &path, INPUT_TYPE input)
         m_ofstream = std::ofstream();
 }
 
-VMTranslator::~VMTranslator()
+FileHandler::~FileHandler()
 {
         m_ifstream.close();
         m_ofstream.close();
 }
 
-void VMTranslator::begin()
+void FileHandler::begin()
 {
-        // TODO: remove IO from translator class
         std::string out_ext = ".asm";
         std::string in_ext = ".vm";
 
@@ -46,11 +45,10 @@ void VMTranslator::begin()
                 CommandTranslator ct (filename);
                 while (p.has_more_commands()) {
                         p.advance();
-                        VMCommand vm = p.parse_current();
-                        std::list<std::string> asm_instructions = ct.translate_command(vm);
+                        Command vmc = p.parse_current();
+                        std::list<std::string> asm_instrs = ct.translate_command(vmc);
 
-                        for (const std::string &instr : asm_instructions)
-                        {
+                        for (const std::string &instr : asm_instrs) {
                                 m_ofstream << instr << std::endl;
                         }
                 }
@@ -59,7 +57,7 @@ void VMTranslator::begin()
         }
 }
 
-std::vector<fs::path> VMTranslator::get_valid_files(INPUT_TYPE input, const std::string &ext)
+std::vector<fs::path> FileHandler::get_valid_files(INPUT_TYPE input, const std::string &ext)
 {
         std::vector<fs::path> result;
         if (m_input_type == INPUT_TYPE::DIR) {
@@ -86,7 +84,7 @@ std::vector<fs::path> VMTranslator::get_valid_files(INPUT_TYPE input, const std:
         return result;
 }
 
-void VMTranslator::open_output(INPUT_TYPE input, const std::string &ext)
+void FileHandler::open_output(INPUT_TYPE input, const std::string &ext)
 {
         if (m_input_type == INPUT_TYPE::FILE) {
                 fs::path out = m_path.replace_extension(ext);
@@ -102,14 +100,14 @@ void VMTranslator::open_output(INPUT_TYPE input, const std::string &ext)
         }
 }
 
-std::vector<fs::path> VMTranslator::traverse_dir(const fs::path &dir, const std::string &ext) {
-        std::vector<fs::path> ret;
+std::vector<fs::path> FileHandler::traverse_dir(const fs::path &dir, const std::string &ext) {
+        std::vector<fs::path> result;
         for (const fs::directory_entry &e : fs::recursive_directory_iterator(dir)) {
                 fs::path file_p = e.path();
                 if (file_p.extension() == ext) {
-                        ret.push_back(file_p);
+                        result.push_back(file_p);
                 }
         }
 
-        return ret;
+        return result;
 }

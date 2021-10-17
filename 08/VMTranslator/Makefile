@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS=-g -std=c++17 -Wall
-OFILES=main.o parser.o vm_command.o translator.o command_translator.o
+OFILES=main.o parser.o command.o file_handler.o command_translator.o
 
 main: $(OFILES)
 	$(CC) $(CFLAGS) $(OFILES) -o main
@@ -11,11 +11,11 @@ main.o: main.cpp
 parser.o: parser.cpp parser.h
 	$(CC) $(CFLAGS) -c parser.cpp
 
-vm_command.o: vm_command.cpp vm_command.h
-	$(CC) $(CFLAGS) -c vm_command.cpp
+command.o: command.cpp command.h
+	$(CC) $(CFLAGS) -c command.cpp
 
-translator.o: translator.cpp translator.h
-	$(CC) $(CFLAGS) -c translator.cpp
+file_handler.o: file_handler.cpp file_handler.h
+	$(CC) $(CFLAGS) -c file_handler.cpp
 
 command_translator.o: command_translator.cpp command_translator.h
 	$(CC) $(CFLAGS) -c command_translator.cpp

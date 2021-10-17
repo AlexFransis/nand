@@ -1,19 +1,18 @@
 #ifndef GUARD_translator_h
 #define GUARD_translator_h
 
-
 #include <filesystem>
 #include <fstream>
 #include <string>
 #include <vector>
-#include "vm_command.h"
+#include "command.h"
 
 enum class INPUT_TYPE {
         DIR,
         FILE
 };
 
-class VMTranslator {
+class FileHandler {
 private:
         // IO stuff
         std::vector<std::filesystem::path> 	m_files;
@@ -25,14 +24,12 @@ private:
         std::vector<std::filesystem::path>	traverse_dir(const std::filesystem::path &dir, const std::string &ext);
         std::vector<std::filesystem::path>	get_valid_files(INPUT_TYPE input, const std::string &ext);
         void					open_output(INPUT_TYPE input, const std::string &ext);
-        std::string				translate_command(const VMCommand &c);
 
       public:
-        VMTranslator(const std::string &path, INPUT_TYPE input);
-        ~VMTranslator();
+        FileHandler(const std::string &path, INPUT_TYPE input);
+        ~FileHandler();
 
         void begin();
 };
-
 
 #endif

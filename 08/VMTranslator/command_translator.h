@@ -7,7 +7,7 @@
 #include <vector>
 #include <list>
 #include <iterator>
-#include "vm_command.h"
+#include "command.h"
 
 typedef std::vector<std::string> instrs;
 typedef std::unordered_map<std::string, instrs> instr_table;
@@ -27,14 +27,14 @@ private:
         std::string 				generate_uuid() const;
         instr_table 				init_instr_table() const;
 
-        instrs					resolve_placeholder(const std::string &placeholder, const VMCommand &vm);
+        instrs					resolve_placeholder(const std::string &placeholder, const Command &vm);
         void					translate_command_aux(const std::string &command,
-                                                                      const VMCommand &vm,
+                                                                      const Command &vm,
                                                                       std::list<std::string> &asm_instrs);
 public:
         CommandTranslator(const std::string &filename);
 
-        std::list<std::string>			translate_command(const VMCommand &command);
+        std::list<std::string>			translate_command(const Command &command);
 };
 
 #endif
