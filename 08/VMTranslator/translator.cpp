@@ -7,7 +7,7 @@
 #include <cstdio>
 #include "translator.h"
 #include "parser.h"
-#include "asm_commands.h"
+#include "command_translator.h"
 
 namespace fs = std::filesystem;
 
@@ -43,15 +43,15 @@ void VMTranslator::begin()
                 std::string filename = it->stem();
 
                 Parser p (m_ifstream);
+                CommandTranslator ct (filename);
                 while (p.has_more_commands()) {
                         p.advance();
                         VMCommand vm = p.parse_current();
-                        ASMCommands a (filename);
-                        std::list<std::string> asm_lines = a.get_asm_commands(vm);
+                        std::list<std::string> asm_instructions = ct.translate_command(vm);
 
-                        for (const std::string &s : asm_lines)
+                        for (const std::string &instr : asm_instructions)
                         {
-                                m_ofstream << s << std::endl;
+                                m_ofstream << instr << std::endl;
                         }
                 }
 
@@ -64,12 +64,12 @@ std::vector<fs::path> VMTranslator::get_valid_files(INPUT_TYPE input, const std:
         std::vector<fs::path> result;
         if (m_input_type == INPUT_TYPE::DIR) {
                 if (!fs::exists(m_path) || !fs::is_directory(m_path)) {
-                        throw std::domain_error("[ERROR] Invalid directory path");
+                        throw std::domain_error("[ERR] Invalid directory path");
                 }
 
                 std::vector<fs::path> files = traverse_dir(m_path, ext);
                 if (files.size() == 0) {
-                        throw std::domain_error("[ERROR] No valid files in directory");
+                        throw std::domain_error("[ERR] No valid files in directory");
                 }
 
                 std::copy(files.begin(), files.end(), std::back_inserter(result));
@@ -77,7 +77,7 @@ std::vector<fs::path> VMTranslator::get_valid_files(INPUT_TYPE input, const std:
 
         if (m_input_type == INPUT_TYPE::FILE) {
                 if (!fs::exists(m_path) || m_path.extension() != ext) {
-                        throw std::domain_error("[ERROR] Invalid file path");
+                        throw std::domain_error("[ERR] Invalid file path");
                 }
 
                 result.push_back(m_path);

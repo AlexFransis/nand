@@ -12,13 +12,12 @@ private:
         std::vector<std::string>	m_args;
 
 public:
-        VMCommand(const std::string &type, const std::string &command);
         VMCommand(const std::string &type, const std::string &command, const std::vector<std::string> &args);
 
         inline std::string 		command_type() 	const {return m_command_type;}
         inline std::string 		command() 	const {return m_command;}
-        std::string 			arg1() const;
-        std::string 			arg2() const;
+        inline std::string 		arg1() const { return m_args.size() > 0 ? m_args[0] : std::string();}
+        inline std::string 		arg2() const { return m_args.size() > 1 ? m_args[1] : std::string();}
 };
 
 #endif

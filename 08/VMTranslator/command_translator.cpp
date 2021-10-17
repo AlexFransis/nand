@@ -6,18 +6,35 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "asm_commands.h"
+#include "command_translator.h"
 
-bool ASMCommands::is_bracketed(const std::string &s)
+bool CommandTranslator::is_bracketed(const std::string &s)
 {
         return s.size() > 1 && *(s.begin()) == '<' && *(--(s.end())) == '>';
 }
 
-bool ASMCommands::is_placeholder(const std::string &s)
+bool CommandTranslator::is_placeholder(const std::string &s)
 {
         size_t delim_start = s.find("{{");
         size_t delim_end = s.find("}}");
         return delim_start != std::string::npos && delim_end != std::string::npos;
+}
+
+bool CommandTranslator::is_valid_index(const std::string &segment, const std::string &index)
+{
+        std::string::const_iterator it = index.begin();
+        while (it != index.end()) {
+                if (!std::isdigit(*it)) return false;
+                ++it;
+        }
+
+        int idx = std::stoi(index);
+        if (idx < 0) return false;
+        if (segment == "constant") return idx <= 32767;
+        if (segment == "pointer") return idx <= 1;
+        if (segment == "temp") return idx <= 7;
+
+        return true;
 }
 
 std::string to_brackets(const std::string &s)
@@ -25,24 +42,7 @@ std::string to_brackets(const std::string &s)
         return "<" + s + ">";
 }
 
-bool ASMCommands::is_valid_index(const std::string &segment, const std::string &str_index)
-{
-        std::string::const_iterator it = str_index.begin();
-        while (it != str_index.end()) {
-                if (!std::isdigit(*it)) return false;
-                ++it;
-        }
-
-        int index = std::stoi(str_index);
-        if (index < 0) return false;
-        if (segment == "constant") return index <= 32767;
-        if (segment == "pointer") return index <= 1;
-        if (segment == "temp") return index <= 7;
-
-        return true;
-}
-
-std::string ASMCommands::create_uuid() const
+std::string CommandTranslator::generate_uuid() const
 {
         std::string alphanumeric = "0123456789abcdefghijklmnopqrstuvwxyz";
         char uuid[17];
@@ -55,54 +55,55 @@ std::string ASMCommands::create_uuid() const
         return std::string(uuid);
 }
 
-ASMCommands::ASMCommands(const std::string &filename)
-        : m_asm_rules(init_rules()),
-          m_uuid(create_uuid()),
+CommandTranslator::CommandTranslator(const std::string &filename)
+        : m_instr_table(init_instr_table()),
+          m_uuid(std::string()),
           m_filename(filename),
           m_curr_func("NULL")
 {
 }
 
-std::list<std::string> ASMCommands::get_asm_commands(const VMCommand &command)
+std::list<std::string> CommandTranslator::translate_command(const VMCommand &command)
 {
-        std::list<std::string> asm_commands;
-        get_asm_commands_aux(m_asm_rules, to_brackets(command.command()), command, asm_commands);
+        std::list<std::string> asm_instrs;
+        m_uuid = generate_uuid();
+        translate_command_aux(to_brackets(command.command()), command, asm_instrs);
 
-        return asm_commands;
+        return asm_instrs;
 }
 
-void ASMCommands::get_asm_commands_aux(const command_table &c_table, const std::string &command,
-                                       const VMCommand &vm, std::list<std::string> &asm_commands)
+// TODO: Make this function TCO
+void CommandTranslator::translate_command_aux(const std::string &command, const VMCommand &vm, std::list<std::string> &asm_instrs)
 {
         if (!is_bracketed(command) && !is_placeholder(command)) {
-                asm_commands.push_back(command);
+                asm_instrs.push_back(command);
                 return;
         }
 
         if (is_placeholder(command)) {
-                commands resolved = resolve_placeholder(c_table, vm, command);
-                commands::const_iterator it = resolved.begin();
+                instrs resolved = resolve_placeholder(command, vm);
+                instrs::const_iterator it = resolved.begin();
                 while (it != resolved.end()) {
-                        get_asm_commands_aux(c_table, *it, vm, asm_commands);
+                        translate_command_aux(*it, vm, asm_instrs);
                         ++it;
                 }
                 return;
         }
 
-        command_table::const_iterator found = c_table.find(command);
-        if (found == c_table.end()) {
+        instr_table::const_iterator found = m_instr_table.find(command);
+        if (found == m_instr_table.end()) {
                 std::domain_error("[ERR] Invalid command: " + command);
         }
 
-        commands commands = found->second;
-        commands::iterator it = commands.begin();
+        instrs commands = found->second;
+        instrs::iterator it = commands.begin();
         while (it != commands.end()) {
-                get_asm_commands_aux(c_table, *it, vm, asm_commands);
+                translate_command_aux(*it, vm, asm_instrs);
                 ++it;
         }
 }
 
-commands ASMCommands::resolve_placeholder(const command_table &c_table, const VMCommand &vm, const std::string &s)
+instrs CommandTranslator::resolve_placeholder(const std::string &s, const VMCommand &vm)
 {
         assert(is_placeholder(s));
         size_t delim_start = s.find("{{");
@@ -120,8 +121,8 @@ commands ASMCommands::resolve_placeholder(const command_table &c_table, const VM
         };
 
         if (placeholder == "segment") {
-                command_table::const_iterator segment = m_asm_rules.find(to_brackets(vm.arg1()));
-                if (segment == m_asm_rules.end()) {
+                instr_table::const_iterator segment = m_instr_table.find(to_brackets(vm.arg1()));
+                if (segment == m_instr_table.end()) {
                         std::domain_error("[ERR] Could not resolve arg: " + vm.arg1());
                 }
 
@@ -132,45 +133,39 @@ commands ASMCommands::resolve_placeholder(const command_table &c_table, const VM
                 if (!is_valid_index(vm.arg1(), vm.arg2())) {
                         std::domain_error("[ERR] Invalid index: " + vm.arg2());
                 }
-
                 std::string index = replace(s, vm.arg2());
-
                 return { index };
         }
 
         if (placeholder == "uuid") {
                 std::string uuid = replace(s, m_uuid);
-
                 return { uuid };
         }
 
         if (placeholder == "filename") {
                 std::string filename = replace(s, m_filename);
-
                 return { filename };
         }
 
         if (placeholder == "function") {
                 std::string function = replace(s, m_curr_func);
-
                 return { function };
         }
 
         if (placeholder == "label") {
                 std::string label = replace(s, vm.arg1());
-
                 return { label };
         }
 
         return std::vector<std::string>();
 }
 
-command_table ASMCommands::init_rules() const
+instr_table CommandTranslator::init_instr_table() const
 {
         return {
                 // ===== MEMORY ACCESS =================
-                {"<push>", 		{"<move>", "<push-stack>", "<increment>"}},
-                {"<pop>", 		{"<decrement>", "<move>", "<pop-stack>"}},
+                {"<push>", 		{"{{segment}}", "<push-stack>", "<increment>"}},
+                {"<pop>", 		{"<decrement>", "{{segment}}", "<pop-stack>"}},
 
                 // ===== C_ARITHMETIC ==================
                 {"<add>", 		{"<double-dec>", "<compute-add>", "<increment>"}},
@@ -194,7 +189,6 @@ command_table ASMCommands::init_rules() const
                 {"<return>", 		{}},
 
                 // STACK OPERATIONS
-                {"<move>", 		{"{{segment}}"}},
                 {"<push-stack>", 	{"@SP", "A=M", "M=D"}},
                 {"<pop-stack>", 	{"@SP", "A=M", "D=M", "@R13", "A=M", "M=D"}},
                 {"<increment>", 	{"@SP", "AM=M+1"}},

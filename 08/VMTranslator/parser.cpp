@@ -138,14 +138,14 @@ VMCommand Parser::parse(const std::string &s)
         std::vector<std::string>::const_iterator it = tokens.begin();
 
         if (it == tokens.end()) {
-                std::domain_error("[ERROR] Line: " + std::to_string(m_line_number) + ": invalid command");
+                std::domain_error("[ERR] Line: " + std::to_string(m_line_number) + ": invalid command");
         }
 
         std::string command = *it++;
 
         command_rules::const_iterator found = m_command_rules.find(command);
         if (found == m_command_rules.end()) {
-                std::domain_error("[ERROR] Line: " + std::to_string(m_line_number) + ": invalid command type");
+                std::domain_error("[ERR] Line: " + std::to_string(m_line_number) + ": invalid command type");
         }
 
         std::vector<std::string> args;
@@ -157,7 +157,7 @@ VMCommand Parser::parse(const std::string &s)
         std::string command_type = found->second.first;
         vec_size nb_args = found->second.second;
         if (args.size() != nb_args) {
-                std::domain_error("[ERROR] Line: " + std::to_string(m_line_number) + ": invalid args");
+                std::domain_error("[ERR] Line: " + std::to_string(m_line_number) + ": invalid args");
         }
 
         return VMCommand (command_type, command, args);

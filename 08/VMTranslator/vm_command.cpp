@@ -13,23 +13,3 @@ VMCommand::VMCommand(const std::string &type, const std::string &command, const 
 {
         std::copy(args.begin(), args.end(), std::back_inserter(m_args));
 }
-
-
-std::string VMCommand::arg1() const
-{
-        if (m_args.size() > 0) {
-                return m_args[0];
-        }
-
-        return std::string();
-}
-
-std::string VMCommand::arg2() const
-{
-        if (m_args.size() > 1)
-        {
-                return m_args[1];
-        }
-
-        return std::string();
-}
