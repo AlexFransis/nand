@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <vector>
 #include <filesystem>
-#include "translator.h"
+#include "file_handler.h"
 
 int main(int argc, char** argv)
 {

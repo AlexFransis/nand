@@ -7,7 +7,7 @@
 #include <cstdio>
 #include "command_translator.h"
 #include "parser.h"
-#include "translator.h"
+#include "file_handler.h"
 
 namespace fs = std::filesystem;
 
