@@ -4,4 +4,7 @@
 .cache/
 main
 *.o
+*.out
+*.asm
+*.vm
 compile_commands.json
