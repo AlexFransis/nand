@@ -22,6 +22,7 @@ private:
 
         bool					is_bracketed(const std::string &s);
         bool					is_placeholder(const std::string &s);
+        bool					is_number(const std::string &s);
         bool					is_valid_index(const std::string &segment,
                                                                const std::string &index);
 

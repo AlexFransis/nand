@@ -20,14 +20,20 @@ bool CommandTranslator::is_placeholder(const std::string &s)
         return delim_start != std::string::npos && delim_end != std::string::npos;
 }
 
-bool CommandTranslator::is_valid_index(const std::string &segment, const std::string &index)
+bool CommandTranslator::is_number(const std::string &s)
 {
-        std::string::const_iterator it = index.begin();
-        while (it != index.end()) {
+        std::string::const_iterator it = s.begin();
+        while (it != s.end()) {
                 if (!std::isdigit(*it)) return false;
                 ++it;
         }
 
+        return true;
+}
+
+bool CommandTranslator::is_valid_index(const std::string &segment, const std::string &index)
+{
+        if (!is_number(index)) return false;
         int idx = std::stoi(index);
         if (idx < 0) return false;
         if (segment == "constant") return idx <= 32767;
@@ -140,6 +146,13 @@ std::vector<std::string> CommandTranslator::resolve_placeholder(const std::strin
                         replace(delim_start, delim_end, resolved, vm.arg2());
                 }
 
+                if (placeholder == "func_args") {
+                        if (!is_number(vm.arg2())) {
+                                std::domain_error("[ERR] Invalid number of arguments: " + vm.arg2());
+                        }
+                        replace(delim_start, delim_end, resolved, vm.arg2());
+                }
+
                 if (placeholder == "uuid") {
                         replace(delim_start, delim_end, resolved, m_uuid);
                 }
@@ -148,8 +161,12 @@ std::vector<std::string> CommandTranslator::resolve_placeholder(const std::strin
                         replace(delim_start, delim_end, resolved, m_filename);
                 }
 
-                if (placeholder == "function") {
+                if (placeholder == "current_func") {
                         replace(delim_start, delim_end, resolved, m_curr_func);
+                }
+
+                if (placeholder == "func_name") {
+                        replace(delim_start, delim_end, resolved, vm.arg1());
                 }
 
                 if (placeholder == "label") {
@@ -181,14 +198,69 @@ instr_table CommandTranslator::init_instr_table() const
                 {"<not>", 		{"<decrement>", "<compute-not>", "<increment>"}},
 
                 // ===== PROGRAM FLOW ==================
-                {"<label>", 		{"({{function}}${{label}})"}},
-                {"<goto>", 		{"@{{function}}${{label}}", "0;JMP"}},
-                {"<if-goto>", 		{"<decrement>", "D=M", "@{{function}}${{label}}", "D;JNE"}},
+                {"<label>", 		{"({{current_func}}${{label}})"}},
+                {"<goto>", 		{"@{{current_func}}${{label}}", "0;JMP"}},
+                {"<if-goto>", 		{"<decrement>", "D=M", "@{{current_func}}${{label}}", "D;JNE"}},
 
                 // ===== FUNCTIONS =====================
-                {"<function>", 		{}},
+                {"<function>", 		{"({{func_name}})",
+                                         "@i",
+                                         "M=0",
+                                         "(LOOP__{{uuid}})",
+                                         "<constant>",
+                                         "@i",
+                                         "D=D-M",
+                                         "@END__{{uuid}}",
+                                         "D;JEQ",
+                                         "D=0",
+                                         "<push-stack>",
+                                         "<increment>",
+                                         "@i",
+                                         "M=M+1",
+                                         "@LOOP__{{uuid}}",
+                                         "0;JMP",
+                                         "(END__{{uuid}})"}},
                 {"<call>", 		{}},
-                {"<return>", 		{}},
+                {"<return>", 		{"<decrement>",
+                                         "D=M",
+                                         "@ARG",
+                                         "A=M",
+                                         "M=D",
+                                         "@ARG",
+                                         "D=M",
+                                         "@SP",
+                                         "M=D+1",
+                                         "@LCL",
+                                         "D=M",
+                                         "@FRAME",
+                                         "M=D",
+                                         "M=M-1",
+                                         "A=M",
+                                         "D=M",
+                                         "@THAT",
+                                         "M=D",
+                                         "@FRAME",
+                                         "M=M-1",
+                                         "A=M",
+                                         "D=M",
+                                         "@THIS",
+                                         "M=D",
+                                         "@FRAME",
+                                         "M=M-1",
+                                         "A=M",
+                                         "D=M",
+                                         "@ARG",
+                                         "M=D",
+                                         "@FRAME",
+                                         "M=M-1",
+                                         "A=M",
+                                         "D=M",
+                                         "@LCL",
+                                         "M=D",
+                                         "@FRAME",
+                                         "M=M-1",
+                                         "A=M",
+                                         "0;JMP"}},
 
                 // STACK OPERATIONS
                 {"<push-stack>", 	{"@SP", "A=M", "M=D"}},
@@ -200,6 +272,7 @@ instr_table CommandTranslator::init_instr_table() const
                 // SEGMENTS
                 {"<static>", 		{"@{{filename}}.{{index}}", "D=A", "@R13", "AM=D", "D=M"}},
                 {"<constant>", 		{"@{{index}}", "D=A"}},
+                {"<constant-args>", 	{"@{{func_args}}", "D=A"}},
                 {"<argument>", 		{"<constant>", "@ARG", "D=M+D", "@R13", "AM=D", "D=M"}},
                 {"<local>", 		{"<constant>", "@LCL", "D=M+D", "@R13", "AM=D", "D=M"}},
                 {"<this>", 		{"<constant>", "@THIS", "D=M+D", "@R13", "AM=D", "D=M"}},
@@ -209,46 +282,46 @@ instr_table CommandTranslator::init_instr_table() const
 
                 // COMPUTATIONS
                 {"<compute-eq>", 	{"<compute-sub>",
-                                         "@eqtrue__{{uuid}}",
+                                         "@EQTRUE__{{uuid}}",
                                          "D;JEQ",
                                          "@SP",
                                          "A=M",
                                          "M=0",
-                                         "@eqend__{{uuid}}",
+                                         "@EQEND__{{uuid}}",
                                          "0;JMP",
-                                         "(eqtrue__{{uuid}})",
+                                         "(EQTRUE__{{uuid}})",
                                          "@SP",
                                          "A=M",
                                          "M=-1",
-                                         "(eqend__{{uuid}})"}},
+                                         "(EQEND__{{uuid}})"}},
 
                 {"<compute-gt>", 	{"<compute-sub>",
-                                         "@gttrue__{{uuid}}",
+                                         "@GTTRUE__{{uuid}}",
                                          "D;JGT",
                                          "@SP",
                                          "A=M",
                                          "M=0",
-                                         "@gtend__{{uuid}}",
+                                         "@GTEND__{{uuid}}",
                                          "0;JMP",
-                                         "(gttrue__{{uuid}})",
+                                         "(GTTRUE__{{uuid}})",
                                          "@SP",
                                          "A=M",
                                          "M=-1",
-                                         "(gtend__{{uuid}})"}},
+                                         "(GTEND__{{uuid}})"}},
 
                 {"<compute-lt>", 	{"<compute-sub>",
-                                         "@lttrue__{{uuid}}",
+                                         "@LTTRUE__{{uuid}}",
                                          "D;JLT",
                                          "@SP",
                                          "A=M",
                                          "M=0",
-                                         "@ltend__{{uuid}}",
+                                         "@LTEND__{{uuid}}",
                                          "0;JMP",
-                                         "(lttrue__{{uuid}})",
+                                         "(LTTRUE__{{uuid}})",
                                          "@SP",
                                          "A=M",
                                          "M=-1",
-                                         "(ltend__{{uuid}})"}},
+                                         "(LTEND__{{uuid}})"}},
                 {"<compute-and>", 	{"MD=M&D"}},
                 {"<compute-or>", 	{"MD=M|D"}},
                 {"<compute-not>", 	{"MD=!D"}},
