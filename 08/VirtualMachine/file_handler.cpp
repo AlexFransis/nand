@@ -35,21 +35,28 @@ void FileHandler::begin()
 
         std::vector<fs::path>::const_iterator it = m_files.begin();
         while (it != m_files.end()) {
-                std::cout << "[INFO] Begin translation: " << std::string(*it) << std::endl;
                 m_ifstream.clear();
-                m_ifstream.seekg(0);
+                m_ifstream.close();
                 m_ifstream.open(*it);
-                std::string filename = it->stem();
 
+                if (!m_ifstream.good()) {
+                        std::cout << "[WARN] Could not open file: " << std::string(*it) << std::endl;
+                        ++it;
+                        continue;
+                }
+
+                std::cout << "[INFO] Begin translation: " << std::string(*it) << std::endl;
+                std::string filename = it->stem();
                 Parser p (m_ifstream);
                 CommandTranslator ct (filename);
-                while (p.has_more_commands()) {
-                        p.advance();
-                        Command vmc = p.parse_current();
-                        std::list<std::string> asm_instrs = ct.translate_command(vmc);
+                while (p.try_advance()) {
+                        if (p.is_command_valid()) {
+                                Command vmc = p.parse_current();
+                                std::list<std::string> asm_instrs = ct.translate_command(vmc);
 
-                        for (const std::string &instr : asm_instrs) {
-                                m_ofstream << instr << std::endl;
+                                for (const std::string &instr : asm_instrs) {
+                                        m_ofstream << instr << std::endl;
+                                }
                         }
                 }
 

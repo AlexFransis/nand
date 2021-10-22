@@ -6,29 +6,29 @@
 #include <cassert>
 #include <unordered_map>
 
-Parser::Parser(std::ifstream &ifstream)
-        : m_ifstream(ifstream),
-          m_command_rules({
-                        // command : < command_type , nb_args >
-                        {"add", 	std::make_pair("C_ARITHMETIC", 0)},
-                        {"sub", 	std::make_pair("C_ARITHMETIC", 0)},
-                        {"neg", 	std::make_pair("C_ARITHMETIC", 0)},
-                        {"eq", 		std::make_pair("C_ARITHMETIC", 0)},
-                        {"gt", 		std::make_pair("C_ARITHMETIC", 0)},
-                        {"lt", 		std::make_pair("C_ARITHMETIC", 0)},
-                        {"and", 	std::make_pair("C_ARITHMETIC", 0)},
-                        {"or", 		std::make_pair("C_ARITHMETIC", 0)},
-                        {"not", 	std::make_pair("C_ARITHMETIC", 0)},
+command_rules Parser::m_command_rules = {
+        // command_name: <command_type, nb_args>
+        {"add", 	std::make_pair("C_ARITHMETIC", 0)},
+        {"sub", 	std::make_pair("C_ARITHMETIC", 0)},
+        {"neg", 	std::make_pair("C_ARITHMETIC", 0)},
+        {"eq", 		std::make_pair("C_ARITHMETIC", 0)},
+        {"gt", 		std::make_pair("C_ARITHMETIC", 0)},
+        {"lt", 		std::make_pair("C_ARITHMETIC", 0)},
+        {"and", 	std::make_pair("C_ARITHMETIC", 0)},
+        {"or", 		std::make_pair("C_ARITHMETIC", 0)},
+        {"not", 	std::make_pair("C_ARITHMETIC", 0)},
+        {"push", 	std::make_pair("C_PUSH", 2)},
+        {"pop", 	std::make_pair("C_POP", 2)},
+        {"label", 	std::make_pair("C_LABEL", 1)},
+        {"goto", 	std::make_pair("C_GOTO", 1)},
+        {"if-goto", 	std::make_pair("C_IF", 1)},
+        {"function", 	std::make_pair("C_FUNCTION", 2)},
+        {"call", 	std::make_pair("C_CALL", 2)},
+        {"return", 	std::make_pair("C_RETURN", 0)},
+};
 
-                        {"push", 	std::make_pair("C_PUSH", 2)},
-                        {"pop", 	std::make_pair("C_POP", 2)},
-                        {"label", 	std::make_pair("C_LABEL", 1)},
-                        {"goto", 	std::make_pair("C_GOTO", 1)},
-                        {"if-goto", 	std::make_pair("C_IF", 1)},
-                        {"function", 	std::make_pair("C_FUNCTION", 2)},
-                        {"call", 	std::make_pair("C_CALL", 2)},
-                        {"return", 	std::make_pair("C_RETURN", 0)},
-                })
+Parser::Parser(std::ifstream &ifstream)
+        : m_ifstream(ifstream)
 {
 }
 
@@ -57,12 +57,12 @@ std::string Parser::trim_ws(const std::string &line)
 	return rtrim(ltrim(line));
 }
 
-bool Parser::has_more_commands() const
+bool Parser::is_command_valid()
 {
-	return m_ifstream.peek() != EOF;
+        return is_command_valid(m_current_line);
 }
 
-bool Parser::is_valid_command(const std::string &line)
+bool Parser::is_command_valid(const std::string &line)
 {
         if (trim_comments(line) == std::string())
                 return false;
@@ -71,24 +71,18 @@ bool Parser::is_valid_command(const std::string &line)
         return true;
 }
 
-void Parser::advance()
+bool Parser::try_advance()
 {
-        std::string line;
-        do {
-                std::getline(m_ifstream, line);
-                ++m_line_number;
-        } while (!is_valid_command(line));
-
-        std::string no_comments = trim_comments(line);
-        std::string no_ws = trim_ws(no_comments);
-        m_current_line = no_ws;
+        if (m_ifstream.eof()) return false;
+        std::getline(m_ifstream, m_current_line);
+        ++m_line_number;
+        return true;
 }
 
 std::vector<std::string> split(const std::string &s, char delimiter) {
         std::vector<std::string> ret;
-        typedef std::string::const_iterator str_iter;
-        str_iter i = s.begin();
-        str_iter j;
+        std::string::const_iterator i = s.begin();
+        std::string::const_iterator j;
 
         while (i != s.end()) {
                 // ignore leading spaces
@@ -113,7 +107,6 @@ std::vector<std::string> split(const std::string &s, char delimiter) {
         return ret;
 }
 
-
 std::vector<std::string> Parser::tokenize(const std::string &s)
 {
         std::vector<std::string> splits = split(s, ' ');
@@ -131,9 +124,7 @@ Command Parser::parse_current()
 
 Command Parser::parse(const std::string &s)
 {
-        typedef std::unordered_map<std::string, std::pair<std::string, unsigned int>> command_rules;
         typedef std::vector<std::string>::size_type vec_size;
-
         std::vector<std::string> tokens = tokenize(s);
         std::vector<std::string>::const_iterator it = tokens.begin();
 
@@ -141,9 +132,9 @@ Command Parser::parse(const std::string &s)
                 std::domain_error("[ERR] Line: " + std::to_string(m_line_number) + ": invalid command");
         }
 
-        std::string command = *it++;
+        std::string command_name = *it++;
 
-        command_rules::const_iterator found = m_command_rules.find(command);
+        command_rules::const_iterator found = m_command_rules.find(command_name);
         if (found == m_command_rules.end()) {
                 std::domain_error("[ERR] Line: " + std::to_string(m_line_number) + ": invalid command type");
         }
@@ -160,5 +151,5 @@ Command Parser::parse(const std::string &s)
                 std::domain_error("[ERR] Line: " + std::to_string(m_line_number) + ": invalid args");
         }
 
-        return Command (command_type, command, args);
+        return Command (command_type, command_name, args);
 }
