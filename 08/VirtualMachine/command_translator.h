@@ -15,7 +15,7 @@ typedef std::unordered_map<std::string, instrs> instr_table;
 
 class CommandTranslator {
 private:
-        instr_table				m_instr_table;
+        static const instr_table		m_instr_table;
         std::string				m_uuid;
         std::string				m_filename;
         std::string				m_curr_func;
@@ -25,10 +25,7 @@ private:
         bool					is_number(const std::string &s);
         bool					is_valid_index(const std::string &segment,
                                                                const std::string &index);
-
         std::string 				generate_uuid() const;
-        instr_table 				init_instr_table() const;
-
         void					replace(size_t delim_start,
                                                         size_t delim_end,
                                                         std::string &placeholder,
