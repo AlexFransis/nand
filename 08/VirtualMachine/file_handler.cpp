@@ -5,73 +5,28 @@
 #include <vector>
 #include <string>
 #include <cstdio>
-#include "command_translator.h"
-#include "parser.h"
-#include "translator.h"
+#include "file_handler.h"
 
 namespace fs = std::filesystem;
 
-Translator::Translator(const std::string &path, INPUT_TYPE input)
+FileHandler::FileHandler(const std::string &path, INPUT_TYPE input)
         :m_input_path(fs::path(path)),
          m_input_type(input)
 {
-        m_ifstream = std::ifstream();
-        m_ofstream = std::ofstream();
 }
 
-Translator::~Translator()
-{
-        m_ifstream.close();
-        m_ofstream.close();
-}
-
-void Translator::begin()
+std::pair<std::vector<fs::path>, fs::path> FileHandler::get_io_paths()
 {
         std::string out_ext = ".asm";
         std::string in_ext = ".vm";
 
-        m_files = get_valid_files(m_input_type, in_ext);
-        open_output(m_input_type, out_ext);
+        std::vector<fs::path> input_files = scan_files(m_input_type, in_ext);
+        fs::path output_file = construct_output_file(m_input_type, out_ext);
 
-        std::vector<fs::path>::const_iterator it = m_files.begin();
-        while (it != m_files.end()) {
-                m_ifstream.clear();
-                m_ifstream.close();
-                m_ifstream.open(*it);
-
-                if (!m_ifstream.good()) {
-                        std::string err = "[ERR] Could not open file: " + std::string(*it);
-                        throw std::domain_error(err);
-                }
-
-                std::cout << "[INFO] Begin translation: " << std::string(*it) << std::endl;
-                int line_number = 0;
-                Parser p;
-                CommandTranslator ct (it->stem());
-                while (!m_ifstream.eof()) {
-                        line_number++;
-                        Command vmc;
-                        std::string current_line;
-                        std::getline(m_ifstream, current_line);
-
-                        if (!p.try_parse(current_line, vmc))
-                        {
-                                std::string err = "[ERR] Invalid command on line " + std::to_string(line_number) +
-                                        " in file: " + std::string(it->stem());
-                                throw std::domain_error(err);
-                        }
-
-                        std::list<std::string> asm_instrs = ct.translate_command(vmc);
-                        for (const std::string &instr : asm_instrs) {
-                                m_ofstream << instr << std::endl;
-                        }
-                }
-
-                ++it;
-        }
+        return std::make_pair(input_files, output_file);
 }
 
-std::vector<fs::path> Translator::get_valid_files(INPUT_TYPE input, const std::string &ext)
+std::vector<fs::path> FileHandler::scan_files(INPUT_TYPE input, const std::string &ext)
 {
         std::vector<fs::path> result;
         if (m_input_type == INPUT_TYPE::DIR) {
@@ -98,29 +53,23 @@ std::vector<fs::path> Translator::get_valid_files(INPUT_TYPE input, const std::s
         return result;
 }
 
-void Translator::open_output(INPUT_TYPE input, const std::string &ext)
+fs::path FileHandler::construct_output_file(INPUT_TYPE input, const std::string &ext)
 {
+        fs::path out;
         if (m_input_type == INPUT_TYPE::FILE) {
-                fs::path out = m_input_path.replace_extension(ext);
-                m_ofstream.open(out);
-                if (!m_ofstream.good()) {
-                        throw std::domain_error("[ERR] Could not open output file");
-                }
-                std::cout << "[INFO] Opening output file: " << std::string(out) << std::endl;
+                out = m_input_path.replace_extension(ext);
         }
 
         if (m_input_type == INPUT_TYPE::DIR) {
                 // create a file in the directory passed
-                fs::path out = m_input_path / m_input_path.stem().replace_extension(ext);
-                m_ofstream.open(out);
-                if (!m_ofstream.good()) {
-                        throw std::domain_error("[ERR] Could not open output file");
-                }
-                std::cout << "[INFO] Opening output file: " << std::string(out) << std::endl;
+                out = m_input_path / m_input_path.stem().replace_extension(ext);
         }
+
+        return out;
 }
 
-std::vector<fs::path> Translator::traverse_dir(const fs::path &dir, const std::string &ext) {
+std::vector<fs::path> FileHandler::traverse_dir(const fs::path &dir, const std::string &ext)
+{
         std::vector<fs::path> result;
         for (const fs::directory_entry &e : fs::recursive_directory_iterator(dir)) {
                 fs::path file_p = e.path();

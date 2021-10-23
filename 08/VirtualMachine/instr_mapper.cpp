@@ -80,12 +80,12 @@ std::list<std::string> InstructionMapper::map_command(const Command &command)
 {
         std::list<std::string> asm_instrs;
         m_uuid = generate_uuid();
-        translate_command_aux(to_brackets(command.name), command, asm_instrs);
+        map_command_aux(to_brackets(command.name), command, asm_instrs);
 
         return asm_instrs;
 }
 
-void InstructionMapper::translate_command_aux(const std::string &command, const Command &vm, std::list<std::string> &asm_instrs)
+void InstructionMapper::map_command_aux(const std::string &command, const Command &vm, std::list<std::string> &asm_instrs)
 {
         // TODO: Make this function TCO
         if (!is_bracketed(command) && !is_placeholder(command)) {
@@ -97,7 +97,7 @@ void InstructionMapper::translate_command_aux(const std::string &command, const 
                 std::vector<std::string> resolved = resolve_placeholder(command, vm);
                 std::vector<std::string>::const_iterator it = resolved.begin();
                 while (it != resolved.end()) {
-                        translate_command_aux(*it, vm, asm_instrs);
+                        map_command_aux(*it, vm, asm_instrs);
                         ++it;
                 }
                 return;
@@ -108,10 +108,10 @@ void InstructionMapper::translate_command_aux(const std::string &command, const 
                 std::domain_error("[ERR] Invalid command: " + command);
         }
 
-        instrs commands = found->second;
-        instrs::iterator it = commands.begin();
+        std::vector<std::string> commands = found->second;
+        std::vector<std::string>::iterator it = commands.begin();
         while (it != commands.end()) {
-                translate_command_aux(*it, vm, asm_instrs);
+                map_command_aux(*it, vm, asm_instrs);
                 ++it;
         }
 }
