@@ -5,7 +5,7 @@
 #include <stdexcept>
 #include <vector>
 #include <filesystem>
-#include "file_handler.h"
+#include "translator.h"
 
 int main(int argc, char** argv)
 {
@@ -26,10 +26,10 @@ int main(int argc, char** argv)
                 return 1;
         }
 
-        FileHandler handler (input, input_type == "-d" ? INPUT_TYPE::DIR : INPUT_TYPE::FILE);
+        Translator translator (input, input_type == "-d" ? INPUT_TYPE::DIR : INPUT_TYPE::FILE);
 
         try {
-                handler.begin();
+                translator.begin();
         } catch (const std::domain_error &err) {
                 std::cerr << err.what() << std::endl;
                 return 1;

@@ -5,6 +5,7 @@
 #include <string>
 #include <cassert>
 #include <unordered_map>
+#include <vector>
 
 command_rules Parser::m_command_rules = {
         // command_name: <command_type, nb_args>
@@ -27,8 +28,7 @@ command_rules Parser::m_command_rules = {
         {"return", 	std::make_pair("C_RETURN", 0)},
 };
 
-Parser::Parser(std::ifstream &ifstream)
-        : m_ifstream(ifstream)
+Parser::Parser()
 {
 }
 
@@ -57,11 +57,6 @@ std::string Parser::trim_ws(const std::string &line)
 	return rtrim(ltrim(line));
 }
 
-bool Parser::is_command_valid()
-{
-        return is_command_valid(m_current_line);
-}
-
 bool Parser::is_command_valid(const std::string &line)
 {
         if (trim_comments(line) == std::string())
@@ -71,16 +66,8 @@ bool Parser::is_command_valid(const std::string &line)
         return true;
 }
 
-bool Parser::try_advance()
-{
-        if (m_ifstream.eof()) return false;
-        std::getline(m_ifstream, m_current_line);
-        ++m_line_number;
-        return true;
-}
-
 std::vector<std::string> split(const std::string &s, char delimiter) {
-        std::vector<std::string> ret;
+        std::vector<std::string> result;
         std::string::const_iterator i = s.begin();
         std::string::const_iterator j;
 
@@ -98,45 +85,43 @@ std::vector<std::string> split(const std::string &s, char delimiter) {
 
                 // delim found copy str [i , j)
                 if (i != s.end()) {
-                        ret.push_back(std::string(i, j));
+                        result.push_back(std::string(i, j));
                 }
 
                 i = j;
         }
 
-        return ret;
+        return result;
 }
 
 std::vector<std::string> Parser::tokenize(const std::string &s)
 {
         std::vector<std::string> splits = split(s, ' ');
-        // tolower only the command
-        std::vector<std::string>::iterator it = splits.begin();
+        std::vector<std::string>::iterator it = splits.begin(); // tolower only the command_name
         std::transform(it->begin(), it->end(), it->begin(), ::tolower);
 
         return splits;
 }
 
-Command Parser::parse_current()
+bool Parser::try_parse(const std::string &s, Command &out_command)
 {
-        return parse(m_current_line);
-}
+        if (!is_command_valid(s)) {
+                return false;
+        }
 
-Command Parser::parse(const std::string &s)
-{
         typedef std::vector<std::string>::size_type vec_size;
         std::vector<std::string> tokens = tokenize(s);
         std::vector<std::string>::const_iterator it = tokens.begin();
 
         if (it == tokens.end()) {
-                std::domain_error("[ERR] Line: " + std::to_string(m_line_number) + ": invalid command");
+                return false;
         }
 
-        std::string command_name = *it++;
+        std::string name = *it++;
 
-        command_rules::const_iterator found = m_command_rules.find(command_name);
+        command_rules::const_iterator found = m_command_rules.find(name);
         if (found == m_command_rules.end()) {
-                std::domain_error("[ERR] Line: " + std::to_string(m_line_number) + ": invalid command type");
+                return false;
         }
 
         std::vector<std::string> args;
@@ -145,11 +130,15 @@ Command Parser::parse(const std::string &s)
                 ++it;
         }
 
-        std::string command_type = found->second.first;
+        std::string type = found->second.first;
         vec_size nb_args = found->second.second;
         if (args.size() != nb_args) {
-                std::domain_error("[ERR] Line: " + std::to_string(m_line_number) + ": invalid args");
+                return false;
         }
 
-        return Command (command_type, command_name, args);
+        out_command.name = name;
+        out_command.type = type;
+        out_command.args = args;
+
+        return true;
 }

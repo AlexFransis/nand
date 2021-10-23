@@ -1,5 +1,5 @@
-#ifndef GUARD_command_translator_h
-#define GUARD_command_translator_h
+#ifndef GUARD_instr_mapper_h
+#define GUARD_instr_mapper_h
 
 #include <cstddef>
 #include <cstdint>
@@ -8,7 +8,7 @@
 #include <vector>
 #include <list>
 #include <iterator>
-#include "command.h"
+#include "translator.h"
 
 typedef std::vector<std::string> instrs;
 typedef std::unordered_map<std::string, instrs> instr_table;

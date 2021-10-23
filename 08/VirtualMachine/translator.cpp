@@ -5,7 +5,7 @@
 #include <vector>
 #include <string>
 #include <cstdio>
-#include "command_translator.h"
+#include "instr_mapper.h"
 #include "parser.h"
 #include "translator.h"
 
@@ -47,7 +47,7 @@ void Translator::begin()
                 std::cout << "[INFO] Begin translation: " << std::string(*it) << std::endl;
                 int line_number = 0;
                 Parser p;
-                CommandTranslator ct (it->stem());
+                InstructionMapper mapper (it->stem());
                 while (!m_ifstream.eof()) {
                         line_number++;
                         Command vmc;
@@ -61,7 +61,7 @@ void Translator::begin()
                                 throw std::domain_error(err);
                         }
 
-                        std::list<std::string> asm_instrs = ct.translate_command(vmc);
+                        std::list<std::string> asm_instrs = mapper.map_command(vmc);
                         for (const std::string &instr : asm_instrs) {
                                 m_ofstream << instr << std::endl;
                         }

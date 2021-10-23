@@ -6,21 +6,21 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include "command_translator.h"
+#include "instr_mapper.h"
 
-bool CommandTranslator::is_bracketed(const std::string &s)
+bool InstructionMapper::is_bracketed(const std::string &s)
 {
         return s.size() > 1 && *(s.begin()) == '<' && *(--(s.end())) == '>';
 }
 
-bool CommandTranslator::is_placeholder(const std::string &s)
+bool InstructionMapper::is_placeholder(const std::string &s)
 {
         size_t delim_start = s.find("{{");
         size_t delim_end = s.find("}}");
         return delim_start != std::string::npos && delim_end != std::string::npos;
 }
 
-bool CommandTranslator::is_number(const std::string &s)
+bool InstructionMapper::is_number(const std::string &s)
 {
         std::string::const_iterator it = s.begin();
         while (it != s.end()) {
@@ -31,7 +31,7 @@ bool CommandTranslator::is_number(const std::string &s)
         return true;
 }
 
-bool CommandTranslator::is_valid_index(const std::string &segment, const std::string &index)
+bool InstructionMapper::is_valid_index(const std::string &segment, const std::string &index)
 {
         if (!is_number(index)) return false;
         int idx = std::stoi(index);
@@ -48,7 +48,7 @@ std::string to_brackets(const std::string &s)
         return "<" + s + ">";
 }
 
-std::string CommandTranslator::generate_uuid() const
+std::string InstructionMapper::generate_uuid() const
 {
         std::string alphanumeric = "0123456789abcdefghijklmnopqrstuvwxyz";
         char uuid[17];
@@ -61,7 +61,7 @@ std::string CommandTranslator::generate_uuid() const
         return std::string(uuid);
 }
 
-void CommandTranslator::replace(size_t delim_start, size_t delim_end, std::string &placeholder, const std::string &arg)
+void InstructionMapper::replace(size_t delim_start, size_t delim_end, std::string &placeholder, const std::string &arg)
 {
         placeholder.insert(delim_start, arg);
         delim_start = delim_start + arg.length();
@@ -69,23 +69,23 @@ void CommandTranslator::replace(size_t delim_start, size_t delim_end, std::strin
         placeholder.erase(delim_start, (delim_end + 2) - delim_start);
 }
 
-CommandTranslator::CommandTranslator(const std::string &filename)
+InstructionMapper::InstructionMapper(const std::string &filename)
         : m_uuid(std::string()),
           m_filename(filename),
           m_curr_func("NULL")
 {
 }
 
-std::list<std::string> CommandTranslator::translate_command(const Command &command)
+std::list<std::string> InstructionMapper::map_command(const Command &command)
 {
         std::list<std::string> asm_instrs;
         m_uuid = generate_uuid();
-        translate_command_aux(to_brackets(command.name()), command, asm_instrs);
+        translate_command_aux(to_brackets(command.name), command, asm_instrs);
 
         return asm_instrs;
 }
 
-void CommandTranslator::translate_command_aux(const std::string &command, const Command &vm, std::list<std::string> &asm_instrs)
+void InstructionMapper::translate_command_aux(const std::string &command, const Command &vm, std::list<std::string> &asm_instrs)
 {
         // TODO: Make this function TCO
         if (!is_bracketed(command) && !is_placeholder(command)) {
@@ -116,7 +116,7 @@ void CommandTranslator::translate_command_aux(const std::string &command, const 
         }
 }
 
-std::vector<std::string> CommandTranslator::resolve_placeholder(const std::string &s, const Command &vm)
+std::vector<std::string> InstructionMapper::resolve_placeholder(const std::string &s, const Command &vm)
 {
         assert(is_placeholder(s));
         std::string resolved = s;
@@ -178,7 +178,7 @@ std::vector<std::string> CommandTranslator::resolve_placeholder(const std::strin
         return { resolved };
 }
 
-const instr_table CommandTranslator::m_instr_table =
+const instr_table InstructionMapper::m_instr_table =
 {
         // ===== MEMORY ACCESS =================
         {"<push>", 		{"{{segment}}", "<push-stack>", "<increment>"}},
