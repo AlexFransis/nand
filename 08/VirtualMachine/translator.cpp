@@ -1,10 +1,6 @@
 #include <iostream>
-#include <list>
 #include <ostream>
 #include <stdexcept>
-#include <vector>
-#include <string>
-#include <cstdio>
 #include "instr_mapper.h"
 #include "parser.h"
 #include "translator.h"

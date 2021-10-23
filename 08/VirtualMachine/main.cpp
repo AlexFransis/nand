@@ -1,11 +1,4 @@
 #include <iostream>
-#include <fstream>
-#include <cassert>
-#include <iterator>
-#include <stdexcept>
-#include <utility>
-#include <vector>
-#include <filesystem>
 #include "translator.h"
 #include "file_handler.h"
 

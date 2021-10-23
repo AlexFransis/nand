@@ -1,11 +1,5 @@
-#include "parser.h"
 #include <algorithm>
-#include <cctype>
-#include <cstdint>
-#include <string>
-#include <cassert>
-#include <unordered_map>
-#include <vector>
+#include "parser.h"
 
 command_rules Parser::m_command_rules = {
         // command_name: <command_type, nb_args>

@@ -1,11 +1,6 @@
 #include <algorithm>
-#include <cctype>
-#include <cstdint>
 #include <cassert>
 #include <stdexcept>
-#include <string>
-#include <unordered_map>
-#include <vector>
 #include "instr_mapper.h"
 
 bool InstructionMapper::is_bracketed(const std::string &s)

@@ -1,10 +1,3 @@
-#include <iostream>
-#include <list>
-#include <ostream>
-#include <stdexcept>
-#include <vector>
-#include <string>
-#include <cstdio>
 #include "file_handler.h"
 
 namespace fs = std::filesystem;

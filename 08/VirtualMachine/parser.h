@@ -2,11 +2,8 @@
 #define GUARD_parser_h
 
 #include <string>
-#include <fstream>
-#include <filesystem>
 #include <unordered_map>
 #include <vector>
-#include "translator.h"
 
 // <key: command_name, val: <first: command_type, second: args>>
 typedef std::unordered_map<std::string, std::pair<std::string, unsigned int>> command_rules;

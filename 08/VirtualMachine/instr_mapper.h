@@ -1,13 +1,10 @@
 #ifndef GUARD_instr_mapper_h
 #define GUARD_instr_mapper_h
 
-#include <cstddef>
-#include <cstdint>
 #include <string>
 #include <unordered_map>
 #include <vector>
 #include <list>
-#include <iterator>
 #include "parser.h"
 
 typedef std::vector<std::string> instrs;
