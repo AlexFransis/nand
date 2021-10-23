@@ -1,7 +1,8 @@
 #include <algorithm>
 #include "parser.h"
 
-command_rules Parser::m_command_rules = {
+command_rules Parser::m_command_rules =
+{
         // command_name: <command_type, nb_args>
         {"add", 	std::make_pair("C_ARITHMETIC", 0)},
         {"sub", 	std::make_pair("C_ARITHMETIC", 0)},

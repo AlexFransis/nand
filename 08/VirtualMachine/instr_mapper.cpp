@@ -147,6 +147,13 @@ std::vector<std::string> InstructionMapper::resolve_placeholder(const std::strin
                         replace(delim_start, delim_end, resolved, vm.arg2());
                 }
 
+                if (placeholder == "func_locals") {
+                        if (!is_number(vm.arg2())) {
+                                std::domain_error("[ERR] Invalid number of locals: " + vm.arg2());
+                        }
+                        replace(delim_start, delim_end, resolved, vm.arg2());
+                }
+
                 if (placeholder == "uuid") {
                         replace(delim_start, delim_end, resolved, m_uuid);
                 }
@@ -199,8 +206,8 @@ const instr_table InstructionMapper::m_instr_table =
         {"<function>", 		{"({{func_name}})", 		// declare function label for entry
                                  "@i", 				// init loop variable
                                  "M=0",
-                                 "(LOOP__{{uuid}})",		// repeat n times (n = nb of local variables)
-                                 "<constant>",
+                                 "(LOOP__{{uuid}})",
+                                 "<func-locals>",		// repeat n times (n = nb of local variables)
                                  "@i",
                                  "D=D-M",
                                  "@END__{{uuid}}",
@@ -288,8 +295,8 @@ const instr_table InstructionMapper::m_instr_table =
                                  "@LCL",			// LCL = *(FRAME - 4)
                                  "M=D",
                                  "@FRAME",
-                                 "M=M-1",
-                                 "A=M",				// FRAME = RET
+                                 "M=M-1",			// RET = *(FRAME - 5)
+                                 "A=M",
                                  "0;JMP"}},			// goto RET
 
         // STACK OPERATIONS
@@ -300,7 +307,6 @@ const instr_table InstructionMapper::m_instr_table =
         {"<double-dec>", 	{"@SP", "M=M-1", "AM=M-1"}},
 
         // SEGMENTS
-        {"<func-args>", 	{"@{{func_args}}", "D=A"}},
         {"<static>", 		{"@{{filename}}.{{index}}", "D=A", "@R13", "AM=D", "D=M"}},
         {"<constant>", 		{"@{{index}}", "D=A"}},
         {"<argument>", 		{"<constant>", "@ARG", "D=M+D", "@R13", "AM=D", "D=M"}},
@@ -309,6 +315,11 @@ const instr_table InstructionMapper::m_instr_table =
         {"<that>", 		{"<constant>", "@THAT", "D=M+D", "@R13", "AM=D", "D=M"}},
         {"<pointer>", 		{"<constant>", "@R3", "D=A+D", "@R13", "AM=D", "D=M"}},
         {"<temp>", 		{"<constant>", "@R5", "D=A+D", "@R13", "AM=D", "D=M"}},
+
+
+        // CONSTANTS
+        {"<func-args>", 	{"@{{func_args}}", "D=A"}},
+        {"<func-locals>", 	{"@{{func_locals}}", "D=A"}},
 
         // COMPUTATIONS
         {"<compute-eq>", 	{"<compute-sub>",
