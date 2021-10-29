@@ -79,7 +79,11 @@ void Translator::begin()
                                 throw std::domain_error(err);
                         }
 
-                        if (vmc.name == "call") {
+                        if (vmc.name == "return") {
+                                state["function_scope"] = "NULL";
+                        }
+
+                        if (vmc.name == "function") {
                                 state["function_scope"] = vmc.arg1(); // update state with current function scope
                         }
 
