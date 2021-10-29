@@ -52,13 +52,13 @@ std::string Parser::trim_ws(const std::string &line)
 	return rtrim(ltrim(line));
 }
 
-bool Parser::is_command_valid(const std::string &line)
+bool Parser::is_ws_or_comment(const std::string &line)
 {
         if (trim_comments(line) == std::string())
-                return false;
+                return true;
         if (trim_ws(line) == std::string())
-                return false;
-        return true;
+                return true;
+        return false;
 }
 
 std::vector<std::string> split(const std::string &s, char delimiter) {
@@ -100,12 +100,9 @@ std::vector<std::string> Parser::tokenize(const std::string &s)
 
 bool Parser::try_parse(const std::string &s, Command &out_command)
 {
-        if (!is_command_valid(s)) {
-                return false;
-        }
-
         typedef std::vector<std::string>::size_type vec_size;
-        std::vector<std::string> tokens = tokenize(s);
+        std::string trimmed = trim_ws(trim_comments(s));
+        std::vector<std::string> tokens = tokenize(trimmed);
         std::vector<std::string>::const_iterator it = tokens.begin();
 
         if (it == tokens.end()) {

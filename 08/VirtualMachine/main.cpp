@@ -25,6 +25,7 @@ int main(int argc, char** argv)
 
 
         try {
+
                 FileHandler fh (input, input_type == "-d" ? INPUT_TYPE::DIR : INPUT_TYPE::FILE);
                 std::pair<std::vector<fs::path>, fs::path> io = fh.get_io_paths();
                 Translator translator (io.first, io.second);

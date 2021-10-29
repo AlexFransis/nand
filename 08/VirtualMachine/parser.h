@@ -24,13 +24,13 @@ struct Command {
 class Parser {
 private:
         static command_rules 			m_command_rules;
-        bool					is_command_valid(const std::string &line);
         std::string				trim_comments(const std::string &line);
         std::string				trim_ws(const std::string &line);
         std::vector<std::string>		tokenize(const std::string &s);
 
 public:
         Parser();
+        bool					is_ws_or_comment(const std::string &line);
         bool					try_parse(const std::string &s, Command &out_command);
 };
 

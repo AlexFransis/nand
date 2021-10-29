@@ -13,25 +13,21 @@ typedef std::unordered_map<std::string, instrs> instr_table;
 class InstructionMapper {
 private:
         static const instr_table		m_instr_table;
-        std::string				m_uuid;
-        std::string				m_filename;
-        std::string				m_curr_func;
 
         bool					is_bracketed(const std::string &s);
         bool					is_placeholder(const std::string &s);
         bool					is_number(const std::string &s);
         bool					is_valid_index(const std::string &segment, const std::string &index);
-        std::string 				generate_uuid() const;
         void					replace(size_t delim_start, size_t delim_end,
                                                         std::string &placeholder, const std::string &arg);
-        std::vector<std::string>		resolve_placeholder(const std::string &placeholder, const Command &vm);
+        std::vector<std::string>		resolve_placeholder(const std::string &placeholder, const Command &vm,
+                                                                    std::unordered_map<std::string, std::string> &state);
         void					map_command_aux(const std::string &command,
                                                                 const Command &vm,
+                                                                std::unordered_map<std::string, std::string> &state,
                                                                 std::list<std::string> &asm_instrs);
 public:
-        InstructionMapper(const std::string &filename);
-
-        std::list<std::string>			map_command(const Command &command);
+        std::list<std::string>			map_command(const Command &command, std::unordered_map<std::string, std::string> &state);
 };
 
 #endif

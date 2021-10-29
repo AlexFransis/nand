@@ -11,6 +11,7 @@ private:
         std::filesystem::path 			m_output;
         std::ifstream 				m_ifstream;
         std::ofstream 				m_ofstream;
+        std::string 				generate_uuid() const;
 
       public:
         Translator(const std::vector<std::filesystem::path> &inputs, const std::filesystem::path &output);

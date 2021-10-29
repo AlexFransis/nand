@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <cassert>
 #include <stdexcept>
+#include <string>
+#include <unordered_map>
 #include "instr_mapper.h"
 
 bool InstructionMapper::is_bracketed(const std::string &s)
@@ -43,19 +45,6 @@ std::string to_brackets(const std::string &s)
         return "<" + s + ">";
 }
 
-std::string InstructionMapper::generate_uuid() const
-{
-        std::string alphanumeric = "0123456789abcdefghijklmnopqrstuvwxyz";
-        char uuid[17];
-        for (int i = 0; i < 16; i++) {
-                int rand = std::rand() % alphanumeric.length();
-                uuid[i] = alphanumeric[rand];
-        }
-        uuid[16] = '\0';
-
-        return std::string(uuid);
-}
-
 void InstructionMapper::replace(size_t delim_start, size_t delim_end, std::string &placeholder, const std::string &arg)
 {
         placeholder.insert(delim_start, arg);
@@ -64,23 +53,18 @@ void InstructionMapper::replace(size_t delim_start, size_t delim_end, std::strin
         placeholder.erase(delim_start, (delim_end + 2) - delim_start);
 }
 
-InstructionMapper::InstructionMapper(const std::string &filename)
-        : m_uuid(std::string()),
-          m_filename(filename),
-          m_curr_func("NULL")
-{
-}
-
-std::list<std::string> InstructionMapper::map_command(const Command &command)
+std::list<std::string> InstructionMapper::map_command(const Command &command, std::unordered_map<std::string, std::string> &state)
 {
         std::list<std::string> asm_instrs;
-        m_uuid = generate_uuid();
-        map_command_aux(to_brackets(command.name), command, asm_instrs);
+        map_command_aux(to_brackets(command.name), command, state, asm_instrs);
 
         return asm_instrs;
 }
 
-void InstructionMapper::map_command_aux(const std::string &command, const Command &vm, std::list<std::string> &asm_instrs)
+void InstructionMapper::map_command_aux(const std::string &command,
+                                        const Command &vm,
+                                        std::unordered_map<std::string, std::string> &state,
+                                        std::list<std::string> &asm_instrs)
 {
         // TODO: Make this function TCO
         if (!is_bracketed(command) && !is_placeholder(command)) {
@@ -89,10 +73,10 @@ void InstructionMapper::map_command_aux(const std::string &command, const Comman
         }
 
         if (is_placeholder(command)) {
-                std::vector<std::string> resolved = resolve_placeholder(command, vm);
+                std::vector<std::string> resolved = resolve_placeholder(command, vm, state);
                 std::vector<std::string>::const_iterator it = resolved.begin();
                 while (it != resolved.end()) {
-                        map_command_aux(*it, vm, asm_instrs);
+                        map_command_aux(*it, vm, state, asm_instrs);
                         ++it;
                 }
                 return;
@@ -106,12 +90,14 @@ void InstructionMapper::map_command_aux(const std::string &command, const Comman
         std::vector<std::string> commands = found->second;
         std::vector<std::string>::iterator it = commands.begin();
         while (it != commands.end()) {
-                map_command_aux(*it, vm, asm_instrs);
+                map_command_aux(*it, vm, state, asm_instrs);
                 ++it;
         }
 }
 
-std::vector<std::string> InstructionMapper::resolve_placeholder(const std::string &s, const Command &vm)
+std::vector<std::string> InstructionMapper::resolve_placeholder(const std::string &s,
+                                                                const Command &vm,
+                                                                std::unordered_map<std::string, std::string> &state)
 {
         assert(is_placeholder(s));
         std::string resolved = s;
@@ -155,15 +141,15 @@ std::vector<std::string> InstructionMapper::resolve_placeholder(const std::strin
                 }
 
                 if (placeholder == "uuid") {
-                        replace(delim_start, delim_end, resolved, m_uuid);
+                        replace(delim_start, delim_end, resolved, state["uuid"]);
                 }
 
                 if (placeholder == "filename") {
-                        replace(delim_start, delim_end, resolved, m_filename);
+                        replace(delim_start, delim_end, resolved, state["filename"]);
                 }
 
-                if (placeholder == "current_func") {
-                        replace(delim_start, delim_end, resolved, m_curr_func);
+                if (placeholder == "function_scope") {
+                        replace(delim_start, delim_end, resolved, state["function_scope"]);
                 }
 
                 if (placeholder == "func_name") {
@@ -198,9 +184,9 @@ const instr_table InstructionMapper::m_instr_table =
         {"<not>", 		{"<decrement>", "<compute-not>", "<increment>"}},
 
         // ===== PROGRAM FLOW ==================
-        {"<label>", 		{"({{current_func}}${{label}})"}},
-        {"<goto>", 		{"@{{current_func}}${{label}}", "0;JMP"}},
-        {"<if-goto>", 		{"<decrement>", "D=M", "@{{current_func}}${{label}}", "D;JNE"}},
+        {"<label>", 		{"({{function_scope}}${{label}})"}},
+        {"<goto>", 		{"@{{function_scope}}${{label}}", "0;JMP"}},
+        {"<if-goto>", 		{"<decrement>", "D=M", "@{{function_scope}}${{label}}", "D;JNE"}},
 
         // ===== FUNCTIONS =====================
         {"<function>", 		{"({{func_name}})", 		// declare function label for entry
@@ -245,11 +231,10 @@ const instr_table InstructionMapper::m_instr_table =
                                  "D=M",
                                  "@5",
                                  "D=D-A",
+                                 "@{{func_args}}",
+                                 "D=D-A",
                                  "@ARG",
                                  "M=D",
-                                 "<func-args>",
-                                 "@ARG",
-                                 "M=M-D",
                                  "@SP", 			// reposition LCL = SP
                                  "D=M",
                                  "@LCL",
@@ -318,7 +303,6 @@ const instr_table InstructionMapper::m_instr_table =
 
 
         // CONSTANTS
-        {"<func-args>", 	{"@{{func_args}}", "D=A"}},
         {"<func-locals>", 	{"@{{func_locals}}", "D=A"}},
 
         // COMPUTATIONS
