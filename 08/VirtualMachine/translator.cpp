@@ -46,6 +46,16 @@ void Translator::begin()
 
         std::cout << "[INFO] Opening output file: " << std::string(m_output) << std::endl;
         std::vector<fs::path>::const_iterator it = m_inputs.begin();
+
+        InstructionMapper mapper;
+        Parser p;
+
+        std::cout << "[INFO] Writing bootstrap code" << std::string(m_output) << std::endl;
+        std::vector<std::string> bootstrap_instrs = mapper.get_bootstrap_instrs();
+        for (const std::string &instr : bootstrap_instrs) {
+                m_ofstream << instr << std::endl;
+        }
+
         while (it != m_inputs.end()) {
                 m_ifstream.clear();
                 m_ifstream.close();
@@ -57,12 +67,12 @@ void Translator::begin()
                 }
 
                 std::cout << "[INFO] Begin translation: " << std::string(*it) << std::endl;
+
                 int line_number = 0;
-                Parser p;
-                InstructionMapper mapper;
                 std::unordered_map<std::string, std::string> state;
                 state["filename"] = it->stem();
                 state["function_scope"] = "NULL";
+
                 while (!m_ifstream.eof()) {
                         line_number++;
                         Command vmc;
@@ -77,10 +87,6 @@ void Translator::begin()
                                 std::string err = "[ERR] Invalid command on line " + std::to_string(line_number) +
                                         " in file: " + std::string(it->stem());
                                 throw std::domain_error(err);
-                        }
-
-                        if (vmc.name == "return") {
-                                state["function_scope"] = "NULL";
                         }
 
                         if (vmc.name == "function") {

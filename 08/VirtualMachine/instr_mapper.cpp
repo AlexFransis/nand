@@ -53,6 +53,13 @@ void InstructionMapper::replace(size_t delim_start, size_t delim_end, std::strin
         placeholder.erase(delim_start, (delim_end + 2) - delim_start);
 }
 
+std::vector<std::string> InstructionMapper::get_bootstrap_instrs() const
+{
+        instr_table::const_iterator found = m_instr_table.find("<bootstrap>");
+        assert(found != m_instr_table.end());
+        return found->second;
+}
+
 std::list<std::string> InstructionMapper::map_command(const Command &command, std::unordered_map<std::string, std::string> &state)
 {
         std::list<std::string> asm_instrs;
@@ -166,6 +173,10 @@ std::vector<std::string> InstructionMapper::resolve_placeholder(const std::strin
         return { resolved };
 }
 
+/*
+  TODO: optimizations:
+  - remove unnecessary SP manipulation in case of a push instr followed by a pop instr
+ */
 const instr_table InstructionMapper::m_instr_table =
 {
         // ===== MEMORY ACCESS =================
@@ -243,7 +254,18 @@ const instr_table InstructionMapper::m_instr_table =
                                  "0;JMP",
                                  "(RETURN__{{uuid}})"}},	// label for return address declared
 
-        {"<return>", 		{"<decrement>",
+        {"<return>", 		{"@LCL",
+                                 "D=M",
+                                 "@FRAME",			// FRAME = LCL
+                                 "M=D",
+                                 "@5",
+                                 "D=A",
+                                 "@FRAME",
+                                 "AM=M-D",
+                                 "D=M",
+                                 "@RET",			// RET = *(FRAME - 5)
+                                 "M=D",
+                                 "<decrement>",
                                  "D=M",				// get return value
                                  "@ARG",
                                  "A=M",
@@ -252,37 +274,32 @@ const instr_table InstructionMapper::m_instr_table =
                                  "D=M",
                                  "@SP",				// restore SP to the caller SP = ARG+1
                                  "M=D+1",
-                                 "@LCL",
-                                 "D=M",
-                                 "@FRAME",			// FRAME = LCL
-                                 "M=D",
-                                 "M=M-1",
-                                 "A=M",
-                                 "D=M",
-                                 "@THAT",			// THAT = *(FRAME - 1)
-                                 "M=D",
                                  "@FRAME",
-                                 "M=M-1",
-                                 "A=M",
-                                 "D=M",
-                                 "@THIS",			// THIS = *(FRAME - 2)
-                                 "M=D",
-                                 "@FRAME",
-                                 "M=M-1",
-                                 "A=M",
-                                 "D=M",
-                                 "@ARG",			// ARG = *(FRAME - 3)
-                                 "M=D",
-                                 "@FRAME",
-                                 "M=M-1",
-                                 "A=M",
+                                 "AM=M+1",
                                  "D=M",
                                  "@LCL",			// LCL = *(FRAME - 4)
                                  "M=D",
                                  "@FRAME",
-                                 "M=M-1",			// RET = *(FRAME - 5)
+                                 "AM=M+1",
+                                 "D=M",
+                                 "@ARG",			// ARG = *(FRAME - 3)
+                                 "M=D",
+                                 "@FRAME",
+                                 "AM=M+1",
+                                 "D=M",
+                                 "@THIS",			// THIS = *(FRAME - 2)
+                                 "M=D",
+                                 "@FRAME",
+                                 "AM=M+1",
+                                 "D=M",
+                                 "@THAT",			// THAT = *(FRAME - 1)
+                                 "M=D",
+                                 "@RET",
                                  "A=M",
                                  "0;JMP"}},			// goto RET
+
+        // BOOTSTRAP CODE
+        {"<bootstrap>", 	{"@256", "D=A", "@SP", "M=D", "@Sys.init", "0;JMP"}},
 
         // STACK OPERATIONS
         {"<push-stack>", 	{"@SP", "A=M", "M=D"}},
