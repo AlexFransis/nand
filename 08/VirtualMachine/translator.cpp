@@ -49,12 +49,10 @@ void Translator::begin()
 
         InstructionMapper mapper;
         Parser p;
+        std::unordered_map<std::string, std::string> state;
 
-        std::cout << "[INFO] Writing bootstrap code" << std::string(m_output) << std::endl;
-        std::vector<std::string> bootstrap_instrs = mapper.get_bootstrap_instrs();
-        for (const std::string &instr : bootstrap_instrs) {
-                m_ofstream << instr << std::endl;
-        }
+        std::cout << "[INFO] Writing bootstrap code to " << std::string(m_output) << std::endl;
+        write_bootstrap(state);
 
         while (it != m_inputs.end()) {
                 m_ifstream.clear();
@@ -66,13 +64,11 @@ void Translator::begin()
                         throw std::domain_error(err);
                 }
 
-                std::cout << "[INFO] Begin translation: " << std::string(*it) << std::endl;
-
-                int line_number = 0;
-                std::unordered_map<std::string, std::string> state;
                 state["filename"] = it->stem();
                 state["function_scope"] = "NULL";
+                int line_number = 0;
 
+                std::cout << "[INFO] Begin translation: " << std::string(*it) << std::endl;
                 while (!m_ifstream.eof()) {
                         line_number++;
                         Command vmc;
@@ -101,5 +97,24 @@ void Translator::begin()
                 }
 
                 ++it;
+        }
+}
+
+void Translator::write_bootstrap(std::unordered_map<std::string, std::string> &state)
+{
+        InstructionMapper mapper;
+        state["uuid"] = generate_uuid();
+
+        Command sp_init;
+        sp_init.name = "bootstrap";
+        std::list<std::string> sp_init_instrs = mapper.map_command(sp_init, state);
+        for (const std::string &instr : sp_init_instrs) {
+                m_ofstream << instr << std::endl;
+        }
+
+        Command call_sys_init ("C_CALL", "call", std::vector<std::string> { "Sys.init", "0" });
+        std::list<std::string> sys_init_instrs = mapper.map_command(call_sys_init, state);
+        for (const std::string &instr : sys_init_instrs) {
+                m_ofstream << instr << std::endl;
         }
 }

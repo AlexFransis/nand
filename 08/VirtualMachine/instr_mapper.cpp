@@ -53,13 +53,6 @@ void InstructionMapper::replace(size_t delim_start, size_t delim_end, std::strin
         placeholder.erase(delim_start, (delim_end + 2) - delim_start);
 }
 
-std::vector<std::string> InstructionMapper::get_bootstrap_instrs() const
-{
-        instr_table::const_iterator found = m_instr_table.find("<bootstrap>");
-        assert(found != m_instr_table.end());
-        return found->second;
-}
-
 std::list<std::string> InstructionMapper::map_command(const Command &command, std::unordered_map<std::string, std::string> &state)
 {
         std::list<std::string> asm_instrs;
@@ -299,7 +292,7 @@ const instr_table InstructionMapper::m_instr_table =
                                  "0;JMP"}},			// goto RET
 
         // BOOTSTRAP CODE
-        {"<bootstrap>", 	{"@256", "D=A", "@SP", "M=D", "@Sys.init", "0;JMP"}},
+        {"<bootstrap>", 	{"@256", "D=A", "@SP", "M=D"}},
 
         // STACK OPERATIONS
         {"<push-stack>", 	{"@SP", "A=M", "M=D"}},

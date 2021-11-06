@@ -3,6 +3,8 @@
 
 #include <filesystem>
 #include <fstream>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 class Translator {
@@ -12,6 +14,7 @@ private:
         std::ifstream 				m_ifstream;
         std::ofstream 				m_ofstream;
         std::string 				generate_uuid() const;
+        void 					write_bootstrap(std::unordered_map<std::string, std::string> &state);
 
       public:
         Translator(const std::vector<std::filesystem::path> &inputs, const std::filesystem::path &output);

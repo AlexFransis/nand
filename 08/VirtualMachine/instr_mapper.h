@@ -28,7 +28,6 @@ private:
                                                                 std::list<std::string> &asm_instrs);
 public:
         std::list<std::string>			map_command(const Command &command, std::unordered_map<std::string, std::string> &state);
-        std::vector<std::string>		get_bootstrap_instrs() const;
 };
 
 #endif
