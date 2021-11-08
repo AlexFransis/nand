@@ -177,13 +177,13 @@ const instr_table InstructionMapper::m_instr_table =
         {"<pop>", 		{"<decrement>", "{{segment}}", "<pop-stack>"}},
 
         // ===== C_ARITHMETIC ==================
-        {"<add>", 		{"<double-dec>", "<compute-add>", "<increment>"}},
-        {"<sub>", 		{"<double-dec>", "<compute-sub>", "<increment>"}},
-        {"<eq>", 		{"<double-dec>", "<compute-eq>", "<increment>"}},
-        {"<gt>", 		{"<double-dec>", "<compute-gt>", "<increment>"}},
-        {"<lt>", 		{"<double-dec>", "<compute-lt>", "<increment>"}},
-        {"<or>", 		{"<double-dec>", "<compute-or>", "<increment>"}},
-        {"<and>", 		{"<double-dec>", "<compute-and>", "<increment>"}},
+        {"<add>", 		{"<decrement>", "D=M", "<decrement>", "<compute-add>", "<increment>"}},
+        {"<sub>", 		{"<decrement>", "D=M", "<decrement>", "<compute-sub>", "<increment>"}},
+        {"<eq>", 		{"<decrement>", "D=M", "<decrement>", "<compute-eq>", "<increment>"}},
+        {"<gt>", 		{"<decrement>", "D=M", "<decrement>", "<compute-gt>", "<increment>"}},
+        {"<lt>", 		{"<decrement>", "D=M", "<decrement>", "<compute-lt>", "<increment>"}},
+        {"<or>", 		{"<decrement>", "D=M", "<decrement>", "<compute-or>", "<increment>"}},
+        {"<and>", 		{"<decrement>", "D=M", "<decrement>", "<compute-and>", "<increment>"}},
         {"<neg>", 		{"<decrement>", "<compute-neg>", "<increment>"}},
         {"<not>", 		{"<decrement>", "<compute-not>", "<increment>"}},
 
@@ -360,8 +360,8 @@ const instr_table InstructionMapper::m_instr_table =
 
         {"<compute-and>", 	{"MD=M&D"}},
         {"<compute-or>", 	{"MD=M|D"}},
-        {"<compute-not>", 	{"MD=!D"}},
         {"<compute-add>", 	{"MD=M+D"}},
         {"<compute-sub>", 	{"MD=M-D"}},
-        {"<compute-neg>", 	{"MD=-D"}}
+        {"<compute-not>", 	{"MD=!M"}},
+        {"<compute-neg>", 	{"MD=-M"}}
 };
