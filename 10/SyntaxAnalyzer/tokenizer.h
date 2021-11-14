@@ -16,9 +16,8 @@ private:
         bool 			is_string(const std::string &token);
         bool 			is_identifier(const std::string &token);
 public:
-        static const grammar 	grammar;
-
         bool 			is_ws_or_comment(const std::string &line);
+        std::string 		trim_comments(const std::string &line);
         std::string 		token_type(const std::string &token);
         bool			try_tokenize(const std::string &s, std::vector<std::pair<std::string, std::string>> &tokens);
 };

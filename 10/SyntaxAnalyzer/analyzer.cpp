@@ -37,7 +37,6 @@ void Analyzer::begin()
                 }
                 std::cout << "[INFO] Opening input file: " << std::string(jack_file) << std::endl;
 
-
                 if (!m_ofstream.good()) {
                         std::string err = "[ERR] Could not open file: " + std::string(xml_file);
                         throw std::domain_error(err);

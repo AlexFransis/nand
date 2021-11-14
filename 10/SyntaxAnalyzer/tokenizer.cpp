@@ -1,41 +1,5 @@
 #include "tokenizer.h"
-
-const grammar Tokenizer::grammar = {
-        {"<keyword>", 		{"class constructor function method field static var int char\
- 				boolean void true false null this let do if else while return"}},
-        {"<symbol>",		{"{ } ( ) [ ] . , ; + - * / & | < > = ~"}},
-        {"<integer>",		{"0..32767"}},
-        {"<string>",		{"\"", "UNICODE", "\""}},
-        {"<identifier>",	{}}
-};
-
-std::vector<std::string> split(const std::string &s, char delimiter) {
-        std::vector<std::string> result;
-        std::string::const_iterator i = s.begin();
-        std::string::const_iterator j;
-
-        while (i != s.end()) {
-                // ignore leading spaces
-                while (isspace(*i)) {
-                        i++;
-                }
-
-                j = i;
-
-                while (*j != delimiter && j != s.end()) {
-                        j++;
-                }
-
-                // delim found copy str [i , j)
-                if (i != s.end()) {
-                        result.push_back(std::string(i, j));
-                }
-
-                i = j;
-        }
-
-        return result;
-}
+#include <stdexcept>
 
 std::string ltrim(const std::string &s)
 {
@@ -51,10 +15,22 @@ std::string rtrim(const std::string &s)
 	return (end == std::string::npos) ? std::string() : s.substr(0, end + 1);
 }
 
-std::string trim_comments(const std::string &line)
+std::string Tokenizer::trim_comments(const std::string &line)
 {
-	std::size_t pos = line.find("//");
-	return (pos == std::string::npos) ? line : line.substr(0, pos);
+	std::size_t pos_begin = line.find("//");
+        if (pos_begin != std::string::npos) {
+                return line.substr(0, pos_begin);
+        }
+
+        pos_begin = line.find("/*");
+        if (pos_begin != std::string::npos) {
+                std::size_t pos_end = line.find("*/");
+                if (pos_end == std::string::npos) {
+                }
+
+        }
+
+	return (pos_begin == std::string::npos) ? line : line.substr(0, pos_begin);
 }
 
 std::string trim_ws(const std::string &line)
@@ -73,5 +49,5 @@ bool Tokenizer::is_ws_or_comment(const std::string &line)
 
 bool Tokenizer::try_tokenize(const std::string &s, std::vector<std::pair<std::string, std::string>> &tokens)
 {
-        std::vector<std::string> splits = split(s, ' ');
+        return true;
 }
