@@ -1,5 +1,47 @@
 #include "tokenizer.h"
 #include <stdexcept>
+#include <string>
+#include <unordered_set>
+
+bool Tokenizer::is_keyword(const std::string &s)
+{
+        const std::unordered_set<std::string> valid_keywords = { "class", "constructor", "function", "method",
+                "field", "static", "var", "int", "char", "boolean", "void", "true", "false", "null", "this", "let", "do",
+                "if", "else", "while", "return"};
+
+        return valid_keywords.count(s);
+}
+
+bool Tokenizer::is_symbol(const std::string &s)
+{
+        const std::unordered_set<std::string> valid_symbols = {"{", "}", "(", ")", "[", "]", ".", ",",
+                "+", "-", "*", "/", "&", "|", "<", ">", "=", "~"};
+
+        return valid_symbols.count(s);
+}
+
+bool Tokenizer::is_integer(const std::string &s)
+{
+        std::string::const_iterator it = s.begin();
+        while (it != s.end()) {
+                if (!std::isdigit(*it)) return false;
+                ++it;
+        }
+
+        int int_constant = std::stoi(s);
+
+        return int_constant > 0 && int_constant < 32767;
+}
+
+bool Tokenizer::is_string(const std::string &s)
+{
+        return false;
+}
+
+bool Tokenizer::is_identifier(const std::string &s)
+{
+        return false;
+}
 
 std::string ltrim(const std::string &s)
 {
@@ -47,7 +89,7 @@ bool Tokenizer::is_ws_or_comment(const std::string &line)
         return false;
 }
 
-bool Tokenizer::try_tokenize(const std::string &s, std::vector<std::pair<std::string, std::string>> &tokens)
+bool Tokenizer::try_tokenize(const std::string &s, std::vector<std::string> &out_tokens)
 {
         return true;
 }

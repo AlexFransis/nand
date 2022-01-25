@@ -19,7 +19,7 @@ public:
         bool 			is_ws_or_comment(const std::string &line);
         std::string 		trim_comments(const std::string &line);
         std::string 		token_type(const std::string &token);
-        bool			try_tokenize(const std::string &s, std::vector<std::pair<std::string, std::string>> &tokens);
+        bool			try_tokenize(const std::string &s, std::vector<std::string> &out_tokens);
 };
 
 #endif
