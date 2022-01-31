@@ -54,17 +54,16 @@ void Analyzer::begin()
                                 continue;
                         }
 
-                        std::vector<std::pair<std::string, std::string>> tokens;
+                        std::vector<std::string> tokens;
                         if (!t.try_tokenize(current_line, tokens)) {
                                 std::string err = "[ERR] Invalid syntax on line " + std::to_string(line_number) +
                                         " in file: " + std::string(jack_file);
                                 throw std::domain_error(err);
                         }
 
-                        for (const std::pair<std::string, std::string> &token : tokens) {
-                                m_ofstream << token.first << " ----> " << token.second << std::endl;
+                        for (const std::string &token : tokens) {
+                                m_ofstream << token << std::endl;
                         }
                 }
-
         }
 }
