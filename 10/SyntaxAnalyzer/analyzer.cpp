@@ -8,11 +8,11 @@
 namespace fs = std::filesystem;
 
 Analyzer::Analyzer(const std::string &path, const std::string &input)
+        :m_input_path(fs::path(path))
 {
-        FileHandler fh (path, input);
-        m_io_paths = fh.get_io_paths();
         m_ifstream = std::ifstream();
         m_ofstream = std::ofstream();
+        m_input_type = input == "-d" ? INPUT_TYPE::DIR : INPUT_TYPE::FILE;
 }
 
 Analyzer::~Analyzer()
@@ -23,6 +23,8 @@ Analyzer::~Analyzer()
 
 void Analyzer::begin()
 {
+        FileHandler fh;
+        m_io_paths = fh.get_io_paths(m_input_path, m_input_type);
         std::vector<io_paths>::const_iterator it = m_io_paths.begin();
         while (it != m_io_paths.end()) {
                 fs::path jack_file = it->first;

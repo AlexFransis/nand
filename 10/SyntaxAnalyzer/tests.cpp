@@ -97,6 +97,15 @@ int tokenizer_is_identifier_test()
 
 }
 
+int tokenizer_is_ws_or_comment_test()
+{
+        Tokenizer t;
+        std::string input1 = "code // comment here";
+        bool expected1 = false;
+        bool actual1 = t.is_ws_or_comment(input1);
+        bool result1 = expected1 == actual1;
+}
+
 int tokenizer_test()
 {
         int failed = 0;
