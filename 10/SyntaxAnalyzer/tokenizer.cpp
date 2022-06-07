@@ -1,4 +1,5 @@
 #include "tokenizer.h"
+#include <cctype>
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
@@ -32,7 +33,7 @@ bool Tokenizer::is_keyword(const std::string &s)
         return valid_keywords.count(s);
 }
 
-bool Tokenizer::is_symbol(const std::string &s)
+bool Tokenizer::is_symbol(const std::string &token)
 {
         const std::unordered_set<std::string> valid_symbols = {
                 "{",
@@ -43,6 +44,7 @@ bool Tokenizer::is_symbol(const std::string &s)
                 "]",
                 ".",
                 ",",
+                ";",
                 "+",
                 "-",
                 "*",
@@ -54,7 +56,13 @@ bool Tokenizer::is_symbol(const std::string &s)
                 "=",
                 "~"};
 
-        return valid_symbols.count(s);
+        return valid_symbols.count(token);
+}
+
+bool Tokenizer::is_symbol(const char &c)
+{
+        std::string s (1, c);
+        return is_symbol(s);
 }
 
 bool Tokenizer::is_integer(const std::string &s)
@@ -67,7 +75,7 @@ bool Tokenizer::is_integer(const std::string &s)
 
         int int_constant = std::stoi(s);
 
-        return int_constant > 0 && int_constant < 32767;
+        return int_constant >= 0 && int_constant < 32768; // 2^15
 }
 
 bool Tokenizer::is_string(const std::string &s)
@@ -125,53 +133,79 @@ bool Tokenizer::is_identifier(const std::string &s)
         return true;
 }
 
-std::string ltrim(const std::string &s)
+std::string Tokenizer::get_token_type(const std::string &token)
 {
-	const std::string ws = " \n\r\t\f\v";
-	size_t start = s.find_first_not_of(ws);
-	return (start == std::string::npos) ? std::string() : s.substr(start);
+        if (is_keyword(token))
+                return "KEYWORD";
+        if (is_symbol(token))
+                return "SYMBOL";
+        if (is_integer(token))
+                return "INTEGER_CONST";
+        if (is_string(token))
+                return "STRING_CONST";
+        if (is_identifier(token))
+                return "IDENTIFIER";
+        return "UNKNOWN";
 }
 
-std::string rtrim(const std::string &s)
+bool Tokenizer::try_tokenize(const std::string &s, std::vector<std::pair<std::string, std::string>> &out_tokens)
 {
-	const std::string ws = " \n\r\t\f\v";
-	size_t end = s.find_last_not_of(ws);
-	return (end == std::string::npos) ? std::string() : s.substr(0, end + 1);
-}
+        std::string::const_iterator i = s.begin();
+        std::string::const_iterator j;
 
-std::string Tokenizer::trim_comments(const std::string &line)
-{
-	std::size_t pos_begin = line.find("//");
-        if (pos_begin != std::string::npos) {
-                return line.substr(0, pos_begin);
-        }
-
-        pos_begin = line.find("/*");
-        if (pos_begin != std::string::npos) {
-                std::size_t pos_end = line.find("*/");
-                if (pos_end == std::string::npos) {
+        while (i != s.end()) {
+                // ignore leading spaces
+                while (isspace(*i)) {
+                        i++;
                 }
 
+                j = i;
+
+                // string token begining
+                if (*j == '"') {
+                        j++;
+                        while (*j != '"' && j != s.end()) {
+                                j++;
+                        }
+
+                        if (j == s.end()) {
+                                return false;
+                        }
+
+                        j++; // grab closing double quote
+
+                        // string found
+                        std::string token (i, j);
+                        std::string type = get_token_type(token);
+                        if (type == "UNKNOWN") {
+                                return false;
+                        }
+
+                        out_tokens.push_back(std::make_pair(token, type));
+
+                        i = j;
+                        continue;
+                }
+
+                while (!isspace(*j) && !is_symbol(*j)) {
+                        j++;
+                }
+
+                // check if single character token
+                if (i == j) {
+                        j++;
+                }
+                // token found
+                std::string token (i, j);
+                std::string type = get_token_type(token);
+                if (type == "UNKNOWN") {
+                        return false;
+                }
+
+                out_tokens.push_back(std::make_pair(token, type));
+
+                i = j;
         }
 
-	return (pos_begin == std::string::npos) ? line : line.substr(0, pos_begin);
-}
-
-std::string trim_ws(const std::string &line)
-{
-	return rtrim(ltrim(line));
-}
-
-bool Tokenizer::is_ws_or_comment(const std::string &line)
-{
-        if (trim_comments(line) == std::string())
-                return true;
-        if (trim_ws(line) == std::string())
-                return true;
-        return false;
-}
-
-bool Tokenizer::try_tokenize(const std::string &s, std::vector<std::string> &out_tokens)
-{
         return true;
 }

@@ -12,6 +12,9 @@ private:
         INPUT_TYPE			m_input_type;
         std::vector<io_paths>		m_io_paths;
 
+        std::string 			trim_comments(const std::string &line);
+        std::string 			trim_ws(const std::string &line);
+
 public:
         Analyzer(const std::string &path, const std::string &input);
         ~Analyzer();

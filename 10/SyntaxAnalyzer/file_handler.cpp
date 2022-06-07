@@ -48,6 +48,7 @@ std::vector<io_paths> FileHandler::construct_output_files(std::vector<fs::path> 
                 fs::path out = *it;
                 out.replace_extension(ext);
                 result.push_back(std::make_pair(*it, out)); // input output
+                it++;
         }
 
         return result;

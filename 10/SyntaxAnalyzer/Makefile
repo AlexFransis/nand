@@ -6,14 +6,17 @@ all: main
 
 test: tests
 
+main: $(OFILES)
+	$(CC) $(CFLAGS) $(OFILES) -o main
+
 tests: tests.o
 	$(CC) $(CFLAGS) tests.o tokenizer.o -o tests
 
+clean:
+	rm -rf *.o main tests
+
 tests.o: tests.cpp tokenizer.o
 	$(CC) $(CFLAGS) -c tests.cpp
-
-main: $(OFILES)
-	$(CC) $(CFLAGS) $(OFILES) -o main
 
 main.o: main.cpp
 	$(CC) $(CFLAGS) -c main.cpp
@@ -29,6 +32,3 @@ tokenizer.o: tokenizer.cpp tokenizer.h
 
 file_handler.o: file_handler.cpp file_handler.h
 	$(CC) $(CFLAGS) -c file_handler.cpp
-
-clean:
-	rm -rf *.o main tests
