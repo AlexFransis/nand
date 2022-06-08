@@ -7,56 +7,50 @@
 
 bool Tokenizer::is_keyword(const std::string &s)
 {
-        const std::unordered_set<std::string> valid_keywords = {
-                "class",
-                "constructor",
-                "function",
-                "method",
-                "field",
-                "static",
-                "var",
-                "int",
-                "char",
-                "boolean",
-                "void",
-                "true",
-                "false",
-                "null",
-                "this",
-                "let",
-                "do",
-                "if",
-                "else",
-                "while",
-                "return"};
-
-        return valid_keywords.count(s);
+        return s == "class" ||
+                s == "constructor" ||
+                s == "function" ||
+                s == "method" ||
+                s == "field" ||
+                s == "static" ||
+                s == "var" ||
+                s == "int" ||
+                s == "char" ||
+                s == "boolean" ||
+                s == "void" ||
+                s == "true" ||
+                s == "false" ||
+                s == "null" ||
+                s == "this" ||
+                s == "let" ||
+                s == "do" ||
+                s == "if" ||
+                s == "else" ||
+                s == "while" ||
+                s == "return";
 }
 
 bool Tokenizer::is_symbol(const std::string &token)
 {
-        const std::unordered_set<std::string> valid_symbols = {
-                "{",
-                "}",
-                "(",
-                ")",
-                "[",
-                "]",
-                ".",
-                ",",
-                ";",
-                "+",
-                "-",
-                "*",
-                "/",
-                "&",
-                "|",
-                "<",
-                ">",
-                "=",
-                "~"};
-
-        return valid_symbols.count(token);
+        return token == "{" ||
+                token == "}" ||
+                token == "(" ||
+                token == ")" ||
+                token == "[" ||
+                token == "]" ||
+                token == "." ||
+                token == "," ||
+                token == ";" ||
+                token == "+" ||
+                token == "-" ||
+                token == "*" ||
+                token == "/" ||
+                token == "&" ||
+                token == "|" ||
+                token == "<" ||
+                token == ">" ||
+                token == "=" ||
+                token == "~";
 }
 
 bool Tokenizer::is_symbol(const char &c)
@@ -106,6 +100,10 @@ bool Tokenizer::is_string(const std::string &s)
 
 bool Tokenizer::is_identifier(const std::string &s)
 {
+        if (is_keyword(s)) return false;
+        std::string::const_iterator first = s.begin();
+        if (std::isdigit(*first)) return false;
+
         int digit_0_unicode = 0x30;
         int digit_9_unicode = 0x39;
         int alpha_A_unicode = 0x41;
@@ -113,10 +111,6 @@ bool Tokenizer::is_identifier(const std::string &s)
         int alpha_a_unicode = 0x61;
         int alpha_z_unicode = 0x7a;
         int underscore_unicode = 0x5f;
-
-        if (is_keyword(s)) return false;
-        std::string::const_iterator first = s.begin();
-        if (std::isdigit(*first)) return false;
 
         while (first != s.end()) {
                 int char_unicode = (int)*first;
@@ -136,16 +130,16 @@ bool Tokenizer::is_identifier(const std::string &s)
 std::string Tokenizer::get_token_type(const std::string &token)
 {
         if (is_keyword(token))
-                return "KEYWORD";
+                return "keyword";
         if (is_symbol(token))
-                return "SYMBOL";
+                return "symbol";
         if (is_integer(token))
-                return "INTEGER_CONST";
+                return "integer_const";
         if (is_string(token))
-                return "STRING_CONST";
+                return "string_const";
         if (is_identifier(token))
-                return "IDENTIFIER";
-        return "UNKNOWN";
+                return "identifier";
+        return "unknown";
 }
 
 bool Tokenizer::try_tokenize(const std::string &s, std::vector<std::pair<std::string, std::string>> &out_tokens)
@@ -177,7 +171,7 @@ bool Tokenizer::try_tokenize(const std::string &s, std::vector<std::pair<std::st
                         // string found
                         std::string token (i, j);
                         std::string type = get_token_type(token);
-                        if (type == "UNKNOWN") {
+                        if (type == "unknown") {
                                 return false;
                         }
 
@@ -198,7 +192,7 @@ bool Tokenizer::try_tokenize(const std::string &s, std::vector<std::pair<std::st
                 // token found
                 std::string token (i, j);
                 std::string type = get_token_type(token);
-                if (type == "UNKNOWN") {
+                if (type == "unknown") {
                         return false;
                 }
 

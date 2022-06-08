@@ -103,7 +103,7 @@ void Analyzer::begin()
                 }
 
                 for (const std::pair<std::string, std::string> &token : tokens) {
-                        m_ofstream << token.first << " ---> " << token.second << std::endl;
+                        m_ofstream << "<" << token.second << "> " << token.first << " </" << token.second << ">" << std::endl;
                 }
 
                 it++;
