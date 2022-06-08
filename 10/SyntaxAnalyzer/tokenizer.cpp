@@ -5,7 +5,7 @@
 #include <unordered_set>
 #include <utility>
 
-bool Tokenizer::is_keyword(const std::string &s)
+bool Tokenizer::is_keyword(const std::string &token)
 {
         return token == "class" ||
                 token == "constructor" ||
@@ -59,31 +59,31 @@ bool Tokenizer::is_symbol(const char &c)
         return is_symbol(s);
 }
 
-bool Tokenizer::is_integer(const std::string &s)
+bool Tokenizer::is_integer(const std::string &token)
 {
-        std::string::const_iterator it = s.begin();
-        while (it != s.end()) {
+        std::string::const_iterator it = token.begin();
+        while (it != token.end()) {
                 if (!std::isdigit(*it)) return false;
                 ++it;
         }
-        int int_constant = std::stoi(s);
+        int int_constant = std::stoi(token);
 
         return int_constant >= 0x0000 && int_constant < 0x8000; // 2^15
 }
 
-bool Tokenizer::is_string(const std::string &s)
+bool Tokenizer::is_string(const std::string &token)
 {
-        std::string::const_iterator first = s.begin();
-        std::string::const_iterator end = s.end();
+        std::string::const_iterator first = token.begin();
+        std::string::const_iterator end = token.end();
         if (*first != '"' || *(--end) != '"') return false;
 
         // remove leading and ending double quotes
-        std::string stripped = s.substr(1, s.size() - 2);
+        std::string stripped = token.substr(1, token.size() - 2);
         first = stripped.begin();
 
         int double_quote_unicode = 0x22;
         int line_feed_unicode = 0x0a;
-        while (first != stripeed.end()) {
+        while (first != stripped.end()) {
                 int char_unicode = (int)*first;
                 if (char_unicode == double_quote_unicode || char_unicode == line_feed_unicode) return false;
                 first++;
@@ -92,10 +92,9 @@ bool Tokenizer::is_string(const std::string &s)
         return true;
 }
 
-bool Tokenizer::is_identifier(const std::string &s)
+bool Tokenizer::is_identifier(const std::string &token)
 {
-        if (is_keyword(s)) return false;
-        std::string::const_iterator first = s.begin();
+        std::string::const_iterator first = token.begin();
         if (std::isdigit(*first)) return false;
 
         int digit_0_unicode = 0x30;
@@ -106,7 +105,7 @@ bool Tokenizer::is_identifier(const std::string &s)
         int alpha_z_unicode = 0x7a;
         int underscore_unicode = 0x5f;
 
-        while (first != s.end()) {
+        while (first != token.end()) {
                 int char_unicode = (int)*first;
                 if (!(char_unicode >= digit_0_unicode && char_unicode <= digit_9_unicode) &&
                     !(char_unicode >= alpha_A_unicode && char_unicode <= alpha_Z_unicode) &&
@@ -137,12 +136,12 @@ std::string Tokenizer::get_token_type(const std::string &token)
         return "unknown";
 }
 
-bool Tokenizer::try_tokenize(const std::string &s, std::vector<std::pair<std::string, std::string>> &out_tokens)
+bool Tokenizer::try_tokenize(const std::string &line, std::vector<std::pair<std::string, std::string>> &out_tokens)
 {
-        std::string::const_iterator i = s.begin();
+        std::string::const_iterator i = line.begin();
         std::string::const_iterator j;
 
-        while (i != s.end()) {
+        while (i != line.end()) {
                 // ignore leading spaces
                 while (isspace(*i)) {
                         i++;
@@ -153,11 +152,11 @@ bool Tokenizer::try_tokenize(const std::string &s, std::vector<std::pair<std::st
                 // string token begining
                 if (*j == '"') {
                         j++;
-                        while (*j != '"' && j != s.end()) {
+                        while (*j != '"' && j != line.end()) {
                                 j++;
                         }
 
-                        if (j == s.end()) {
+                        if (j == line.end()) {
                                 return false;
                         }
 

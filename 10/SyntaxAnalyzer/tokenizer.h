@@ -18,7 +18,7 @@ private:
         bool 			is_identifier(const std::string &token);
 public:
         std::string 		get_token_type(const std::string &token);
-        bool			try_tokenize(const std::string &s, std::vector<std::pair<std::string, std::string>> &out_tokens);
+        bool			try_tokenize(const std::string &line, std::vector<std::pair<std::string, std::string>> &out_tokens);
 };
 
 #endif
