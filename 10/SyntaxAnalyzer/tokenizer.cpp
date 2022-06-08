@@ -7,27 +7,27 @@
 
 bool Tokenizer::is_keyword(const std::string &s)
 {
-        return s == "class" ||
-                s == "constructor" ||
-                s == "function" ||
-                s == "method" ||
-                s == "field" ||
-                s == "static" ||
-                s == "var" ||
-                s == "int" ||
-                s == "char" ||
-                s == "boolean" ||
-                s == "void" ||
-                s == "true" ||
-                s == "false" ||
-                s == "null" ||
-                s == "this" ||
-                s == "let" ||
-                s == "do" ||
-                s == "if" ||
-                s == "else" ||
-                s == "while" ||
-                s == "return";
+        return token == "class" ||
+                token == "constructor" ||
+                token == "function" ||
+                token == "method" ||
+                token == "field" ||
+                token == "static" ||
+                token == "var" ||
+                token == "int" ||
+                token == "char" ||
+                token == "boolean" ||
+                token == "void" ||
+                token == "true" ||
+                token == "false" ||
+                token == "null" ||
+                token == "this" ||
+                token == "let" ||
+                token == "do" ||
+                token == "if" ||
+                token == "else" ||
+                token == "while" ||
+                token == "return";
 }
 
 bool Tokenizer::is_symbol(const std::string &token)
@@ -66,34 +66,28 @@ bool Tokenizer::is_integer(const std::string &s)
                 if (!std::isdigit(*it)) return false;
                 ++it;
         }
-
         int int_constant = std::stoi(s);
 
-        return int_constant >= 0 && int_constant < 32768; // 2^15
+        return int_constant >= 0x0000 && int_constant < 0x8000; // 2^15
 }
 
 bool Tokenizer::is_string(const std::string &s)
 {
         std::string::const_iterator first = s.begin();
-        if (*first != '"') return false;
-
         std::string::const_iterator end = s.end();
-        if (*(--end) != '"') return false;
+        if (*first != '"' || *(--end) != '"') return false;
 
         // remove leading and ending double quotes
         std::string stripped = s.substr(1, s.size() - 2);
-
         first = stripped.begin();
-        end = stripped.end();
 
         int double_quote_unicode = 0x22;
         int line_feed_unicode = 0x0a;
-        while (first != end) {
+        while (first != stripeed.end()) {
                 int char_unicode = (int)*first;
                 if (char_unicode == double_quote_unicode || char_unicode == line_feed_unicode) return false;
                 first++;
         }
-
 
         return true;
 }
@@ -139,6 +133,7 @@ std::string Tokenizer::get_token_type(const std::string &token)
                 return "string_const";
         if (is_identifier(token))
                 return "identifier";
+
         return "unknown";
 }
 
