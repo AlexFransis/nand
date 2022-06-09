@@ -66,20 +66,19 @@ bool Tokenizer::is_integer(const std::string &token)
                 if (!std::isdigit(*it)) return false;
                 ++it;
         }
-        int int_constant = std::stoi(token);
 
-        return int_constant >= 0x0000 && int_constant < 0x8000; // 2^15
+        int num = std::stoi(token);
+
+        return num >= 0x0000 && num < 0x8000; // 2^15
 }
 
 bool Tokenizer::is_string(const std::string &token)
 {
-        std::string::const_iterator first = token.begin();
-        std::string::const_iterator end = token.end();
-        if (*first != '"' || *(--end) != '"') return false;
+        if (token.front() != '"' || token.back() != '"') return false;
 
         // remove leading and ending double quotes
         std::string stripped = token.substr(1, token.size() - 2);
-        first = stripped.begin();
+        std::string::const_iterator first = stripped.begin();
 
         int double_quote_unicode = 0x22;
         int line_feed_unicode = 0x0a;
@@ -122,21 +121,16 @@ bool Tokenizer::is_identifier(const std::string &token)
 
 std::string Tokenizer::get_token_type(const std::string &token)
 {
-        if (is_keyword(token))
-                return "keyword";
-        if (is_symbol(token))
-                return "symbol";
-        if (is_integer(token))
-                return "integer_const";
-        if (is_string(token))
-                return "string_const";
-        if (is_identifier(token))
-                return "identifier";
+        if (is_keyword(token)) return "keyword";
+        if (is_symbol(token)) return "symbol";
+        if (is_integer(token)) return "integer_const";
+        if (is_string(token)) return "string_const";
+        if (is_identifier(token)) return "identifier";
 
         return "unknown";
 }
 
-bool Tokenizer::try_tokenize(const std::string &line, std::vector<std::pair<std::string, std::string>> &out_tokens)
+bool Tokenizer::try_tokenize(const std::string &line, tokens &out_tokens)
 {
         std::string::const_iterator i = line.begin();
         std::string::const_iterator j;

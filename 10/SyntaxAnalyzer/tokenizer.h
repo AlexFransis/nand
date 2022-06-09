@@ -5,8 +5,7 @@
 #include <vector>
 #include <string>
 
-typedef std::vector<std::string> tokens;
-typedef std::unordered_map<std::string, tokens> grammar;
+typedef std::vector<std::pair<std::string, std::string>> tokens;
 
 class Tokenizer {
 private:
@@ -18,7 +17,7 @@ private:
         bool 			is_identifier(const std::string &token);
 public:
         std::string 		get_token_type(const std::string &token);
-        bool			try_tokenize(const std::string &line, std::vector<std::pair<std::string, std::string>> &out_tokens);
+        bool			try_tokenize(const std::string &line, tokens &out_tokens);
 };
 
 #endif

@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include "file_handler.h"
 #include "analyzer.h"
 #include "tokenizer.h"
@@ -84,7 +85,7 @@ void Analyzer::begin()
 
                 Tokenizer t;
                 int line_number = 0;
-                std::vector<std::pair<std::string, std::string>> tokens;
+                tokens tokens;
                 while (!m_ifstream.eof()) {
                         line_number++;
                         std::string current_line;
@@ -93,18 +94,17 @@ void Analyzer::begin()
                         std::string trimmed_ws = trim_ws(trimmed_comments);
 
                         if (!t.try_tokenize(trimmed_ws, tokens)) {
-                                for (const std::pair<std::string, std::string> &token : tokens) {
-                                        m_ofstream << token.first << " ---> " << token.second << std::endl;
-                                }
                                 std::string err = "[ERR] Invalid syntax on line " + std::to_string(line_number) +
                                         " in file: " + std::string(jack_file);
                                 throw std::domain_error(err);
                         }
                 }
 
+                m_ofstream << "<tokens>\n";
                 for (const std::pair<std::string, std::string> &token : tokens) {
                         m_ofstream << "<" << token.second << "> " << token.first << " </" << token.second << ">" << std::endl;
                 }
+                m_ofstream << "</tokens>\n";
 
                 it++;
         }
