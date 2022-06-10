@@ -74,7 +74,7 @@ bool Tokenizer::is_integer(const std::string &token)
 
 bool Tokenizer::is_string(const std::string &token)
 {
-        if (token.front() != '"' || token.back() != '"') return false;
+        if (token.front() != '"' && token.back() != '"') return false;
 
         // remove leading and ending double quotes
         std::string stripped = token.substr(1, token.size() - 2);
