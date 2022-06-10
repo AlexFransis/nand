@@ -1,5 +1,6 @@
 #include <iostream>
 #include <string>
+#include <unordered_map>
 #include "file_handler.h"
 #include "analyzer.h"
 #include "tokenizer.h"
@@ -59,6 +60,41 @@ std::string Analyzer::trim_ws(const std::string &line)
 	return rtrim(ltrim(line));
 }
 
+bool Analyzer::try_write_xml(const std::vector<std::pair<std::string, std::string>> &tokens, std::ofstream &ofstream)
+{
+        if (!ofstream.good()) {
+                return false;
+        }
+
+        std::unordered_map<std::string, std::string> token_map {
+                {"SYMBOL" , "symbol"},
+                {"IDENTIFIER" , "identifier"},
+                {"KEYWORD" , "keyword"},
+                {"STRING_CONST" , "stringConstant"},
+                {"INTEGER_CONST" , "integerConstant"},
+        };
+
+        std::unordered_map<std::string, std::string> xml_special_chars {
+                {"<", "&lt;"},
+                {">", "&gt;"},
+                {"&", "&amp;"},
+                {"\"", "&quot;"},
+                {"\'", "&apos;"},
+        };
+
+        ofstream << "<tokens>\n";
+        for (const std::pair<std::string, std::string> &token : tokens) {
+                std::string element = token_map[token.second];
+                auto search = xml_special_chars.find(token.first);
+                ofstream << "<" << element << "> ";
+                ofstream << (search != xml_special_chars.end() ? search->second : token.first);
+                ofstream << " </" << element << ">\n";
+        }
+        ofstream << "</tokens>\n";
+
+        return true;
+}
+
 void Analyzer::begin()
 {
         FileHandler fh;
@@ -100,11 +136,13 @@ void Analyzer::begin()
                         }
                 }
 
-                m_ofstream << "<tokens>\n";
-                for (const std::pair<std::string, std::string> &token : tokens) {
-                        m_ofstream << "<" << token.second << "> " << token.first << " </" << token.second << ">" << std::endl;
+                if (!try_write_xml(tokens, m_ofstream)) {
+                        std::string err = "Could not write XML file";
+                        throw std::domain_error(err);
                 }
-                m_ofstream << "</tokens>\n";
+
+                m_ifstream.close();
+                m_ofstream.close();
 
                 it++;
         }

@@ -121,13 +121,13 @@ bool Tokenizer::is_identifier(const std::string &token)
 
 std::string Tokenizer::get_token_type(const std::string &token)
 {
-        if (is_keyword(token)) return "keyword";
-        if (is_symbol(token)) return "symbol";
-        if (is_integer(token)) return "integer_const";
-        if (is_string(token)) return "string_const";
-        if (is_identifier(token)) return "identifier";
+        if (is_keyword(token)) return "KEYWORD";
+        if (is_symbol(token)) return "SYMBOL";
+        if (is_integer(token)) return "INTEGER_CONST";
+        if (is_string(token)) return "STRING_CONST";
+        if (is_identifier(token)) return "IDENTIFIER";
 
-        return "unknown";
+        return "UNKNOWN";
 }
 
 bool Tokenizer::try_tokenize(const std::string &line, tokens &out_tokens)
@@ -159,7 +159,7 @@ bool Tokenizer::try_tokenize(const std::string &line, tokens &out_tokens)
                         // string found
                         std::string token (i, j);
                         std::string type = get_token_type(token);
-                        if (type == "unknown") {
+                        if (type == "UNKNOWN") {
                                 return false;
                         }
 
@@ -180,7 +180,7 @@ bool Tokenizer::try_tokenize(const std::string &line, tokens &out_tokens)
                 // token found
                 std::string token (i, j);
                 std::string type = get_token_type(token);
-                if (type == "unknown") {
+                if (type == "UNKNOWN") {
                         return false;
                 }
 
