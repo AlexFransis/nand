@@ -1,6 +1,6 @@
 CC=g++
 CFLAGS=-g -std=c++17 -Wall
-OFILES=main.o tokenizer.o analyzer.o parser.o file_handler.o
+OFILES=main.o tokenizer.o analyzer.o compiler.o file_handler.o
 
 all: main
 
@@ -24,8 +24,8 @@ main.o: main.cpp
 analyzer.o: analyzer.cpp analyzer.h
 	$(CC) $(CFLAGS) -c analyzer.cpp
 
-parser.o: parser.cpp parser.h
-	$(CC) $(CFLAGS) -c parser.cpp
+compiler.o: compiler.cpp compiler.h
+	$(CC) $(CFLAGS) -c compiler.cpp
 
 tokenizer.o: tokenizer.cpp tokenizer.h
 	$(CC) $(CFLAGS) -c tokenizer.cpp

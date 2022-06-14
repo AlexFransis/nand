@@ -4,7 +4,7 @@
 #include "file_handler.h"
 #include "analyzer.h"
 #include "tokenizer.h"
-#include "parser.h"
+#include "compiler.h"
 
 
 namespace fs = std::filesystem;
@@ -85,7 +85,7 @@ bool Analyzer::try_write_xml(const std::vector<std::pair<std::string, std::strin
         ofstream << "<tokens>\n";
         for (const std::pair<std::string, std::string> &token : tokens) {
                 std::string element = token_map[token.second];
-                auto search = xml_special_chars.find(token.first);
+                std::unordered_map<std::string, std::string>::const_iterator search = xml_special_chars.find(token.first);
                 ofstream << "<" << element << "> ";
                 ofstream << (search != xml_special_chars.end() ? search->second : token.first);
                 ofstream << " </" << element << ">\n";
@@ -137,7 +137,7 @@ void Analyzer::begin()
                 }
 
                 if (!try_write_xml(tokens, m_ofstream)) {
-                        std::string err = "Could not write XML file";
+                        std::string err = "Could not write XML file " + std::string(jack_file);
                         throw std::domain_error(err);
                 }
 
