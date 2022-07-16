@@ -1,10 +1,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
-#include "file_handler.h"
 #include "analyzer.h"
-#include "tokenizer.h"
-#include "compiler.h"
 
 
 namespace fs = std::filesystem;
@@ -104,24 +101,18 @@ void Analyzer::begin()
                 fs::path jack_file = it->first;
                 fs::path xml_file = it->second;
 
+                std::cout << "[INFO] Compiling file: " << std::string(jack_file) << std::endl;
                 m_ifstream.open(jack_file);
-                m_ofstream.open(xml_file);
-
                 if (!m_ifstream.good()) {
                         std::string err = "[ERR] Could not open file: " + std::string(jack_file);
                         throw std::domain_error(err);
                 }
-                std::cout << "[INFO] Opening input file: " << std::string(jack_file) << std::endl;
-
-                if (!m_ofstream.good()) {
-                        std::string err = "[ERR] Could not open file: " + std::string(xml_file);
-                        throw std::domain_error(err);
-                }
-                std::cout << "[INFO] Opening output file: " << std::string(xml_file) << std::endl;
 
                 Tokenizer t;
+                Compiler c;
+                std::vector<Token> tokens;
+                AstNode ast;
                 int line_number = 0;
-                tokens tokens;
                 while (!m_ifstream.eof()) {
                         line_number++;
                         std::string current_line;
@@ -134,6 +125,18 @@ void Analyzer::begin()
                                         " in file: " + std::string(jack_file);
                                 throw std::domain_error(err);
                         }
+                }
+
+                if (!c.try_compile(tokens, ast)) {
+                        std::string err = "Could not compile file " + std::string(jack_file);
+                        throw std::domain_error(err);
+                }
+
+                std::cout << "[INFO] Opening output file: " << std::string(xml_file) << std::endl;
+                m_ofstream.open(xml_file);
+                if (!m_ofstream.good()) {
+                        std::string err = "[ERR] Could not open file: " + std::string(xml_file);
+                        throw std::domain_error(err);
                 }
 
                 if (!try_write_xml(tokens, m_ofstream)) {

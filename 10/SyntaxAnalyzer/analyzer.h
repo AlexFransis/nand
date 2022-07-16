@@ -3,6 +3,8 @@
 
 #include <fstream>
 #include "file_handler.h"
+#include "tokenizer.h"
+#include "compiler.h"
 
 class Analyzer {
 private:
@@ -14,7 +16,7 @@ private:
 
         std::string 			trim_comments(const std::string &line);
         std::string 			trim_ws(const std::string &line);
-        bool 				try_write_xml(const std::vector<std::pair<std::string, std::string>> &token, std::ofstream &ofstream);
+        bool 				try_write_xml(const std::vector<Token> &tokens, std::ofstream &ofstream);
 
 public:
         Analyzer(const std::string &path, const std::string &input);

@@ -5,7 +5,10 @@
 #include <vector>
 #include <string>
 
-typedef std::vector<std::pair<std::string, std::string>> tokens;
+struct Token {
+        std::string type;
+        std::string value;
+};
 
 class Tokenizer {
 private:
@@ -17,7 +20,7 @@ private:
         bool 			is_identifier(const std::string &token);
 public:
         std::string 		get_token_type(const std::string &token);
-        bool			try_tokenize(const std::string &line, tokens &out_tokens);
+        bool			try_tokenize(const std::string &line, std::vector<Token> &out_tokens);
 };
 
 #endif

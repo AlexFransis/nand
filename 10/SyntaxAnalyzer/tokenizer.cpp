@@ -130,7 +130,7 @@ std::string Tokenizer::get_token_type(const std::string &token)
         return "UNKNOWN";
 }
 
-bool Tokenizer::try_tokenize(const std::string &line, tokens &out_tokens)
+bool Tokenizer::try_tokenize(const std::string &line, std::vector<Token> &out_tokens)
 {
         std::string::const_iterator i = line.begin();
         std::string::const_iterator j;
@@ -163,7 +163,8 @@ bool Tokenizer::try_tokenize(const std::string &line, tokens &out_tokens)
                                 return false;
                         }
 
-                        out_tokens.push_back(std::make_pair(token, type));
+                        Token t { type, token };
+                        out_tokens.push_back(t);
 
                         i = j;
                         continue;
@@ -184,7 +185,8 @@ bool Tokenizer::try_tokenize(const std::string &line, tokens &out_tokens)
                         return false;
                 }
 
-                out_tokens.push_back(std::make_pair(token, type));
+                Token t { type, token };
+                out_tokens.push_back(t);
 
                 i = j;
         }
