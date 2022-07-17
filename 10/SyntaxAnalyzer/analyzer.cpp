@@ -1,6 +1,7 @@
 #include <iostream>
 #include <string>
 #include <unordered_map>
+#include <functional>
 #include "analyzer.h"
 #include "tokenizer.h"
 
@@ -93,6 +94,49 @@ bool Analyzer::try_write_xml(const std::vector<Token> &tokens, std::ofstream &of
         return true;
 }
 
+void Analyzer::write_xml(const AstNode &ast, std::ofstream &ofstream)
+{
+        std::unordered_map<std::string, std::string> token_map {
+                {"SYMBOL" , "symbol"},
+                {"IDENTIFIER" , "identifier"},
+                {"KEYWORD" , "keyword"},
+                {"STRING_CONST" , "stringConstant"},
+                {"INTEGER_CONST" , "integerConstant"},
+        };
+
+        std::unordered_map<std::string, std::string> xml_special_chars {
+                {"<", "&lt;"},
+                {">", "&gt;"},
+                {"&", "&amp;"},
+                {"\"", "&quot;"},
+                {"\'", "&apos;"},
+        };
+
+        std::function<void(const AstNode&, int)> inner = [&token_map, &xml_special_chars, &ofstream, &inner] (const AstNode &ast, int depth) -> void
+                {
+                        auto search = token_map.find(ast.type);
+                        std::string type = (search != token_map.end() ? search->second : ast.type);
+
+                        for (int i = 0; i < depth * 2; ++i) {
+                                ofstream << ' ';
+                        }
+                        ofstream << "<" << type << "> ";
+
+                        if (ast.terminal_value != std::string()) {
+                                search = xml_special_chars.find(ast.terminal_value);
+                                std::string value = (search != xml_special_chars.end() ? search->second : ast.terminal_value);
+                                ofstream << value << " </" << type << ">\n";
+                        }
+
+                        for (auto const &node : ast.children) {
+                                inner(*node, ++depth);
+                        }
+                };
+
+        inner(ast, 0);
+}
+
+
 void Analyzer::begin()
 {
         FileHandler fh;
@@ -130,7 +174,7 @@ void Analyzer::begin()
 
                 if (!c.try_compile(tokens, ast)) {
                         std::string err = "Could not compile file " + std::string(jack_file);
-                        throw std::domain_error(err);
+
                 }
 
                 std::cout << "[INFO] Opening output file: " << std::string(xml_file) << std::endl;
@@ -140,10 +184,7 @@ void Analyzer::begin()
                         throw std::domain_error(err);
                 }
 
-                if (!try_write_xml(tokens, m_ofstream)) {
-                        std::string err = "Could not write XML file " + std::string(jack_file);
-                        throw std::domain_error(err);
-                }
+                write_xml(ast, m_ofstream);
 
                 m_ifstream.close();
                 m_ofstream.close();

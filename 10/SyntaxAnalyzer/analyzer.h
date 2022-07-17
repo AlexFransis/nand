@@ -17,6 +17,7 @@ private:
         std::string 			trim_comments(const std::string &line);
         std::string 			trim_ws(const std::string &line);
         bool 				try_write_xml(const std::vector<Token> &tokens, std::ofstream &ofstream);
+        void 				write_xml(const AstNode &ast, std::ofstream &ofstream);
 
 public:
         Analyzer(const std::string &path, const std::string &input);
