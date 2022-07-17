@@ -2,6 +2,7 @@
 #include <string>
 #include <unordered_map>
 #include "analyzer.h"
+#include "tokenizer.h"
 
 
 namespace fs = std::filesystem;
@@ -57,7 +58,7 @@ std::string Analyzer::trim_ws(const std::string &line)
 	return rtrim(ltrim(line));
 }
 
-bool Analyzer::try_write_xml(const std::vector<std::pair<std::string, std::string>> &tokens, std::ofstream &ofstream)
+bool Analyzer::try_write_xml(const std::vector<Token> &tokens, std::ofstream &ofstream)
 {
         if (!ofstream.good()) {
                 return false;
@@ -80,11 +81,11 @@ bool Analyzer::try_write_xml(const std::vector<std::pair<std::string, std::strin
         };
 
         ofstream << "<tokens>\n";
-        for (const std::pair<std::string, std::string> &token : tokens) {
-                std::string element = token_map[token.second];
-                std::unordered_map<std::string, std::string>::const_iterator search = xml_special_chars.find(token.first);
+        for (const Token &token : tokens) {
+                std::string element = token_map[token.type];
+                std::unordered_map<std::string, std::string>::const_iterator search = xml_special_chars.find(token.value);
                 ofstream << "<" << element << "> ";
-                ofstream << (search != xml_special_chars.end() ? search->second : token.first);
+                ofstream << (search != xml_special_chars.end() ? search->second : token.value);
                 ofstream << " </" << element << ">\n";
         }
         ofstream << "</tokens>\n";
