@@ -117,19 +117,29 @@ void Analyzer::write_xml(const AstNode &ast, std::ofstream &ofstream)
                         auto search = token_map.find(ast.type);
                         std::string type = (search != token_map.end() ? search->second : ast.type);
 
-                        for (int i = 0; i < depth * 2; ++i) {
-                                ofstream << ' ';
-                        }
-                        ofstream << "<" << type << "> ";
-
                         if (ast.terminal_value != std::string()) {
+                                for (int i = 0; i < depth * 2; ++i) {
+                                        ofstream << ' ';
+                                }
+                                ofstream << "<" << type << "> ";
                                 search = xml_special_chars.find(ast.terminal_value);
                                 std::string value = (search != xml_special_chars.end() ? search->second : ast.terminal_value);
                                 ofstream << value << " </" << type << ">\n";
                         }
 
-                        for (auto const &node : ast.children) {
-                                inner(*node, ++depth);
+                        if (!ast.children.empty()) {
+                                for (int i = 0; i < depth * 2; ++i) {
+                                        ofstream << ' ';
+                                }
+                                ofstream << "<" << type << "> ";
+                                ofstream << std::endl;
+                                for (auto const &node : ast.children) {
+                                        inner(*node, depth + 1);
+                                }
+                                for (int i = 0; i < depth * 2; ++i) {
+                                        ofstream << ' ';
+                                }
+                                ofstream << "</" << type << ">\n ";
                         }
                 };
 
@@ -184,6 +194,7 @@ void Analyzer::begin()
                         throw std::domain_error(err);
                 }
 
+                //try_write_xml(tokens, m_ofstream);
                 write_xml(ast, m_ofstream);
 
                 m_ifstream.close();
