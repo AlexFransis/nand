@@ -12,6 +12,10 @@ struct Token {
 
 class Tokenizer {
 private:
+        std::string 		ltrim(const std::string &s);
+        std::string 		rtrim(const std::string &s);
+        std::string 		trim_comments(const std::string &line);
+        std::string 		trim_ws(const std::string &line);
         bool 			is_keyword(const std::string &token);
         bool 			is_symbol(const std::string &token);
         bool 			is_symbol(const char &c);

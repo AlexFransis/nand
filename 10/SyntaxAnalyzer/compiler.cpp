@@ -2,94 +2,94 @@
 #include <memory>
 
 
-bool Compiler::try_compile(const std::vector<Token> &tokens, AstNode &ast_out)
+Compiler::Compiler(const std::vector<Token> &tokens)
 {
-        std::vector<Token>::const_iterator it = tokens.begin();
-        if (!try_compile_class(it, ast_out)) {
-                return false;
-        }
-        return true;
+        m_curr_token = tokens.begin();
+}
+
+void Compiler::advance()
+{
+        m_curr_token++;
+}
+
+std::unique_ptr<AstNode> Compiler::compile()
+{
+        return compile_class();
 }
 
 
-bool Compiler::try_compile_class(std::vector<Token>::const_iterator &it, AstNode &ast_out)
+std::unique_ptr<AstNode> Compiler::compile_class()
 {
         /* 'class' className '{' classVarDec* subroutineDec* '}' */
-        ast_out.type = "class";
+        std::unique_ptr<AstNode> compiled_class = std::make_unique<AstNode>(AstNode { "class" });
 
         // 'class'
-        if (it->type != "KEYWORD" && it->value != "class") return false;
-        ast_out.children.push_back(std::make_unique<AstNode>(AstNode { it->type, it->value }));
-        ++it;
+        compiled_class->children.push_back(std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value }));
+        advance();
 
         // className
-        if (it->type != "IDENTIFIER") return false;
-        ast_out.children.push_back(std::make_unique<AstNode>(AstNode { it->type, it->value }));
-        ++it;
+        compiled_class->children.push_back(std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value }));
+        advance();
 
         // '{'
-        if (it->type != "SYMBOL" && it->value != "{") return false;
-        ast_out.children.push_back(std::make_unique<AstNode>(AstNode { it->type, it->value }));
-        ++it;
+        compiled_class->children.push_back(std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value }));
+        advance();
 
         // classVarDec*
-        while (it->value == "static" || it->value == "field") {
-                if (!try_compile_class_var_dec(it, ast_out)) return false;
-                ++it;
+        while (m_curr_token->value == "static" || m_curr_token->value == "field") {
+                compiled_class->children.push_back(compile_class_var_dec());
+                advance();
         }
 
         // subroutineDec*
-        while (it->value == "constructor" || it->value == "function" || it->value == "method") {
-                if (!try_compile_subroutine(it, ast_out)) return false;
-                ++it;
+        while (m_curr_token->value == "constructor" || m_curr_token->value == "function" || m_curr_token->value == "method") {
+                compiled_class->children.push_back(compile_subroutine_dec());
+                advance();
         }
 
         // '}'
-        if (it->type != "SYMBOL" && it->value != "}") return false;
-        ast_out.children.push_back(std::make_unique<AstNode>(AstNode { it->type, it->value }));
-        ++it;
+        compiled_class->children.push_back(std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value }));
+        advance();
 
-        return true;
+        return compiled_class;
 }
 
-bool Compiler::try_compile_class_var_dec(std::vector<Token>::const_iterator &it, AstNode &ast_out)
+std::unique_ptr<AstNode> Compiler::compile_class_var_dec()
 {
         /* ('static' | 'field') type varName (',' varName)* ';' */
         std::unique_ptr<AstNode> class_var_dec = std::make_unique<AstNode>(AstNode { "classVarDec" });
 
         // 'static' | 'field'
-        if (it->value != "static" && it->value != "field") return false;
-        class_var_dec->children.push_back(std::make_unique<AstNode>(AstNode { it->type, it->value }));
-        ++it;
+        class_var_dec->children.push_back(std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value }));
+        advance();
 
         // type
-        if (it->value != "int" && it->value != "char" && it->value != "boolean") return false;
-        class_var_dec->children.push_back(std::make_unique<AstNode>(AstNode { it->type, it->value }));
-        ++it;
+        class_var_dec->children.push_back(std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value }));
+        advance();
 
         // varName
-        if (it->type != "IDENTIFIER") return false;
-        class_var_dec->children.push_back(std::make_unique<AstNode>(AstNode { it->type, it->value }));
-        ++it;
+        class_var_dec->children.push_back(std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value }));
+        advance();
 
         // (, varName)*
-        while (it->value != ";") {
-                if (it->value != ",") return false;
-                class_var_dec->children.push_back(std::make_unique<AstNode>(AstNode { it->type, it->value }));
-                ++it;
-                class_var_dec->children.push_back(std::make_unique<AstNode>(AstNode { it->type, it->value }));
-                ++it;
+        while (m_curr_token->value != ";") {
+                class_var_dec->children.push_back(std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value }));
+                advance();
+                class_var_dec->children.push_back(std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value }));
+                advance();
         }
 
         // ';'
-        class_var_dec->children.push_back(std::make_unique<AstNode>(AstNode { it->type, it->value }));
+        class_var_dec->children.push_back(std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value }));
 
-        ast_out.children.push_back(std::move(class_var_dec));
-
-        return true;
+        return class_var_dec;
 }
 
-bool Compiler::try_compile_subroutine(std::vector<Token>::const_iterator &it, AstNode &ast_out)
+std::unique_ptr<AstNode> Compiler::compile_subroutine_dec()
 {
-        return true;
+        std::unique_ptr<AstNode> subroutine_dec = std::make_unique<AstNode>(AstNode { "subroutineDec" });
+
+        /* ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' subroutineBody */
+
+        return subroutine_dec;
 }

@@ -22,79 +22,7 @@ Analyzer::~Analyzer()
         m_ofstream.close();
 }
 
-std::string ltrim(const std::string &s)
-{
-	const std::string ws = " \n\r\t\f\v";
-	size_t start = s.find_first_not_of(ws);
-	return (start == std::string::npos) ? std::string() : s.substr(start);
-}
-
-std::string rtrim(const std::string &s)
-{
-	const std::string ws = " \n\r\t\f\v";
-	size_t end = s.find_last_not_of(ws);
-	return (end == std::string::npos) ? std::string() : s.substr(0, end + 1);
-}
-
-std::string Analyzer::trim_comments(const std::string &line)
-{
-	std::size_t pos_begin = line.find("//");
-        if (pos_begin != std::string::npos) {
-                return line.substr(0, pos_begin);
-        }
-
-        pos_begin = line.find("/*");
-        if (pos_begin != std::string::npos) {
-                std::size_t pos_end = line.find("*/");
-                if (pos_end == std::string::npos) {
-                }
-
-        }
-
-	return (pos_begin == std::string::npos) ? line : line.substr(0, pos_begin);
-}
-
-std::string Analyzer::trim_ws(const std::string &line)
-{
-	return rtrim(ltrim(line));
-}
-
-bool Analyzer::try_write_xml(const std::vector<Token> &tokens, std::ofstream &ofstream)
-{
-        if (!ofstream.good()) {
-                return false;
-        }
-
-        std::unordered_map<std::string, std::string> token_map {
-                {"SYMBOL" , "symbol"},
-                {"IDENTIFIER" , "identifier"},
-                {"KEYWORD" , "keyword"},
-                {"STRING_CONST" , "stringConstant"},
-                {"INTEGER_CONST" , "integerConstant"},
-        };
-
-        std::unordered_map<std::string, std::string> xml_special_chars {
-                {"<", "&lt;"},
-                {">", "&gt;"},
-                {"&", "&amp;"},
-                {"\"", "&quot;"},
-                {"\'", "&apos;"},
-        };
-
-        ofstream << "<tokens>\n";
-        for (const Token &token : tokens) {
-                std::string element = token_map[token.type];
-                std::unordered_map<std::string, std::string>::const_iterator search = xml_special_chars.find(token.value);
-                ofstream << "<" << element << "> ";
-                ofstream << (search != xml_special_chars.end() ? search->second : token.value);
-                ofstream << " </" << element << ">\n";
-        }
-        ofstream << "</tokens>\n";
-
-        return true;
-}
-
-void Analyzer::write_xml(const AstNode &ast, std::ofstream &ofstream)
+void Analyzer::write_xml(const std::unique_ptr<AstNode> &ast, std::ofstream &ofstream)
 {
         std::unordered_map<std::string, std::string> token_map {
                 {"SYMBOL" , "symbol"},
@@ -139,11 +67,11 @@ void Analyzer::write_xml(const AstNode &ast, std::ofstream &ofstream)
                                 for (int i = 0; i < depth * 2; ++i) {
                                         ofstream << ' ';
                                 }
-                                ofstream << "</" << type << ">\n ";
+                                ofstream << "</" << type << ">\n";
                         }
                 };
 
-        inner(ast, 0);
+        inner(*ast, 0);
 }
 
 
@@ -163,29 +91,23 @@ void Analyzer::begin()
                         throw std::domain_error(err);
                 }
 
-                Tokenizer t;
-                Compiler c;
                 std::vector<Token> tokens;
-                AstNode ast;
+                Tokenizer t;
                 int line_number = 0;
                 while (!m_ifstream.eof()) {
                         line_number++;
                         std::string current_line;
                         std::getline(m_ifstream, current_line);
-                        std::string trimmed_comments = trim_comments(current_line);
-                        std::string trimmed_ws = trim_ws(trimmed_comments);
 
-                        if (!t.try_tokenize(trimmed_ws, tokens)) {
+                        if (!t.try_tokenize(current_line, tokens)) {
                                 std::string err = "[ERR] Invalid syntax on line " + std::to_string(line_number) +
                                         " in file: " + std::string(jack_file);
                                 throw std::domain_error(err);
                         }
                 }
 
-                if (!c.try_compile(tokens, ast)) {
-                        std::string err = "Could not compile file " + std::string(jack_file);
-
-                }
+                Compiler c(tokens);
+                std::unique_ptr<AstNode> ast = c.compile();
 
                 std::cout << "[INFO] Opening output file: " << std::string(xml_file) << std::endl;
                 m_ofstream.open(xml_file);
@@ -194,8 +116,7 @@ void Analyzer::begin()
                         throw std::domain_error(err);
                 }
 
-                //try_write_xml(tokens, m_ofstream);
-                write_xml(ast, m_ofstream);
+                write_xml(std::move(ast), m_ofstream);
 
                 m_ifstream.close();
                 m_ofstream.close();

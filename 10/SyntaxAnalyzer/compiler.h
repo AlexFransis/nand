@@ -16,12 +16,16 @@ struct AstNode {
 
 class Compiler {
 private:
-        bool try_compile_class(std::vector<Token>::const_iterator &it, AstNode &ast_out);
-        bool try_compile_class_var_dec(std::vector<Token>::const_iterator &it, AstNode &ast_out);
-        bool try_compile_subroutine(std::vector<Token>::const_iterator &it, AstNode &ast_out);
+        std::vector<Token>::const_iterator m_curr_token;
+        void advance();
+
+        std::unique_ptr<AstNode> compile_class();
+        std::unique_ptr<AstNode> compile_class_var_dec();
+        std::unique_ptr<AstNode> compile_subroutine_dec();
 
 public:
-        bool try_compile(const std::vector<Token> &tokens, AstNode &ast_out);
+        Compiler(const std::vector<Token> &tokens);
+        std::unique_ptr<AstNode> compile();
 };
 
 #endif
