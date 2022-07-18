@@ -22,6 +22,7 @@ private:
         std::unique_ptr<AstNode> compile_class();
         std::unique_ptr<AstNode> compile_class_var_dec();
         std::unique_ptr<AstNode> compile_subroutine_dec();
+        std::unique_ptr<AstNode> compile_parameter_list();
 
 public:
         Compiler(const std::vector<Token> &tokens);

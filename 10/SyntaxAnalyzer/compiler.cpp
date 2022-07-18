@@ -87,9 +87,42 @@ std::unique_ptr<AstNode> Compiler::compile_class_var_dec()
 
 std::unique_ptr<AstNode> Compiler::compile_subroutine_dec()
 {
+        /* ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' subroutineBody */
         std::unique_ptr<AstNode> subroutine_dec = std::make_unique<AstNode>(AstNode { "subroutineDec" });
 
-        /* ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' subroutineBody */
+        // ('constructor' | 'function' | 'method')
+        subroutine_dec->children.push_back(std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value }));
+        advance();
+
+        // ('void' | type)
+        subroutine_dec->children.push_back(std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value }));
+        advance();
+
+        // subroutineName
+        subroutine_dec->children.push_back(std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value }));
+        advance();
+
+        // '('
+        subroutine_dec->children.push_back(std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value }));
+        advance();
+
+        // parameterList
+        while (m_curr_token->value != ")") {
+                subroutine_dec->children.push_back(compile_parameter_list());
+                advance();
+        }
+
+        // ')'
+        subroutine_dec->children.push_back(std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value }));
+        advance();
 
         return subroutine_dec;
+}
+
+std::unique_ptr<AstNode> Compiler::compile_parameter_list()
+{
+        /* ( (type varName) (',' type varName)*)? */
+        std::unique_ptr<AstNode> parameter_list = std::make_unique<AstNode>(AstNode { "parameterList" });
+
+        return parameter_list;
 }
