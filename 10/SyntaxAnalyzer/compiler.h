@@ -19,7 +19,6 @@ private:
         std::vector<Token>::const_iterator m_curr_token;
 
         void advance();
-        void add_child(const std::unique_ptr<AstNode> &node, const std::unique_ptr<AstNode> &child);
         std::unique_ptr<AstNode> make_node();
 
         // PROGRAM STRUCTURE
