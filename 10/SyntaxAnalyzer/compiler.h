@@ -21,12 +21,29 @@ private:
         void advance();
         void add_child(const std::unique_ptr<AstNode> &node, const std::unique_ptr<AstNode> &child);
         std::unique_ptr<AstNode> make_node();
+
+        // PROGRAM STRUCTURE
         std::unique_ptr<AstNode> compile_class();
         std::unique_ptr<AstNode> compile_class_var_dec();
         std::unique_ptr<AstNode> compile_subroutine_dec();
         std::unique_ptr<AstNode> compile_parameter_list();
         std::unique_ptr<AstNode> compile_subroutine_body();
         std::unique_ptr<AstNode> compile_var_dec();
+
+        // STATEMTENTS
+        std::unique_ptr<AstNode> compile_statements();
+        std::unique_ptr<AstNode> compile_let();
+        std::unique_ptr<AstNode> compile_while();
+        std::unique_ptr<AstNode> compile_if();
+        std::unique_ptr<AstNode> compile_do();
+        std::unique_ptr<AstNode> compile_return();
+
+        // EXPRESSIONS
+        std::unique_ptr<AstNode> compile_expression();
+        std::unique_ptr<AstNode> compile_term();
+        std::unique_ptr<AstNode> compile_subroutine_call();
+        std::unique_ptr<AstNode> compile_expression_list();
+
 
 public:
         Compiler(const std::vector<Token> &tokens);
