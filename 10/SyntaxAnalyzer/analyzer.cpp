@@ -59,7 +59,7 @@ void Analyzer::write_xml(const std::unique_ptr<AstNode> &ast, std::ofstream &ofs
                                 for (int i = 0; i < depth * 2; ++i) {
                                         ofstream << ' ';
                                 }
-                                ofstream << "<" << type << "> ";
+                                ofstream << "<" << type << ">";
                                 ofstream << std::endl;
                                 for (auto const &node : ast.children) {
                                         inner(*node, depth + 1);

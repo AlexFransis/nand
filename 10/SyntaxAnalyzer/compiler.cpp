@@ -129,19 +129,18 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_dec()
         advance();
 
         // subroutineName
-        debug("SUBROUTINE_DEC");
         subroutine_dec->children.push_back(make_node());
         advance();
 
         // '('
         assert(m_curr_token->value == "(");
         subroutine_dec->children.push_back(make_node());
-        advance();
 
-        // parameterList
-        if (m_curr_token->value != ")") {
+        if (lookahead_value() != ")") {
+                advance();
                 subroutine_dec->children.push_back(compile_parameter_list());
         }
+        advance();
 
         // ')'
         assert(m_curr_token->value == ")");
@@ -165,19 +164,20 @@ std::unique_ptr<AstNode> Compiler::compile_parameter_list()
 
         // varName
         parameter_list->children.push_back(make_node());
-        advance();
 
-        while (m_curr_token->value != ")") {
-                // ','
-                assert(m_curr_token->value == ",");
-                parameter_list->children.push_back(make_node());
-                advance();
-                // type
-                parameter_list->children.push_back(make_node());
-                advance();
-                // varName
-                parameter_list->children.push_back(make_node());
-                advance();
+        if (lookahead_value() == ",") {
+                do {
+                        advance();
+                        // ','
+                        assert(m_curr_token->value == ",");
+                        parameter_list->children.push_back(make_node());
+                        advance();
+                        // type
+                        parameter_list->children.push_back(make_node());
+                        advance();
+                        // varName
+                        parameter_list->children.push_back(make_node());
+                } while (lookahead_value() == ",");
         }
 
         return parameter_list;
@@ -306,7 +306,6 @@ std::unique_ptr<AstNode> Compiler::compile_let()
         advance();
 
         // varName
-        debug("LET");
         let_statement->children.push_back(make_node());
         advance();
 
@@ -619,7 +618,6 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_call()
         std::unique_ptr<AstNode> subroutine_call = std::make_unique<AstNode>(AstNode { "subroutineCall" });
 
         // subroutineName | className | varName
-        debug("SUBROUTINE_CALL");
         subroutine_call->children.push_back(make_node());
         advance();
 
