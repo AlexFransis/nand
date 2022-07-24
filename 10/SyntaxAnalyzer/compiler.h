@@ -19,7 +19,9 @@ private:
         std::vector<Token>::const_iterator m_curr_token;
 
         void advance();
+        void debug(const std::string &context);
         std::unique_ptr<AstNode> make_node();
+        std::string lookahead_value();
 
         // PROGRAM STRUCTURE
         std::unique_ptr<AstNode> compile_class();
