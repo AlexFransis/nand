@@ -53,19 +53,22 @@ std::unique_ptr<AstNode> Compiler::compile_class()
         // '{'
         assert(m_curr_token->value == "{");
         compiled_class->children.push_back(make_node());
+
+        if (lookahead_value() == "static" || lookahead_value() == "field") {
+                do {
+                        advance();
+                        compiled_class->children.push_back(compile_class_var_dec());
+                } while(lookahead_value() == "static" || lookahead_value() == "field");
+        }
+
+        if (lookahead_value() == "constructor" || lookahead_value() == "function" || lookahead_value() == "method") {
+                do {
+                        advance();
+                        compiled_class->children.push_back(compile_subroutine_dec());
+                } while(lookahead_value() == "constructor" || lookahead_value() == "function" || lookahead_value() == "method");
+        }
+
         advance();
-
-        // classVarDec*
-        while (m_curr_token->value == "static" || m_curr_token->value == "field") {
-                compiled_class->children.push_back(compile_class_var_dec());
-                advance();
-        }
-
-        // subroutineDec*
-        while (m_curr_token->value == "constructor" || m_curr_token->value == "function" || m_curr_token->value == "method") {
-                compiled_class->children.push_back(compile_subroutine_dec());
-                advance();
-        }
 
         // '}'
         assert(m_curr_token->value == "}");
