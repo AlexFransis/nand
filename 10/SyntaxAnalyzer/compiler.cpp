@@ -10,26 +10,6 @@ Compiler::Compiler(const std::vector<Token> &tokens)
         m_curr_token = tokens.begin();
 }
 
-void Compiler::advance()
-{
-        m_curr_token++;
-}
-
-std::unique_ptr<AstNode> Compiler::make_node()
-{
-        return std::make_unique<AstNode>(AstNode { m_curr_token->type, m_curr_token->value });
-}
-
-std::string Compiler::lookahead_value()
-{
-        return (m_curr_token+1)->value;
-}
-
-std::unique_ptr<AstNode> Compiler::compile()
-{
-        return compile_class();
-}
-
 void Compiler::debug(const std::string &context)
 {
         std::cout << "COMPILING " << context << " ==> "  << m_curr_token->value << std::endl;
@@ -41,7 +21,7 @@ std::unique_ptr<AstNode> Compiler::compile_class()
         std::unique_ptr<AstNode> compiled_class = std::make_unique<AstNode>(AstNode { "class" });
 
         // 'class'
-        assert(m_curr_token->value == "class");
+        assert(current_value() == "class");
         compiled_class->children.push_back(make_node());
         advance();
 
@@ -50,7 +30,7 @@ std::unique_ptr<AstNode> Compiler::compile_class()
         advance();
 
         // '{'
-        assert(m_curr_token->value == "{");
+        assert(current_value() == "{");
         compiled_class->children.push_back(make_node());
 
         if (lookahead_value() == "static" || lookahead_value() == "field") {
@@ -70,7 +50,7 @@ std::unique_ptr<AstNode> Compiler::compile_class()
         advance();
 
         // '}'
-        assert(m_curr_token->value == "}");
+        assert(current_value() == "}");
         compiled_class->children.push_back(make_node());
 
         return compiled_class;
@@ -82,7 +62,7 @@ std::unique_ptr<AstNode> Compiler::compile_class_var_dec()
         std::unique_ptr<AstNode> class_var_dec = std::make_unique<AstNode>(AstNode { "classVarDec" });
 
         // 'static' | 'field'
-        assert(m_curr_token->value == "static" || m_curr_token->value == "field");
+        assert(current_value() == "static" || current_value() == "field");
         class_var_dec->children.push_back(make_node());
         advance();
 
@@ -97,7 +77,7 @@ std::unique_ptr<AstNode> Compiler::compile_class_var_dec()
                 do {
                         advance();
                         // ','
-                        assert(m_curr_token->value == ",");
+                        assert(current_value() == ",");
                         class_var_dec->children.push_back(make_node());
                         advance();
 
@@ -108,7 +88,7 @@ std::unique_ptr<AstNode> Compiler::compile_class_var_dec()
 
         advance();
         // ';'
-        assert(m_curr_token->value == ";");
+        assert(current_value() == ";");
         class_var_dec->children.push_back(make_node());
 
         return class_var_dec;
@@ -120,7 +100,7 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_dec()
         std::unique_ptr<AstNode> subroutine_dec = std::make_unique<AstNode>(AstNode { "subroutineDec" });
 
         // ('constructor' | 'function' | 'method')
-        assert(m_curr_token->value == "constructor" || m_curr_token->value == "function" || m_curr_token->value == "method");
+        assert(current_value() == "constructor" || current_value() == "function" || current_value() == "method");
         subroutine_dec->children.push_back(make_node());
         advance();
 
@@ -133,7 +113,7 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_dec()
         advance();
 
         // '('
-        assert(m_curr_token->value == "(");
+        assert(current_value() == "(");
         subroutine_dec->children.push_back(make_node());
 
         if (lookahead_value() != ")") {
@@ -143,7 +123,7 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_dec()
         advance();
 
         // ')'
-        assert(m_curr_token->value == ")");
+        assert(current_value() == ")");
         subroutine_dec->children.push_back(make_node());
         advance();
 
@@ -169,7 +149,7 @@ std::unique_ptr<AstNode> Compiler::compile_parameter_list()
                 do {
                         advance();
                         // ','
-                        assert(m_curr_token->value == ",");
+                        assert(current_value() == ",");
                         parameter_list->children.push_back(make_node());
                         advance();
                         // type
@@ -189,7 +169,7 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_body()
         std::unique_ptr<AstNode> subroutine_body = std::make_unique<AstNode>(AstNode { "subroutineBody" });
 
         // '{'
-        assert(m_curr_token->value == "{");
+        assert(current_value() == "{");
         subroutine_body->children.push_back(make_node());
 
         // varDec*
@@ -203,7 +183,7 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_body()
         advance();
 
         // '}'
-        assert(m_curr_token->value == "}");
+        assert(current_value() == "}");
         subroutine_body->children.push_back(make_node());
 
         return subroutine_body;
@@ -215,7 +195,7 @@ std::unique_ptr<AstNode> Compiler::compile_var_dec()
         std::unique_ptr<AstNode> var_dec = std::make_unique<AstNode>(AstNode { "varDec" });
 
         // 'var'
-        assert(m_curr_token->value == "var");
+        assert(current_value() == "var");
         var_dec->children.push_back(make_node());
         advance();
 
@@ -231,7 +211,7 @@ std::unique_ptr<AstNode> Compiler::compile_var_dec()
                 do {
                         advance();
                         // ','
-                        assert(m_curr_token->value == ",");
+                        assert(current_value() == ",");
                         var_dec->children.push_back(make_node());
                         advance();
                         // varName
@@ -241,7 +221,7 @@ std::unique_ptr<AstNode> Compiler::compile_var_dec()
 
         advance();
         // ';'
-        assert(m_curr_token->value == ";");
+        assert(current_value() == ";");
         var_dec->children.push_back(make_node());
 
         return var_dec;
@@ -255,27 +235,27 @@ std::unique_ptr<AstNode> Compiler::compile_statements()
         do {
                 advance();
 
-                if (m_curr_token->value == "let") {
+                if (current_value() == "let") {
                         statements->children.push_back(compile_let());
                         continue;
                 }
 
-                if (m_curr_token->value == "if") {
+                if (current_value() == "if") {
                         statements->children.push_back(compile_if());
                         continue;
                 }
 
-                if (m_curr_token->value == "while") {
+                if (current_value() == "while") {
                         statements->children.push_back(compile_while());
                         continue;
                 }
 
-                if (m_curr_token->value == "do") {
+                if (current_value() == "do") {
                         statements->children.push_back(compile_do());
                         continue;
                 }
 
-                if (m_curr_token->value == "return") {
+                if (current_value() == "return") {
                         statements->children.push_back(compile_return());
                         continue;
                 }
@@ -294,7 +274,7 @@ std::unique_ptr<AstNode> Compiler::compile_let()
         std::unique_ptr<AstNode> let_statement = std::make_unique<AstNode>(AstNode { "letStatement" });
 
         // 'let'
-        assert(m_curr_token->value == "let");
+        assert(current_value() == "let");
         let_statement->children.push_back(make_node());
         advance();
 
@@ -310,13 +290,13 @@ std::unique_ptr<AstNode> Compiler::compile_let()
                 advance();
 
                 // ']'
-                assert(m_curr_token->value == "]");
+                assert(current_value() == "]");
                 let_statement->children.push_back(make_node());
         }
         advance();
 
         // '='
-        assert(m_curr_token->value == "=");
+        assert(current_value() == "=");
         let_statement->children.push_back(make_node());
         advance();
 
@@ -325,7 +305,7 @@ std::unique_ptr<AstNode> Compiler::compile_let()
         advance();
 
         // ';'
-        assert(m_curr_token->value == ";");
+        assert(current_value() == ";");
         let_statement->children.push_back(make_node());
 
         return let_statement;
@@ -341,7 +321,7 @@ std::unique_ptr<AstNode> Compiler::compile_if()
         advance();
 
         // '('
-        assert(m_curr_token->value == "(");
+        assert(current_value() == "(");
         if_statement->children.push_back(make_node());
         advance();
 
@@ -350,12 +330,12 @@ std::unique_ptr<AstNode> Compiler::compile_if()
         advance();
 
         // ')'
-        assert(m_curr_token->value == ")");
+        assert(current_value() == ")");
         if_statement->children.push_back(make_node());
         advance();
 
         // '{'
-        assert(m_curr_token->value == "{");
+        assert(current_value() == "{");
         if_statement->children.push_back(make_node());
 
         // statements
@@ -363,19 +343,19 @@ std::unique_ptr<AstNode> Compiler::compile_if()
         advance();
 
         // '}'
-        assert(m_curr_token->value == "}");
+        assert(current_value() == "}");
         if_statement->children.push_back(make_node());
 
         if (lookahead_value() == "else") {
                 advance();
 
                 // else
-                assert(m_curr_token->value == "else");
+                assert(current_value() == "else");
                 if_statement->children.push_back(make_node());
                 advance();
 
                 // '{'
-                assert(m_curr_token->value == "{");
+                assert(current_value() == "{");
                 if_statement->children.push_back(make_node());
 
                 // statements
@@ -383,7 +363,7 @@ std::unique_ptr<AstNode> Compiler::compile_if()
                 advance();
 
                 // '}'
-                assert(m_curr_token->value == "}");
+                assert(current_value() == "}");
                 if_statement->children.push_back(make_node());
         }
 
@@ -408,12 +388,12 @@ std::unique_ptr<AstNode> Compiler::compile_while()
         advance();
 
         // ')'
-        assert(m_curr_token->value == ")");
+        assert(current_value() == ")");
         while_statement->children.push_back(make_node());
         advance();
 
         // '{'
-        assert(m_curr_token->value == "{");
+        assert(current_value() == "{");
         while_statement->children.push_back(make_node());
 
         // 'statements'
@@ -421,7 +401,7 @@ std::unique_ptr<AstNode> Compiler::compile_while()
         advance();
 
         // '}'
-        assert(m_curr_token->value == "}");
+        assert(current_value() == "}");
         while_statement->children.push_back(make_node());
 
         return while_statement;
@@ -433,7 +413,7 @@ std::unique_ptr<AstNode> Compiler::compile_do()
         std::unique_ptr<AstNode> do_statement = std::make_unique<AstNode>(AstNode { "doStatement" });
 
         // 'do'
-        assert(m_curr_token->value == "do");
+        assert(current_value() == "do");
         do_statement->children.push_back(make_node());
         advance();
 
@@ -442,7 +422,7 @@ std::unique_ptr<AstNode> Compiler::compile_do()
         advance();
 
         // ';'
-        assert(m_curr_token->value == ";");
+        assert(current_value() == ";");
         do_statement->children.push_back(make_node());
 
         return do_statement;
@@ -454,7 +434,7 @@ std::unique_ptr<AstNode> Compiler::compile_return()
         std::unique_ptr<AstNode> return_statement = std::make_unique<AstNode>(AstNode { "returnStatement" });
 
         // 'return'
-        assert(m_curr_token->value == "return");
+        assert(current_value() == "return");
         return_statement->children.push_back(make_node());
 
         // expression?
@@ -466,7 +446,7 @@ std::unique_ptr<AstNode> Compiler::compile_return()
         advance();
 
         // ';'
-        assert(m_curr_token->value == ";");
+        assert(current_value() == ";");
         return_statement->children.push_back(make_node());
 
         return return_statement;
@@ -507,20 +487,20 @@ std::unique_ptr<AstNode> Compiler::compile_term()
         std::unique_ptr<AstNode> term = std::make_unique<AstNode>(AstNode { "term" });
 
         // keywordConstant
-        if (m_curr_token->value == "true" || m_curr_token->value == "false" ||
-            m_curr_token->value == "null" || m_curr_token->value == "this") {
+        if (current_value() == "true" || current_value() == "false" ||
+            current_value() == "null" || current_value() == "this") {
                 term->children.push_back(make_node());
                 return term;
         }
 
         // stringConstant | intConstant
-        if (m_curr_token->type == "INTEGER_CONST" || m_curr_token->type == "STRING_CONST") {
+        if (current_type() == "INTEGER_CONST" || current_type() == "STRING_CONST") {
                 term->children.push_back(make_node());
                 return term;
         }
 
         // unaryOp term
-        if (m_curr_token->value == "-" || m_curr_token->value == "~") {
+        if (current_value() == "-" || current_value() == "~") {
                 // unaryOp
                 term->children.push_back(make_node());
                 advance();
@@ -532,7 +512,7 @@ std::unique_ptr<AstNode> Compiler::compile_term()
         }
 
         // '(' expression ')'
-        if (m_curr_token->value == "(") {
+        if (current_value() == "(") {
                 // '('
                 term->children.push_back(make_node());
                 advance();
@@ -542,7 +522,7 @@ std::unique_ptr<AstNode> Compiler::compile_term()
                 advance();
 
                 // ')'
-                assert(m_curr_token->value == ")");
+                assert(current_value() == ")");
                 term->children.push_back(make_node());
 
                 return term;
@@ -564,7 +544,7 @@ std::unique_ptr<AstNode> Compiler::compile_term()
                 advance();
 
                 // ']'
-                assert(m_curr_token->value == "]");
+                assert(current_value() == "]");
                 term->children.push_back(make_node());
 
                 return term;
@@ -592,12 +572,12 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_call()
         subroutine_call->children.push_back(make_node());
         advance();
 
-        if (m_curr_token->value == "(") {
+        if (current_value() == "(") {
                 // '('
                 subroutine_call->children.push_back(make_node());
                 advance();
 
-                if (m_curr_token->value == ")") {
+                if (current_value() == ")") {
                         subroutine_call->children.push_back(make_node());
                         return subroutine_call;
                 }
@@ -607,13 +587,13 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_call()
                 advance();
 
                 // ')'
-                assert(m_curr_token->value == ")");
+                assert(current_value() == ")");
                 subroutine_call->children.push_back(make_node());
 
                 return subroutine_call;
         }
 
-        if (m_curr_token->value == ".") {
+        if (current_value() == ".") {
                 // '.'
                 subroutine_call->children.push_back(make_node());
                 advance();
@@ -626,7 +606,7 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_call()
                 subroutine_call->children.push_back(make_node());
                 advance();
 
-                if (m_curr_token->value == ")") {
+                if (current_value() == ")") {
                         subroutine_call->children.push_back(make_node());
                         return subroutine_call;
                 }
@@ -636,7 +616,7 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_call()
                 advance();
 
                 // ')'
-                assert(m_curr_token->value == ")");
+                assert(current_value() == ")");
                 subroutine_call->children.push_back(make_node());
 
                 return subroutine_call;
@@ -658,7 +638,7 @@ std::unique_ptr<AstNode> Compiler::compile_expression_list()
                         advance();
 
                         // ','
-                        assert(m_curr_token->value == ",");
+                        assert(current_value() == ",");
                         expression_list->children.push_back(make_node());
                         advance();
 
