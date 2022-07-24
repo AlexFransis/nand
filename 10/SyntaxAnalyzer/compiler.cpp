@@ -35,7 +35,6 @@ void Compiler::debug(const std::string &context)
         std::cout << "COMPILING " << context << " ==> "  << m_curr_token->value << std::endl;
 }
 
-
 std::unique_ptr<AstNode> Compiler::compile_class()
 {
         // 'class' className '{' classVarDec* subroutineDec* '}'
@@ -226,7 +225,6 @@ std::unique_ptr<AstNode> Compiler::compile_var_dec()
 
         // varName
         var_dec->children.push_back(make_node());
-        advance();
 
         // varName
         if (lookahead_value() == ",") {
@@ -302,14 +300,11 @@ std::unique_ptr<AstNode> Compiler::compile_let()
 
         // varName
         let_statement->children.push_back(make_node());
-        advance();
-
-        if (m_curr_token->value != "=") {
-                // '['
-                assert(m_curr_token->value == "[");
-                let_statement->children.push_back(make_node());
+        if (lookahead_value() == "[") {
                 advance();
 
+                let_statement->children.push_back(make_node());
+                advance();
                 // expression
                 let_statement->children.push_back(compile_expression());
                 advance();
@@ -317,8 +312,8 @@ std::unique_ptr<AstNode> Compiler::compile_let()
                 // ']'
                 assert(m_curr_token->value == "]");
                 let_statement->children.push_back(make_node());
-                advance();
         }
+        advance();
 
         // '='
         assert(m_curr_token->value == "=");
@@ -438,6 +433,7 @@ std::unique_ptr<AstNode> Compiler::compile_do()
         std::unique_ptr<AstNode> do_statement = std::make_unique<AstNode>(AstNode { "doStatement" });
 
         // 'do'
+        assert(m_curr_token->value == "do");
         do_statement->children.push_back(make_node());
         advance();
 
@@ -458,14 +454,16 @@ std::unique_ptr<AstNode> Compiler::compile_return()
         std::unique_ptr<AstNode> return_statement = std::make_unique<AstNode>(AstNode { "returnStatement" });
 
         // 'return'
+        assert(m_curr_token->value == "return");
         return_statement->children.push_back(make_node());
-        advance();
 
         // expression?
-        if (m_curr_token->value != ";") {
-                return_statement->children.push_back(compile_expression());
+        if (lookahead_value() != ";") {
                 advance();
+                return_statement->children.push_back(compile_expression());
         }
+
+        advance();
 
         // ';'
         assert(m_curr_token->value == ";");
@@ -482,25 +480,22 @@ std::unique_ptr<AstNode> Compiler::compile_expression()
         // term
         expression->children.push_back(compile_term());
 
-        // lookahead to determine if there are op and terms
-        if (lookahead_value() != "+" && lookahead_value() != "-" && lookahead_value() != "*" &&
-            lookahead_value() != "/" && lookahead_value() != "&" && lookahead_value() != "|" &&
-            lookahead_value() != "<" && lookahead_value() != ">" && lookahead_value() != "=") {
-                return expression;
-        }
-
         // (op term)*
-        do {
-                advance();
-                // op
-                expression->children.push_back(make_node());
-                advance();
+        if (lookahead_value() == "+" && lookahead_value() == "-" && lookahead_value() == "*" &&
+            lookahead_value() == "/" && lookahead_value() == "&" && lookahead_value() == "|" &&
+            lookahead_value() == "<" && lookahead_value() == ">" && lookahead_value() == "=") {
+                do {
+                        advance();
+                        // op
+                        expression->children.push_back(make_node());
+                        advance();
 
-                // term
-                expression->children.push_back(compile_term());
-        } while (lookahead_value() == "+" && lookahead_value() == "-" && lookahead_value() == "*" &&
-                 lookahead_value() == "/" && lookahead_value() == "&" && lookahead_value() == "|" &&
-                 lookahead_value() == "<" && lookahead_value() == ">" && lookahead_value() == "=");
+                        // term
+                        expression->children.push_back(compile_term());
+                } while (lookahead_value() == "+" && lookahead_value() == "-" && lookahead_value() == "*" &&
+                         lookahead_value() == "/" && lookahead_value() == "&" && lookahead_value() == "|" &&
+                         lookahead_value() == "<" && lookahead_value() == ">" && lookahead_value() == "=");
+        }
 
         return expression;
 }
@@ -658,22 +653,19 @@ std::unique_ptr<AstNode> Compiler::compile_expression_list()
         // expression
         expression_list->children.push_back(compile_expression());
 
-        if (lookahead_value() != ",") {
-                return expression_list;
+        if (lookahead_value() == ",") {
+                do {
+                        advance();
+
+                        // ','
+                        assert(m_curr_token->value == ",");
+                        expression_list->children.push_back(make_node());
+                        advance();
+
+                        // expression
+                        expression_list->children.push_back(compile_expression());
+                } while (lookahead_value() == ",");
         }
-
-        do {
-                advance();
-
-                // ','
-                assert(m_curr_token->value == ",");
-                expression_list->children.push_back(make_node());
-                advance();
-
-                // expression
-                expression_list->children.push_back(compile_expression());
-        } while (lookahead_value() == ",");
-
 
         return expression_list;
 }
