@@ -38,6 +38,7 @@ std::unique_ptr<AstNode> Compiler::compile_class()
         assert(current_value() == "{");
         compiled_class->children.push_back(make_node());
 
+        // classVarDec*
         if (lookahead_value() == "static" || lookahead_value() == "field") {
                 do {
                         advance();
@@ -45,6 +46,7 @@ std::unique_ptr<AstNode> Compiler::compile_class()
                 } while(lookahead_value() == "static" || lookahead_value() == "field");
         }
 
+        // subroutineDec*
         if (lookahead_value() == "constructor" || lookahead_value() == "function" || lookahead_value() == "method") {
                 do {
                         advance();
@@ -179,8 +181,10 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_body()
 
         // varDec*
         if (lookahead_value() == "var") {
-                advance();
-                subroutine_body->children.push_back(compile_var_dec());
+                do {
+                        advance();
+                        subroutine_body->children.push_back(compile_var_dec());
+                } while (lookahead_value() == "var");
         }
 
         // statements
@@ -466,9 +470,9 @@ std::unique_ptr<AstNode> Compiler::compile_expression()
         expression->children.push_back(compile_term());
 
         // (op term)*
-        if (lookahead_value() == "+" && lookahead_value() == "-" && lookahead_value() == "*" &&
-            lookahead_value() == "/" && lookahead_value() == "&" && lookahead_value() == "|" &&
-            lookahead_value() == "<" && lookahead_value() == ">" && lookahead_value() == "=") {
+        if (lookahead_value() == "+" || lookahead_value() == "-" || lookahead_value() == "*" ||
+            lookahead_value() == "/" || lookahead_value() == "&" || lookahead_value() == "|" ||
+            lookahead_value() == "<" || lookahead_value() == ">" || lookahead_value() == "=") {
                 do {
                         advance();
                         // op
@@ -477,9 +481,9 @@ std::unique_ptr<AstNode> Compiler::compile_expression()
 
                         // term
                         expression->children.push_back(compile_term());
-                } while (lookahead_value() == "+" && lookahead_value() == "-" && lookahead_value() == "*" &&
-                         lookahead_value() == "/" && lookahead_value() == "&" && lookahead_value() == "|" &&
-                         lookahead_value() == "<" && lookahead_value() == ">" && lookahead_value() == "=");
+                } while (lookahead_value() == "+" || lookahead_value() == "-" || lookahead_value() == "*" ||
+                         lookahead_value() == "/" || lookahead_value() == "&" || lookahead_value() == "|" ||
+                         lookahead_value() == "<" || lookahead_value() == ">" || lookahead_value() == "=");
         }
 
         return expression;
@@ -556,7 +560,7 @@ std::unique_ptr<AstNode> Compiler::compile_term()
         }
 
         // subroutineCall
-        if (lookahead_value() == "(") {
+        if (lookahead_value() == "(" || lookahead_value() == ".") {
                 term->children.push_back(compile_subroutine_call());
 
                 return term;
