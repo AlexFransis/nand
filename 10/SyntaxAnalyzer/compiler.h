@@ -50,7 +50,7 @@ private:
 public:
         Compiler(const std::vector<Token> &tokens);
 
-        inline std::unique_ptr<AstNode> compile() { return compile_class(); }
+        std::unique_ptr<AstNode> compile();
 };
 
 #endif

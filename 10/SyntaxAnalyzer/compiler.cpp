@@ -10,6 +10,11 @@ Compiler::Compiler(const std::vector<Token> &tokens)
         m_curr_token = tokens.begin();
 }
 
+std::unique_ptr<AstNode> Compiler::compile()
+{
+        return compile_class();
+}
+
 void Compiler::debug(const std::string &context)
 {
         std::cout << "COMPILING " << context << " ==> "  << m_curr_token->value << std::endl;
