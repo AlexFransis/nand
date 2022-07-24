@@ -4,19 +4,11 @@ OFILES=main.o tokenizer.o analyzer.o compiler.o file_handler.o
 
 all: main
 
-test: tests
-
 main: $(OFILES)
 	$(CC) $(CFLAGS) $(OFILES) -o main
 
-tests: tests.o
-	$(CC) $(CFLAGS) tests.o tokenizer.o -o tests
-
 clean:
 	rm -rf *.o main tests
-
-tests.o: tests.cpp tokenizer.o
-	$(CC) $(CFLAGS) -c tests.cpp
 
 main.o: main.cpp
 	$(CC) $(CFLAGS) -c main.cpp
