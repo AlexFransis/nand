@@ -121,9 +121,7 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_dec()
         std::unique_ptr<AstNode> subroutine_dec = std::make_unique<AstNode>(AstNode { "subroutineDec" });
 
         // ('constructor' | 'function' | 'method')
-        assert(m_curr_token->value == "constructor" ||
-               m_curr_token->value == "function" ||
-               m_curr_token->value == "method");
+        assert(m_curr_token->value == "constructor" || m_curr_token->value == "function" || m_curr_token->value == "method");
         subroutine_dec->children.push_back(make_node());
         advance();
 
@@ -202,15 +200,9 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_body()
         }
 
         // statements
-        if (lookahead_value() == "let" ||
-            lookahead_value() == "if" ||
-            lookahead_value() == "while" ||
-            lookahead_value() == "do" ||
-            lookahead_value() == "return") {
-                subroutine_body->children.push_back(compile_statements());
-        }
-
+        subroutine_body->children.push_back(compile_statements());
         advance();
+
         // '}'
         assert(m_curr_token->value == "}");
         subroutine_body->children.push_back(make_node());
@@ -372,13 +364,7 @@ std::unique_ptr<AstNode> Compiler::compile_if()
         if_statement->children.push_back(make_node());
 
         // statements
-        if (lookahead_value() == "let" ||
-            lookahead_value() == "if" ||
-            lookahead_value() == "while" ||
-            lookahead_value() == "do" ||
-            lookahead_value() == "return") {
-                if_statement->children.push_back(compile_statements());
-        }
+        if_statement->children.push_back(compile_statements());
         advance();
 
         // '}'
@@ -398,13 +384,7 @@ std::unique_ptr<AstNode> Compiler::compile_if()
                 if_statement->children.push_back(make_node());
 
                 // statements
-                if (lookahead_value() == "let" ||
-                    lookahead_value() == "if" ||
-                    lookahead_value() == "while" ||
-                    lookahead_value() == "do" ||
-                    lookahead_value() == "return") {
-                        if_statement->children.push_back(compile_statements());
-                }
+                if_statement->children.push_back(compile_statements());
                 advance();
 
                 // '}'
@@ -442,13 +422,7 @@ std::unique_ptr<AstNode> Compiler::compile_while()
         while_statement->children.push_back(make_node());
 
         // 'statements'
-        if (lookahead_value() == "let" ||
-            lookahead_value() == "if" ||
-            lookahead_value() == "while" ||
-            lookahead_value() == "do" ||
-            lookahead_value() == "return") {
-                while_statement->children.push_back(compile_statements());
-        }
+        while_statement->children.push_back(compile_statements());
         advance();
 
         // '}'
@@ -580,7 +554,6 @@ std::unique_ptr<AstNode> Compiler::compile_term()
         }
 
         // lookahead to determine if compile expression or subroutineCall or simply a varName
-
         // varName '[' expression ']'
         if (lookahead_value() == "[") {
                 // varName
