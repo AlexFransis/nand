@@ -116,7 +116,7 @@ void Analyzer::begin()
                         throw std::domain_error(err);
                 }
 
-                write_xml(std::move(ast), m_ofstream);
+                write_xml(ast, m_ofstream);
 
                 m_ifstream.close();
                 m_ofstream.close();
