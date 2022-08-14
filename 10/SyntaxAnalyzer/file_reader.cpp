@@ -1,9 +1,15 @@
-#include "file_handler.h"
+#include "file_reader.h"
 
 namespace fs = std::filesystem;
 
 
-std::vector<io_paths> FileHandler::get_io_paths(const std::filesystem::path &input_path, INPUT_TYPE type)
+FileReader::FileReader()
+{
+        m_ifstream = std::ifstream();
+        m_ofstream = std::ofstream();
+}
+
+std::vector<io_paths> FileReader::get_io_paths(const std::filesystem::path &input_path, const std::string &type)
 {
         std::string out_ext = ".xml";
         std::string in_ext = ".jack";
@@ -13,10 +19,10 @@ std::vector<io_paths> FileHandler::get_io_paths(const std::filesystem::path &inp
         return construct_output_files(input_files, out_ext);
 }
 
-std::vector<fs::path> FileHandler::scan_files(INPUT_TYPE type, const fs::path &input_path, const std::string &ext)
+std::vector<fs::path> FileReader::scan_files(const std::string &type, const fs::path &input_path, const std::string &ext)
 {
         std::vector<fs::path> result;
-        if (type == INPUT_TYPE::DIR) {
+        if (type == "-d") {
                 if (!fs::exists(input_path) || !fs::is_directory(input_path)) {
                         throw std::domain_error("[ERR] Invalid directory path");
                 }
@@ -29,7 +35,7 @@ std::vector<fs::path> FileHandler::scan_files(INPUT_TYPE type, const fs::path &i
                 std::copy(files.begin(), files.end(), std::back_inserter(result));
         }
 
-        if (type == INPUT_TYPE::FILE) {
+        if (type == "-f") {
                 if (!fs::exists(input_path) || input_path.extension() != ext) {
                         throw std::domain_error("[ERR] Invalid file path");
                 }
@@ -40,7 +46,7 @@ std::vector<fs::path> FileHandler::scan_files(INPUT_TYPE type, const fs::path &i
         return result;
 }
 
-std::vector<io_paths> FileHandler::construct_output_files(std::vector<fs::path> &inputs, const std::string &ext)
+std::vector<io_paths> FileReader::construct_output_files(std::vector<fs::path> &inputs, const std::string &ext)
 {
         std::vector<io_paths> result;
         std::vector<fs::path>::const_iterator it = inputs.cbegin();
@@ -54,7 +60,7 @@ std::vector<io_paths> FileHandler::construct_output_files(std::vector<fs::path> 
         return result;
 }
 
-std::vector<fs::path> FileHandler::traverse_dir(const fs::path &dir, const std::string &ext)
+std::vector<fs::path> FileReader::traverse_dir(const fs::path &dir, const std::string &ext)
 {
         std::vector<fs::path> result;
         for (const fs::directory_entry &e : fs::recursive_directory_iterator(dir)) {

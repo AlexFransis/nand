@@ -1,5 +1,10 @@
 #include <iostream>
 #include "analyzer.h"
+#include "ast_node.h"
+#include "file_reader.h"
+#include "file_writer.h"
+
+namespace fs = std::filesystem;
 
 int main(int argc, char** argv)
 {
@@ -21,8 +26,39 @@ int main(int argc, char** argv)
         }
 
         try {
-                Analyzer a (input_path, input_type);
-                a.begin();
+                FileReader reader;
+                std::vector<io_paths> paths = reader.get_io_paths(input_path, input_type);
+                std::vector<io_paths>::const_iterator it = paths.begin();
+
+                while (it != paths.end()) {
+                        fs::path jack_file = it->first;
+                        fs::path xml_file = it->second;
+                        std::ifstream ifstream;
+                        std::ofstream ofstream;
+
+                        std::cout << "[INFO] Compiling file: " << std::string(jack_file) << std::endl;
+
+                        ifstream.open(jack_file);
+                        if (!ifstream.good()) {
+                                std::string err = "[ERR] Could not open file: " + std::string(jack_file);
+                                throw std::domain_error(err);
+                        }
+
+                        Analyzer a;
+                        std::unique_ptr<AstNode> ast = a.analyze(ifstream);
+
+                        std::cout << "[INFO] Opening output file: " << std::string(xml_file) << std::endl;
+                        ofstream.open(xml_file);
+                        if (!ofstream.good()) {
+                                std::string err = "[ERR] Could not open file: " + std::string(xml_file);
+                                throw std::domain_error(err);
+                        }
+
+                        FileWriter writer;
+                        writer.write_xml(ast, ofstream);
+
+                        ++it;
+                }
 
         } catch (const std::domain_error &err) {
                 std::cerr << err.what() << std::endl;

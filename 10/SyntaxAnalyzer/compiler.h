@@ -5,69 +5,7 @@
 #include <vector>
 #include <memory>
 #include "tokenizer.h"
-
-struct AstNode {
-        std::string type;
-        std::string terminal_value;
-        std::vector<std::unique_ptr<AstNode>> children;
-};
-
-enum class KEYWORD
-{
-        _CLASS,
-        _CONSTRUCTOR,
-        _FUNCTION,
-        _METHOD,
-        _field,
-        _STATIC,
-        _VAR,
-        _INT,
-        _CHAR,
-        _BOOLEAN,
-        _VOID,
-        _TRUE,
-        _FALSE,
-        _NULL,
-        _THIS,
-        _LET,
-        _DO,
-        _IF,
-        _ELSE,
-        _WHILE,
-        _RETURN
-};
-
-enum class SYMBOL
-{
-        OPEN_CURLY,
-        CLOSE_CURLY,
-        OPEN_PAREN,
-        CLOSE_PAREN,
-        OPEN_BRACKET,
-        CLOSE_BRACKET,
-        DOT,
-        COMMA,
-        SEMICOLON,
-        PLUS,
-        MINUS,
-        MUL,
-        DIV,
-        AMP,
-        OR,
-        LT,
-        GT,
-        EQUAL,
-        TILDE
-};
-
-enum class TOKEN_TYPE
-{
-        KEYWORD,
-        SYMBOL,
-        INTEGER_CONST,
-        STRING_CONST,
-        IDENTIFIER
-};
+#include "ast_node.h"
 
 class Compiler {
 private:

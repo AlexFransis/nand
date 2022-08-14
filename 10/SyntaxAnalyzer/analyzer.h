@@ -2,25 +2,15 @@
 #define GUARD_analyzer_h
 
 #include <fstream>
-#include "file_handler.h"
+#include <memory>
+#include "ast_node.h"
 #include "tokenizer.h"
-#include "compiler.h"
 
 class Analyzer {
-private:
-        std::ifstream			m_ifstream;
-        std::ofstream			m_ofstream;
-        std::filesystem::path 		m_input_path;
-        INPUT_TYPE			m_input_type;
-        std::vector<io_paths>		m_io_paths;
-
-        void 				write_xml(const std::unique_ptr<AstNode> &ast, std::ofstream &ofstream);
-
 public:
-        Analyzer(const std::string &path, const std::string &input);
-        ~Analyzer();
+        Analyzer();
 
-        void				begin();
+        std::unique_ptr<AstNode> analyze(std::ifstream &input_stream);
 };
 
 #endif
