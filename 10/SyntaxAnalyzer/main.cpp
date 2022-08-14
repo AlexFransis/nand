@@ -8,26 +8,17 @@ namespace fs = std::filesystem;
 
 int main(int argc, char** argv)
 {
-        if (argc != 3) {
+        if (argc != 2) {
                 std::cerr << "Usage:\n";
-                std::cerr << "\t" << *argv << " -f <filename>\n";
-                std::cerr << "\t" << *argv << " -d <dir>\n";
+                std::cerr << "\t" << *argv << " $filename | $dir\n";
                 return 1;
         }
 
-        std::string input_type = *(argv + 1);
-        std::string input_path = *(argv + 2);
-
-        if (input_type != "-f" && input_type != "-d") {
-                std::cerr << "Usage:\n";
-                std::cerr << "\t" << *argv << " -f <filename>\n";
-                std::cerr << "\t" << *argv << " -d <dir>\n";
-                return 1;
-        }
+        std::string input_path = *(argv + 1);
 
         try {
                 FileReader reader;
-                std::vector<io_paths> paths = reader.get_io_paths(input_path, input_type);
+                std::vector<io_paths> paths = reader.get_io_paths(input_path);
                 std::vector<io_paths>::const_iterator it = paths.begin();
 
                 while (it != paths.end()) {
