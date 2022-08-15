@@ -28,7 +28,6 @@ int main(int argc, char** argv)
                         std::ofstream ofstream;
 
                         std::cout << "[INFO] Compiling file: " << std::string(jack_file) << std::endl;
-
                         ifstream.open(jack_file);
                         if (!ifstream.good()) {
                                 std::string err = "[ERR] Could not open file: " + std::string(jack_file);
