@@ -6,12 +6,18 @@
 #include <memory>
 #include "tokenizer.h"
 #include "ast_node.h"
+#include "vm_emitter.h"
+#include "symbol_table.h"
 
 class Compiler {
 private:
         std::vector<Token>::const_iterator m_curr_token;
+        std::vector<std::string> m_vm_commands;
+        VMEmitter m_vm_emmiter;
+        SymbolTable m_symbol_table;
 
         void 				debug(const std::string &context);
+        void 				debug(const SymbolTable &st);
         inline void 			advance() { m_curr_token++; }
         inline std::string 		current_value() { return m_curr_token->value; }
         inline std::string 		current_type() { return m_curr_token->type; }
@@ -44,7 +50,7 @@ private:
 public:
         Compiler(const std::vector<Token> &tokens);
 
-        std::unique_ptr<AstNode> compile();
+        std::unique_ptr<AstNode> 	compile();
 };
 
 #endif

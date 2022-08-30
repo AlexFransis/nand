@@ -1,7 +1,6 @@
 #include "analyzer.h"
 #include "tokenizer.h"
 #include "compiler.h"
-#include "vm_emitter.h"
 
 
 Analyzer::Analyzer()
@@ -24,10 +23,8 @@ std::unique_ptr<AstNode> Analyzer::analyze(std::ifstream &input_stream)
                 }
         }
 
-        VMEmitter vm;
         Compiler c(tokens);
         std::unique_ptr<AstNode> ast = c.compile();
-        std::vector<std::string> commands = vm.emit_vm_commands(*ast);
 
         return ast;
 }

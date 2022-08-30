@@ -13,22 +13,31 @@ struct Symbol {
 
 class SymbolTable {
 private:
-        std::unordered_map<std::string, const Symbol> class_scope;
-        std::unordered_map<std::string, const Symbol> subroutine_scope;
         int static_count;
         int field_count;
         int arg_count;
         int var_count;
 
+        void record_symbol(Symbol &s);
+        std::unordered_map<std::string, const Symbol> class_scope;
+        std::unordered_map<std::string, const Symbol> subroutine_scope;
+
 public:
+        std::string class_name;
+        std::string subroutine_name;
+
         SymbolTable();
 
-        void begin_subroutine();
-        Symbol define_symbol(const std::string &name, const std::string &type, const std::string &kind);
+        void begin_subroutine(const std::string &subroutine_name);
+        void begin_class(const std::string &class_name);
+        void define_symbol(const std::string &name, const std::string &type, const std::string &kind);
+        void define_symbol(Symbol &s);
         int count_kind(const std::string &kind);
         std::string kind_of(const std::string &name);
         std::string type_of(const std::string &name);
         int index_of(const std::string &name);
+        inline const std::unordered_map<std::string, const Symbol> view_class_scope() { return class_scope; }
+        inline const std::unordered_map<std::string, const Symbol> view_subroutine_scope() { return subroutine_scope; }
 
 };
 

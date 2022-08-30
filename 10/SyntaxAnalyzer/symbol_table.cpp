@@ -5,40 +5,60 @@ SymbolTable::SymbolTable()
 {
         class_scope = std::unordered_map<std::string, const Symbol>();
         subroutine_scope = std::unordered_map<std::string, const Symbol>();
+        class_name = std::string();
+        subroutine_name = std::string();
 }
 
-Symbol SymbolTable::define_symbol(const std::string &name, const std::string &type, const std::string &kind)
+void SymbolTable::record_symbol(Symbol &s)
 {
-        Symbol s { name, type, kind };
-        if (kind == "static") {
+        if (s.kind == "static") {
                 s.index = static_count;
                 ++static_count;
                 class_scope.insert(std::make_pair(s.name, s));
         }
-        if (kind == "field") {
+        if (s.kind == "field") {
                 s.index = field_count;
                 ++field_count;
                 class_scope.insert(std::make_pair(s.name, s));
         }
-        if (kind == "var") {
+        if (s.kind == "var") {
                 s.index = var_count;
                 ++var_count;
                 subroutine_scope.insert(std::make_pair(s.name, s));
         }
-        if (kind == "arg") {
+        if (s.kind == "arg") {
                 s.index = arg_count;
                 ++arg_count;
                 subroutine_scope.insert(std::make_pair(s.name, s));
         }
 
-        return s;
 }
 
-void SymbolTable::begin_subroutine()
+void SymbolTable::define_symbol(const std::string &name, const std::string &type, const std::string &kind)
 {
+        Symbol s { name, type, kind };
+        record_symbol(s);
+}
+
+void SymbolTable::define_symbol(Symbol &s)
+{
+        record_symbol(s);
+}
+
+void SymbolTable::begin_subroutine(const std::string &sname)
+{
+        subroutine_name = sname;
         subroutine_scope.clear();
         arg_count = 0;
         var_count = 0;
+}
+
+void SymbolTable::begin_class(const std::string &cname)
+{
+        class_name = cname;
+        class_scope.clear();
+        field_count = 0;
+        static_count = 0;
 }
 
 int SymbolTable::count_kind(const std::string &kind)
