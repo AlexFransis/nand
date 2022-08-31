@@ -8,10 +8,6 @@
 #include <memory>
 
 class VMEmitter {
-private:
-        void traverse_ast_child_nodes(const std::unique_ptr<AstNode> &root, SymbolTable &st, std::vector<std::string> &out_vm_commands);
-        void traverse_ast_root_node(const std::unique_ptr<AstNode> &root, SymbolTable &st, std::vector<std::string> &out_vm_commands);
-
 public:
         std::vector<std::string> emit_push(const std::unique_ptr<AstNode> &node);
         std::vector<std::string> emit_pop(const std::unique_ptr<AstNode> &node);

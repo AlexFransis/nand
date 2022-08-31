@@ -36,8 +36,8 @@ public:
         std::string kind_of(const std::string &name);
         std::string type_of(const std::string &name);
         int index_of(const std::string &name);
-        inline const std::unordered_map<std::string, const Symbol> view_class_scope() { return class_scope; }
-        inline const std::unordered_map<std::string, const Symbol> view_subroutine_scope() { return subroutine_scope; }
+        inline std::unordered_map<std::string, const Symbol> view_class_scope() const { return class_scope; }
+        inline std::unordered_map<std::string, const Symbol> view_subroutine_scope() const { return subroutine_scope; }
 
 };
 

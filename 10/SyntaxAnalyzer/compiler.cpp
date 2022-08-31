@@ -25,12 +25,12 @@ void Compiler::debug(const std::string &context)
 
 void Compiler::debug(const SymbolTable &st)
 {
-        std::cout << "SYMBOL TABLE CLASS SCOPE: " << m_symbol_table.class_name << std::endl;
-        for (auto const &s : m_symbol_table.view_class_scope()) {
+        std::cout << "SYMBOL TABLE CLASS SCOPE: " << st.class_name << std::endl;
+        for (auto const &s : st.view_class_scope()) {
                 std::cout << "\t" << s.second.name << " | " << s.second.type << " | " << s.second.kind << " | " << s.second.index << std::endl;
         }
-        std::cout << "SYMBOL TABLE SUBROUTINE SCOPE: " << m_symbol_table.subroutine_name << std::endl;
-        for (auto const &s : m_symbol_table.view_subroutine_scope()) {
+        std::cout << "SYMBOL TABLE SUBROUTINE SCOPE: " << st.subroutine_name << std::endl;
+        for (auto const &s : st.view_subroutine_scope()) {
                 std::cout << "\t" << s.second.name << " | " << s.second.type << " | " << s.second.kind << " | " << s.second.index << std::endl;
         }
 }
@@ -145,6 +145,7 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_dec()
         // subroutineName
         subroutine_dec->children.push_back(make_node());
         m_symbol_table.begin_subroutine(current_value());
+        m_symbol_table.define_symbol("this", m_symbol_table.class_name, "arg");
         advance();
 
         // '('
