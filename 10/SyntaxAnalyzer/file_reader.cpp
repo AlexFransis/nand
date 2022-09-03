@@ -1,12 +1,7 @@
 #include "file_reader.h"
-#include <filesystem>
 
 namespace fs = std::filesystem;
 
-
-FileReader::FileReader()
-{
-}
 
 std::vector<io_paths> FileReader::get_io_paths(const std::filesystem::path &input_path)
 {
@@ -16,6 +11,11 @@ std::vector<io_paths> FileReader::get_io_paths(const std::filesystem::path &inpu
         std::vector<fs::path> input_files = scan_files(input_path, in_ext);
 
         return construct_output_files(input_files, out_ext);
+}
+
+std::vector<fs::path> FileReader::get_jack_files()
+{
+        return scan_files(m_in_path, m_in_ext);
 }
 
 std::vector<fs::path> FileReader::scan_files(const fs::path &input_path, const std::string &ext)

@@ -11,22 +11,22 @@ SymbolTable::SymbolTable()
 
 void SymbolTable::record_symbol(Symbol &s)
 {
-        if (s.kind == "static") {
+        if (s.kind == KIND::STATIC) {
                 s.index = static_count;
                 ++static_count;
                 class_scope.insert(std::make_pair(s.name, s));
         }
-        if (s.kind == "field") {
+        if (s.kind == KIND::FIELD) {
                 s.index = field_count;
                 ++field_count;
                 class_scope.insert(std::make_pair(s.name, s));
         }
-        if (s.kind == "var") {
+        if (s.kind == KIND::VAR) {
                 s.index = var_count;
                 ++var_count;
                 subroutine_scope.insert(std::make_pair(s.name, s));
         }
-        if (s.kind == "arg") {
+        if (s.kind == KIND::ARG) {
                 s.index = arg_count;
                 ++arg_count;
                 subroutine_scope.insert(std::make_pair(s.name, s));
@@ -34,7 +34,7 @@ void SymbolTable::record_symbol(Symbol &s)
 
 }
 
-void SymbolTable::define_symbol(const std::string &name, const std::string &type, const std::string &kind)
+void SymbolTable::define_symbol(const std::string &name, const std::string &type, KIND kind)
 {
         Symbol s { name, type, kind };
         record_symbol(s);
@@ -61,17 +61,17 @@ void SymbolTable::begin_class(const std::string &cname)
         static_count = 0;
 }
 
-int SymbolTable::count_kind(const std::string &kind)
+int SymbolTable::count_kind(KIND kind)
 {
-        if (kind == "static") return static_count;
-        if (kind == "field") return field_count;
-        if (kind == "var") return var_count;
-        if (kind == "arg") return arg_count;
+        if (kind == KIND::STATIC) return static_count;
+        if (kind == KIND::FIELD) return field_count;
+        if (kind == KIND::VAR) return var_count;
+        if (kind == KIND::ARG) return arg_count;
 
         return -1;
 }
 
-std::string SymbolTable::kind_of(const std::string &name)
+KIND SymbolTable::kind_of(const std::string &name)
 {
         std::unordered_map<std::string, const Symbol>::const_iterator found = subroutine_scope.find(name);
         if (found != subroutine_scope.end()) {
@@ -83,7 +83,7 @@ std::string SymbolTable::kind_of(const std::string &name)
                 return found->second.kind;
         }
 
-        return "none";
+        return KIND::UNKNOWN;
 }
 
 std::string SymbolTable::type_of(const std::string &name)
@@ -114,4 +114,21 @@ int SymbolTable::index_of(const std::string &name)
         }
 
         return -1;
+}
+
+bool SymbolTable::try_get(const std::string &name, Symbol *symbol)
+{
+        std::unordered_map<std::string, const Symbol>::const_iterator found = subroutine_scope.find(name);
+        if (found != subroutine_scope.end()) {
+                *symbol = found->second;
+                return true;
+        }
+
+        found = class_scope.find(name);
+        if (found != class_scope.end()) {
+                *symbol = found->second;
+                return true;
+        }
+
+        return false;
 }

@@ -1,4 +1,5 @@
 #include "compiler.h"
+#include "vm_emitter.h"
 #include <algorithm>
 #include <iostream>
 #include <cassert>
@@ -8,8 +9,8 @@ Compiler::Compiler(const std::vector<Token> &tokens)
 {
         m_curr_token = tokens.begin();
         m_vm_commands = std::vector<std::string>();
-        m_vm_emmiter = VMEmitter();
-        m_symbol_table = SymbolTable();
+        m_vme = VMEmitter();
+        m_st = SymbolTable();
 }
 
 std::unique_ptr<AstNode> Compiler::compile()
@@ -25,13 +26,14 @@ void Compiler::debug(const std::string &context)
 
 void Compiler::debug(const SymbolTable &st)
 {
+        std::string kind [8] = {"unknown", "static", "field", "var", "arg" };
         std::cout << "SYMBOL TABLE CLASS SCOPE: " << st.class_name << std::endl;
-        for (auto const &s : st.view_class_scope()) {
-                std::cout << "\t" << s.second.name << " | " << s.second.type << " | " << s.second.kind << " | " << s.second.index << std::endl;
+        for (const auto &s : st.view_class_scope()) {
+                std::cout << "\t" << s.second.name << " | " << s.second.type << " | " << kind[(int)s.second.kind] << " | " << s.second.index << std::endl;
         }
         std::cout << "SYMBOL TABLE SUBROUTINE SCOPE: " << st.subroutine_name << std::endl;
-        for (auto const &s : st.view_subroutine_scope()) {
-                std::cout << "\t" << s.second.name << " | " << s.second.type << " | " << s.second.kind << " | " << s.second.index << std::endl;
+        for (const auto &s : st.view_subroutine_scope()) {
+                std::cout << "\t" << s.second.name << " | " << s.second.type << " | " << kind[(int)s.second.kind] << " | " << s.second.index << std::endl;
         }
 }
 
@@ -47,7 +49,7 @@ std::unique_ptr<AstNode> Compiler::compile_class()
 
         // className
         compiled_class->children.push_back(make_node());
-        m_symbol_table.begin_class(current_value());
+        m_st.begin_class(current_value());
         advance();
 
         // '{'
@@ -62,7 +64,7 @@ std::unique_ptr<AstNode> Compiler::compile_class()
                 } while(lookahead_value() == "static" || lookahead_value() == "field");
         }
 
-        debug(m_symbol_table);
+        debug(m_st);
 
         // subroutineDec*
         if (lookahead_value() == "constructor" || lookahead_value() == "function" || lookahead_value() == "method") {
@@ -89,7 +91,12 @@ std::unique_ptr<AstNode> Compiler::compile_class_var_dec()
 
         // 'static' | 'field'
         assert(current_value() == "static" || current_value() == "field");
-        s.kind = current_value();
+        if (current_value() == "static") {
+                s.kind = KIND::STATIC;
+        } else {
+                s.kind = KIND::FIELD;
+        }
+
         class_var_dec->children.push_back(make_node());
         advance();
 
@@ -102,7 +109,7 @@ std::unique_ptr<AstNode> Compiler::compile_class_var_dec()
         class_var_dec->children.push_back(make_node());
         s.name = current_value();
 
-        m_symbol_table.define_symbol(s);
+        m_st.define_symbol(s);
 
         if (lookahead_value() == ",") {
                 do {
@@ -116,7 +123,7 @@ std::unique_ptr<AstNode> Compiler::compile_class_var_dec()
                         class_var_dec->children.push_back(make_node());
                         s.name = current_value();
 
-                        m_symbol_table.define_symbol(s);
+                        m_st.define_symbol(s);
                 } while (lookahead_value() == ",");
         }
 
@@ -144,8 +151,8 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_dec()
 
         // subroutineName
         subroutine_dec->children.push_back(make_node());
-        m_symbol_table.begin_subroutine(current_value());
-        m_symbol_table.define_symbol("this", m_symbol_table.class_name, "arg");
+        m_st.begin_subroutine(current_value());
+        m_st.define_symbol("this", m_st.class_name, KIND::ARG);
         advance();
 
         // '('
@@ -166,7 +173,7 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_dec()
         // subroutineBody
         subroutine_dec->children.push_back(compile_subroutine_body());
 
-        debug(m_symbol_table);
+        debug(m_st);
 
         return subroutine_dec;
 }
@@ -174,7 +181,7 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_dec()
 std::unique_ptr<AstNode> Compiler::compile_parameter_list()
 {
         Symbol s;
-        s.kind = "arg";
+        s.kind = KIND::ARG;
         // ( (type varName) (',' type varName)*)?
         std::unique_ptr<AstNode> parameter_list = std::make_unique<AstNode>(AstNode { "parameterList" });
 
@@ -186,7 +193,7 @@ std::unique_ptr<AstNode> Compiler::compile_parameter_list()
         // varName
         parameter_list->children.push_back(make_node());
         s.name = current_value();
-        m_symbol_table.define_symbol(s);
+        m_st.define_symbol(s);
 
         if (lookahead_value() == ",") {
                 do {
@@ -202,7 +209,7 @@ std::unique_ptr<AstNode> Compiler::compile_parameter_list()
                         // varName
                         parameter_list->children.push_back(make_node());
                         s.name = current_value();
-                        m_symbol_table.define_symbol(s);
+                        m_st.define_symbol(s);
                 } while (lookahead_value() == ",");
         }
 
@@ -246,7 +253,7 @@ std::unique_ptr<AstNode> Compiler::compile_var_dec()
         // 'var'
         assert(current_value() == "var");
         var_dec->children.push_back(make_node());
-        s.kind = current_value();
+        s.kind = KIND::VAR;
         advance();
 
         // type
@@ -257,7 +264,7 @@ std::unique_ptr<AstNode> Compiler::compile_var_dec()
         // varName
         var_dec->children.push_back(make_node());
         s.name = current_value();
-        m_symbol_table.define_symbol(s);
+        m_st.define_symbol(s);
 
         // varName
         if (lookahead_value() == ",") {
@@ -270,7 +277,7 @@ std::unique_ptr<AstNode> Compiler::compile_var_dec()
                         // varName
                         var_dec->children.push_back(make_node());
                         s.name = current_value();
-                        m_symbol_table.define_symbol(s);
+                        m_st.define_symbol(s);
                 } while (lookahead_value() == ",");
         }
 
@@ -335,6 +342,19 @@ std::unique_ptr<AstNode> Compiler::compile_let()
 
         // varName
         let_statement->children.push_back(make_node());
+        Symbol s;
+        bool found = m_st.try_get(current_value(), &s);
+        assert(found);
+
+        if (s.kind == KIND::FIELD || s.kind == KIND::STATIC) {
+                // push this or self on the stack
+                m_vme.emit_push(SEGMENT::ARGUMENT, 0, m_vm_commands);
+                // pop this or self to pointer or this register for heap manipulation
+                m_vme.emit_pop(SEGMENT::POINTER, 0, m_vm_commands);
+                //
+                m_vme.emit_push(SEGMENT::THIS, s.index, m_vm_commands);
+        }
+
         if (lookahead_value() == "[") {
                 advance();
 
@@ -544,6 +564,16 @@ std::unique_ptr<AstNode> Compiler::compile_term()
         // keywordConstant
         if (current_value() == "true" || current_value() == "false" ||
             current_value() == "null" || current_value() == "this") {
+                if (current_value() == "true") {
+                        m_vme.emit_push(SEGMENT::CONSTANT, 1, m_vm_commands);
+                }
+
+                if (current_value() == "false" || current_value() == "null") {
+                        m_vme.emit_push(SEGMENT::CONSTANT, 0, m_vm_commands);
+                }
+
+                if (current_value() == "this") {
+                }
                 term->children.push_back(make_node());
                 return term;
         }

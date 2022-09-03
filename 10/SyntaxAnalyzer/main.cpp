@@ -1,3 +1,4 @@
+#include <filesystem>
 #include <iostream>
 #include "analyzer.h"
 #include "ast_node.h"
@@ -17,13 +18,12 @@ int main(int argc, char** argv)
         std::string input_path = *(argv + 1);
 
         try {
-                FileReader reader;
-                std::vector<io_paths> paths = reader.get_io_paths(input_path);
-                std::vector<io_paths>::const_iterator it = paths.begin();
+                FileReader reader (input_path);
+                std::vector<fs::path> paths = reader.get_jack_files();
+                std::vector<fs::path>::const_iterator it = paths.cbegin();
 
                 while (it != paths.end()) {
-                        fs::path jack_file = it->first;
-                        fs::path xml_file = it->second;
+                        fs::path jack_file = *it;
                         std::ifstream ifstream;
                         std::ofstream ofstream;
 
@@ -36,16 +36,11 @@ int main(int argc, char** argv)
 
                         Analyzer a;
                         std::unique_ptr<AstNode> ast = a.analyze(ifstream);
+                        std::vector<std::string> vm_commands = a.get_vm_commands();
 
-                        std::cout << "[INFO] Opening output file: " << std::string(xml_file) << std::endl;
-                        ofstream.open(xml_file);
-                        if (!ofstream.good()) {
-                                std::string err = "[ERR] Could not open file: " + std::string(xml_file);
-                                throw std::domain_error(err);
-                        }
-
-                        FileWriter writer;
-                        writer.write_xml(ast, ofstream);
+                        FileWriter writer(jack_file);
+                        writer.write_xml(ast);
+                        writer.write_vm_commands(vm_commands);
 
                         ++it;
                 }

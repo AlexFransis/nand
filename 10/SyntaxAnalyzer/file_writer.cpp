@@ -1,11 +1,31 @@
+#include <iostream>
 #include <unordered_map>
 #include <functional>
 #include "file_writer.h"
 
-FileWriter::FileWriter(){};
+namespace fs = std::filesystem;
 
-void FileWriter::write_xml(const std::unique_ptr<AstNode> &ast, std::ofstream &ofstream)
+
+fs::path FileWriter::construct_output_file(const std::string &ext)
 {
+        fs::path out_file = m_jack_file;
+        out_file.replace_extension(ext);
+        return out_file;
+}
+
+void FileWriter::write_xml(const std::unique_ptr<AstNode> &ast)
+{
+
+        fs::path xml_file = construct_output_file(xml_ext);
+        std::ofstream ofstream;
+
+        std::cout << "[INFO] Writing XML file: " << std::string(xml_file) << std::endl;
+        ofstream.open(xml_file);
+        if (!ofstream.good()) {
+                std::string err = "[ERR] Could not write file: " + std::string(xml_file);
+                throw std::domain_error(err);
+        }
+
         std::unordered_map<std::string, std::string> token_map {
                 {"SYMBOL" , "symbol"},
                 {"IDENTIFIER" , "identifier"},
@@ -54,4 +74,22 @@ void FileWriter::write_xml(const std::unique_ptr<AstNode> &ast, std::ofstream &o
                 };
 
         recur(*ast, 0);
+}
+
+
+void FileWriter::write_vm_commands(const std::vector<std::string> &vmc)
+{
+        fs::path vm_file = construct_output_file(vm_ext);
+        std::ofstream ofstream;
+
+        std::cout << "[INFO] Writing VM file: " << std::string(vm_file) << std::endl;
+        ofstream.open(vm_file);
+        if (!ofstream.good()) {
+                std::string err = "[ERR] Could not write file: " + std::string(vm_file);
+                throw std::domain_error(err);
+        }
+
+        for (const std::string &s : vmc) {
+                ofstream << s << std::endl;
+        }
 }

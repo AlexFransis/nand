@@ -13,8 +13,8 @@ class Compiler {
 private:
         std::vector<Token>::const_iterator m_curr_token;
         std::vector<std::string> m_vm_commands;
-        VMEmitter m_vm_emmiter;
-        SymbolTable m_symbol_table;
+        VMEmitter m_vme;
+        SymbolTable m_st;
 
         void 				debug(const std::string &context);
         void 				debug(const SymbolTable &st);
@@ -51,6 +51,7 @@ public:
         Compiler(const std::vector<Token> &tokens);
 
         std::unique_ptr<AstNode> 	compile();
+        inline std::vector<std::string> get_vm_commands() { return m_vm_commands ;}
 };
 
 #endif

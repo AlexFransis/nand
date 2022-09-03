@@ -7,18 +7,45 @@
 #include <string>
 #include <memory>
 
+enum class SEGMENT {
+        ARGUMENT,
+        LOCAL,
+        STATIC,
+        CONSTANT,
+        THIS,
+        THAT,
+        POINTER,
+        TEMP
+};
+
+enum class COMMAND {
+        ADD,
+        SUB,
+        NEG,
+        EQ,
+        GT,
+        LT,
+        AND,
+        OR,
+        NOT
+};
+
+enum class PUSH_POP {
+        PUSH,
+        POP
+};
+
 class VMEmitter {
 public:
-        std::vector<std::string> emit_push(const std::unique_ptr<AstNode> &node);
-        std::vector<std::string> emit_pop(const std::unique_ptr<AstNode> &node);
-        std::vector<std::string> emit_arithmetic(const std::unique_ptr<AstNode> &node);
-        std::vector<std::string> emit_label(const std::unique_ptr<AstNode> &node);
-        std::vector<std::string> emit_goto(const std::unique_ptr<AstNode> &node);
-        std::vector<std::string> emit_if(const std::unique_ptr<AstNode> &node);
-        std::vector<std::string> emit_calll(const std::unique_ptr<AstNode> &node);
-        std::vector<std::string> emit_function(const std::unique_ptr<AstNode> &node);
-        std::vector<std::string> emit_return(const std::unique_ptr<AstNode> &node);
-        std::vector<std::string> emit_vm_commands(const std::unique_ptr<AstNode> &node);
+        void emit_push(const SEGMENT &segment, int i, std::vector<std::string> &out_vm_commands);
+        void emit_pop(const SEGMENT &segment, int i, std::vector<std::string> &out_vm_commands);
+        void emit_arithmetic(const COMMAND &command, std::vector<std::string> &out_vm_commands);
+        void emit_label(const std::string &label, std::vector<std::string> &out_vm_commands);
+        void emit_goto(const std::string &label, std::vector<std::string> &out_vm_commands);
+        void emit_if(const std::string &label, std::vector<std::string> &out_vm_commands);
+        void emit_call(const std::string &name, int n_args, std::vector<std::string> &out_vm_commands);
+        void emit_function(const std::string &name, int n_locals, std::vector<std::string> &out_vm_commands);
+        void emit_return(std::vector<std::string> &out_vm_commands);
 };
 
 
