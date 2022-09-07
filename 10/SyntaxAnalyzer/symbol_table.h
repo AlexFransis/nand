@@ -5,7 +5,7 @@
 #include <unordered_map>
 
 
-enum class KIND
+enum class SCOPE
 {
         UNKNOWN,
         STATIC,
@@ -17,7 +17,7 @@ enum class KIND
 struct Symbol {
         std::string name;
         std::string type;
-        KIND kind;
+        SCOPE scope;
         int index;
 };
 
@@ -40,13 +40,14 @@ public:
 
         void begin_subroutine(const std::string &subroutine_name);
         void begin_class(const std::string &class_name);
-        void define_symbol(const std::string &name, const std::string &type, KIND kind);
+        void define_symbol(const std::string &name, const std::string &type, SCOPE kind);
         void define_symbol(Symbol &s);
-        int count_kind(KIND kind);
-        KIND kind_of(const std::string &name);
+        int count_kind(SCOPE kind);
+        SCOPE kind_of(const std::string &name);
         std::string type_of(const std::string &name);
         int index_of(const std::string &name);
         bool try_get(const std::string &name, Symbol*symbol);
+        inline bool is_class_scope(const Symbol &s) const { return s.scope == SCOPE::FIELD; }
         inline std::unordered_map<std::string, const Symbol> view_class_scope() const { return class_scope; }
         inline std::unordered_map<std::string, const Symbol> view_subroutine_scope() const { return subroutine_scope; }
 

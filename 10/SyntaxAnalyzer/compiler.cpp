@@ -1,5 +1,4 @@
 #include "compiler.h"
-#include "vm_emitter.h"
 #include <algorithm>
 #include <iostream>
 #include <cassert>
@@ -8,12 +7,11 @@
 Compiler::Compiler(const std::vector<Token> &tokens)
 {
         m_curr_token = tokens.begin();
-        m_vm_commands = std::vector<std::string>();
         m_vme = VMEmitter();
         m_st = SymbolTable();
 }
 
-std::unique_ptr<AstNode> Compiler::compile()
+std::unique_ptr<AstNode> Compiler::generate_ast()
 {
         std::unique_ptr<AstNode> ast = compile_class();
         return ast;
@@ -26,21 +24,21 @@ void Compiler::debug(const std::string &context)
 
 void Compiler::debug(const SymbolTable &st)
 {
-        std::string kind [8] = {"unknown", "static", "field", "var", "arg" };
+        std::string scopes [5] = {"unknown", "static", "field", "var", "arg" };
         std::cout << "SYMBOL TABLE CLASS SCOPE: " << st.class_name << std::endl;
         for (const auto &s : st.view_class_scope()) {
-                std::cout << "\t" << s.second.name << " | " << s.second.type << " | " << kind[(int)s.second.kind] << " | " << s.second.index << std::endl;
+                std::cout << "\t" << s.second.name << " | " << s.second.type << " | " << scopes[(int)s.second.scope] << " | " << s.second.index << std::endl;
         }
         std::cout << "SYMBOL TABLE SUBROUTINE SCOPE: " << st.subroutine_name << std::endl;
         for (const auto &s : st.view_subroutine_scope()) {
-                std::cout << "\t" << s.second.name << " | " << s.second.type << " | " << kind[(int)s.second.kind] << " | " << s.second.index << std::endl;
+                std::cout << "\t" << s.second.name << " | " << s.second.type << " | " << scopes[(int)s.second.scope] << " | " << s.second.index << std::endl;
         }
 }
 
 std::unique_ptr<AstNode> Compiler::compile_class()
 {
         // 'class' className '{' classVarDec* subroutineDec* '}'
-        std::unique_ptr<AstNode> compiled_class = std::make_unique<AstNode>(AstNode { "class" });
+        std::unique_ptr<AstNode> compiled_class = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::CLASS });
 
         // 'class'
         assert(current_value() == "class");
@@ -64,7 +62,7 @@ std::unique_ptr<AstNode> Compiler::compile_class()
                 } while(lookahead_value() == "static" || lookahead_value() == "field");
         }
 
-        debug(m_st);
+        //debug(m_st);
 
         // subroutineDec*
         if (lookahead_value() == "constructor" || lookahead_value() == "function" || lookahead_value() == "method") {
@@ -85,31 +83,20 @@ std::unique_ptr<AstNode> Compiler::compile_class()
 
 std::unique_ptr<AstNode> Compiler::compile_class_var_dec()
 {
-        Symbol s;
         // ('static' | 'field') type varName (',' varName)* ';'
-        std::unique_ptr<AstNode> class_var_dec = std::make_unique<AstNode>(AstNode { "classVarDec" });
+        std::unique_ptr<AstNode> class_var_dec = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::CLASS_VAR_DEC });
 
         // 'static' | 'field'
-        assert(current_value() == "static" || current_value() == "field");
-        if (current_value() == "static") {
-                s.kind = KIND::STATIC;
-        } else {
-                s.kind = KIND::FIELD;
-        }
-
         class_var_dec->children.push_back(make_node());
         advance();
 
         // type
         class_var_dec->children.push_back(make_node());
-        s.type = current_value();
         advance();
 
         // varName
         class_var_dec->children.push_back(make_node());
-        s.name = current_value();
 
-        m_st.define_symbol(s);
 
         if (lookahead_value() == ",") {
                 do {
@@ -121,13 +108,11 @@ std::unique_ptr<AstNode> Compiler::compile_class_var_dec()
 
                         // varName
                         class_var_dec->children.push_back(make_node());
-                        s.name = current_value();
 
-                        m_st.define_symbol(s);
                 } while (lookahead_value() == ",");
         }
-
         advance();
+
         // ';'
         assert(current_value() == ";");
         class_var_dec->children.push_back(make_node());
@@ -138,7 +123,7 @@ std::unique_ptr<AstNode> Compiler::compile_class_var_dec()
 std::unique_ptr<AstNode> Compiler::compile_subroutine_dec()
 {
         // ('constructor' | 'function' | 'method') ('void' | type) subroutineName '(' parameterList ')' subroutineBody
-        std::unique_ptr<AstNode> subroutine_dec = std::make_unique<AstNode>(AstNode { "subroutineDec" });
+        std::unique_ptr<AstNode> subroutine_dec = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::SUBROUTINE_DEC });
 
         // ('constructor' | 'function' | 'method')
         assert(current_value() == "constructor" || current_value() == "function" || current_value() == "method");
@@ -151,8 +136,6 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_dec()
 
         // subroutineName
         subroutine_dec->children.push_back(make_node());
-        m_st.begin_subroutine(current_value());
-        m_st.define_symbol("this", m_st.class_name, KIND::ARG);
         advance();
 
         // '('
@@ -173,27 +156,20 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_dec()
         // subroutineBody
         subroutine_dec->children.push_back(compile_subroutine_body());
 
-        debug(m_st);
-
         return subroutine_dec;
 }
 
 std::unique_ptr<AstNode> Compiler::compile_parameter_list()
 {
-        Symbol s;
-        s.kind = KIND::ARG;
         // ( (type varName) (',' type varName)*)?
-        std::unique_ptr<AstNode> parameter_list = std::make_unique<AstNode>(AstNode { "parameterList" });
+        std::unique_ptr<AstNode> parameter_list = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::PARAMETER_LIST });
 
         // type
         parameter_list->children.push_back(make_node());
-        s.type = current_value();
         advance();
 
         // varName
         parameter_list->children.push_back(make_node());
-        s.name = current_value();
-        m_st.define_symbol(s);
 
         if (lookahead_value() == ",") {
                 do {
@@ -204,12 +180,9 @@ std::unique_ptr<AstNode> Compiler::compile_parameter_list()
                         advance();
                         // type
                         parameter_list->children.push_back(make_node());
-                        s.type = current_value();
                         advance();
                         // varName
                         parameter_list->children.push_back(make_node());
-                        s.name = current_value();
-                        m_st.define_symbol(s);
                 } while (lookahead_value() == ",");
         }
 
@@ -219,7 +192,7 @@ std::unique_ptr<AstNode> Compiler::compile_parameter_list()
 std::unique_ptr<AstNode> Compiler::compile_subroutine_body()
 {
         // '{' varDec* statements '}'
-        std::unique_ptr<AstNode> subroutine_body = std::make_unique<AstNode>(AstNode { "subroutineBody" });
+        std::unique_ptr<AstNode> subroutine_body = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::SUBROUTINE_BODY });
 
         // '{'
         assert(current_value() == "{");
@@ -246,25 +219,20 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_body()
 
 std::unique_ptr<AstNode> Compiler::compile_var_dec()
 {
-        Symbol s;
         // 'var' type varName (',' varName)* ';'
-        std::unique_ptr<AstNode> var_dec = std::make_unique<AstNode>(AstNode { "varDec" });
+        std::unique_ptr<AstNode> var_dec = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::VAR_DEC });
 
         // 'var'
         assert(current_value() == "var");
         var_dec->children.push_back(make_node());
-        s.kind = KIND::VAR;
         advance();
 
         // type
         var_dec->children.push_back(make_node());
-        s.type = current_value();
         advance();
 
         // varName
         var_dec->children.push_back(make_node());
-        s.name = current_value();
-        m_st.define_symbol(s);
 
         // varName
         if (lookahead_value() == ",") {
@@ -276,8 +244,6 @@ std::unique_ptr<AstNode> Compiler::compile_var_dec()
                         advance();
                         // varName
                         var_dec->children.push_back(make_node());
-                        s.name = current_value();
-                        m_st.define_symbol(s);
                 } while (lookahead_value() == ",");
         }
 
@@ -292,7 +258,7 @@ std::unique_ptr<AstNode> Compiler::compile_var_dec()
 std::unique_ptr<AstNode> Compiler::compile_statements()
 {
         // (letStatement | ifStatement | whileStatement | doStatement | returnStatement)*
-        std::unique_ptr<AstNode> statements = std::make_unique<AstNode>(AstNode { "statements" });
+        std::unique_ptr<AstNode> statements = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::STATEMENTS });
 
         do {
                 advance();
@@ -333,7 +299,7 @@ std::unique_ptr<AstNode> Compiler::compile_statements()
 std::unique_ptr<AstNode> Compiler::compile_let()
 {
         // 'let' varName ('[' expression ']')? '=' expression ';'
-        std::unique_ptr<AstNode> let_statement = std::make_unique<AstNode>(AstNode { "letStatement" });
+        std::unique_ptr<AstNode> let_statement = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::LET_STATEMENT });
 
         // 'let'
         assert(current_value() == "let");
@@ -342,18 +308,6 @@ std::unique_ptr<AstNode> Compiler::compile_let()
 
         // varName
         let_statement->children.push_back(make_node());
-        Symbol s;
-        bool found = m_st.try_get(current_value(), &s);
-        assert(found);
-
-        if (s.kind == KIND::FIELD || s.kind == KIND::STATIC) {
-                // push this or self on the stack
-                m_vme.emit_push(SEGMENT::ARGUMENT, 0, m_vm_commands);
-                // pop this or self to pointer or this register for heap manipulation
-                m_vme.emit_pop(SEGMENT::POINTER, 0, m_vm_commands);
-                //
-                m_vme.emit_push(SEGMENT::THIS, s.index, m_vm_commands);
-        }
 
         if (lookahead_value() == "[") {
                 advance();
@@ -389,7 +343,7 @@ std::unique_ptr<AstNode> Compiler::compile_let()
 std::unique_ptr<AstNode> Compiler::compile_if()
 {
         // 'if' '(' expression ')' '{' statements '}' ('else' '{' statements '}')?
-        std::unique_ptr<AstNode> if_statement = std::make_unique<AstNode>(AstNode { "ifStatement" });
+        std::unique_ptr<AstNode> if_statement = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::IF_STATEMENT });
 
         // 'if'
         if_statement->children.push_back(make_node());
@@ -448,7 +402,7 @@ std::unique_ptr<AstNode> Compiler::compile_if()
 std::unique_ptr<AstNode> Compiler::compile_while()
 {
         // 'while' '(' expression ')' '{' statements '}'
-        std::unique_ptr<AstNode> while_statement = std::make_unique<AstNode>(AstNode { "whileStatement" });
+        std::unique_ptr<AstNode> while_statement = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::WHILE_STATEMENT });
 
         // 'while'
         while_statement->children.push_back(make_node());
@@ -485,7 +439,7 @@ std::unique_ptr<AstNode> Compiler::compile_while()
 std::unique_ptr<AstNode> Compiler::compile_do()
 {
         // 'do' subroutineCall ';'
-        std::unique_ptr<AstNode> do_statement = std::make_unique<AstNode>(AstNode { "doStatement" });
+        std::unique_ptr<AstNode> do_statement = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::DO_STATEMENT });
 
         // 'do'
         assert(current_value() == "do");
@@ -506,7 +460,7 @@ std::unique_ptr<AstNode> Compiler::compile_do()
 std::unique_ptr<AstNode> Compiler::compile_return()
 {
         // 'return' expression? ';'
-        std::unique_ptr<AstNode> return_statement = std::make_unique<AstNode>(AstNode { "returnStatement" });
+        std::unique_ptr<AstNode> return_statement = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::RETURN_STATEMENT });
 
         // 'return'
         assert(current_value() == "return");
@@ -530,7 +484,7 @@ std::unique_ptr<AstNode> Compiler::compile_return()
 std::unique_ptr<AstNode> Compiler::compile_expression()
 {
         // term (op term)*
-        std::unique_ptr<AstNode> expression = std::make_unique<AstNode>(AstNode { "expression" });
+        std::unique_ptr<AstNode> expression = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::EXPRESSION });
 
         // term
         expression->children.push_back(compile_term());
@@ -559,27 +513,17 @@ std::unique_ptr<AstNode> Compiler::compile_term()
 {
         // intConstant | stringConstant | keywordConstant | varName | varName '[' expression ']' |
         // subroutineCall | '(' expression ')' | unaryOp term
-        std::unique_ptr<AstNode> term = std::make_unique<AstNode>(AstNode { "term" });
+        std::unique_ptr<AstNode> term = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::TERM });
 
         // keywordConstant
         if (current_value() == "true" || current_value() == "false" ||
             current_value() == "null" || current_value() == "this") {
-                if (current_value() == "true") {
-                        m_vme.emit_push(SEGMENT::CONSTANT, 1, m_vm_commands);
-                }
-
-                if (current_value() == "false" || current_value() == "null") {
-                        m_vme.emit_push(SEGMENT::CONSTANT, 0, m_vm_commands);
-                }
-
-                if (current_value() == "this") {
-                }
                 term->children.push_back(make_node());
                 return term;
         }
 
         // stringConstant | intConstant
-        if (current_type() == "INTEGER_CONST" || current_type() == "STRING_CONST") {
+        if (current_type() == TOKEN_TYPE::INTEGER_CONST || current_type() == TOKEN_TYPE::STRING_CONST) {
                 term->children.push_back(make_node());
                 return term;
         }
@@ -589,9 +533,8 @@ std::unique_ptr<AstNode> Compiler::compile_term()
                 // unaryOp
                 term->children.push_back(make_node());
                 advance();
-
                 // term
-                term->children.push_back(make_node());
+                term->children.push_back(compile_term());
 
                 return term;
         }
@@ -651,7 +594,7 @@ std::unique_ptr<AstNode> Compiler::compile_term()
 std::unique_ptr<AstNode> Compiler::compile_subroutine_call()
 {
         // subroutineName '(' expressionList ')' | (className | varName) '.' subroutineName '(' expressionList ')'
-        std::unique_ptr<AstNode> subroutine_call = std::make_unique<AstNode>(AstNode { "subroutineCall" });
+        std::unique_ptr<AstNode> subroutine_call = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::SUBROUTINE_CALL });
 
         // subroutineName | className | varName
         subroutine_call->children.push_back(make_node());
@@ -713,7 +656,7 @@ std::unique_ptr<AstNode> Compiler::compile_subroutine_call()
 std::unique_ptr<AstNode> Compiler::compile_expression_list()
 {
         // (expression (',' expression)* )?
-        std::unique_ptr<AstNode> expression_list = std::make_unique<AstNode>(AstNode { "expressionList" });
+        std::unique_ptr<AstNode> expression_list = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::EXPRESSION_LIST });
 
         // expression
         expression_list->children.push_back(compile_expression());
@@ -733,4 +676,9 @@ std::unique_ptr<AstNode> Compiler::compile_expression_list()
         }
 
         return expression_list;
+}
+
+
+void Compiler::traverse_expression(const std::unique_ptr<AstNode> &ptr)
+{
 }

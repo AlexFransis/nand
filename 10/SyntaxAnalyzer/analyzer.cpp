@@ -3,12 +3,7 @@
 #include "compiler.h"
 
 
-Analyzer::Analyzer()
-{
-        m_vm_commands = std::vector<std::string>();
-}
-
-std::unique_ptr<AstNode> Analyzer::analyze(std::ifstream &input_stream)
+std::unique_ptr<AstNode> Analyzer::compile(std::ifstream &input_stream)
 {
         std::vector<Token> tokens;
         Tokenizer t;
@@ -25,8 +20,7 @@ std::unique_ptr<AstNode> Analyzer::analyze(std::ifstream &input_stream)
         }
 
         Compiler c(tokens);
-        std::unique_ptr<AstNode> ast = c.compile();
-        m_vm_commands = c.get_vm_commands();
+        std::unique_ptr<AstNode> ast = c.generate_ast();
 
         return ast;
 }

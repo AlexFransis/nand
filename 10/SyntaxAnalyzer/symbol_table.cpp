@@ -11,22 +11,22 @@ SymbolTable::SymbolTable()
 
 void SymbolTable::record_symbol(Symbol &s)
 {
-        if (s.kind == KIND::STATIC) {
+        if (s.scope == SCOPE::STATIC) {
                 s.index = static_count;
                 ++static_count;
                 class_scope.insert(std::make_pair(s.name, s));
         }
-        if (s.kind == KIND::FIELD) {
+        if (s.scope == SCOPE::FIELD) {
                 s.index = field_count;
                 ++field_count;
                 class_scope.insert(std::make_pair(s.name, s));
         }
-        if (s.kind == KIND::VAR) {
+        if (s.scope == SCOPE::VAR) {
                 s.index = var_count;
                 ++var_count;
                 subroutine_scope.insert(std::make_pair(s.name, s));
         }
-        if (s.kind == KIND::ARG) {
+        if (s.scope == SCOPE::ARG) {
                 s.index = arg_count;
                 ++arg_count;
                 subroutine_scope.insert(std::make_pair(s.name, s));
@@ -34,7 +34,7 @@ void SymbolTable::record_symbol(Symbol &s)
 
 }
 
-void SymbolTable::define_symbol(const std::string &name, const std::string &type, KIND kind)
+void SymbolTable::define_symbol(const std::string &name, const std::string &type, SCOPE kind)
 {
         Symbol s { name, type, kind };
         record_symbol(s);
@@ -61,29 +61,29 @@ void SymbolTable::begin_class(const std::string &cname)
         static_count = 0;
 }
 
-int SymbolTable::count_kind(KIND kind)
+int SymbolTable::count_kind(SCOPE kind)
 {
-        if (kind == KIND::STATIC) return static_count;
-        if (kind == KIND::FIELD) return field_count;
-        if (kind == KIND::VAR) return var_count;
-        if (kind == KIND::ARG) return arg_count;
+        if (kind == SCOPE::STATIC) return static_count;
+        if (kind == SCOPE::FIELD) return field_count;
+        if (kind == SCOPE::VAR) return var_count;
+        if (kind == SCOPE::ARG) return arg_count;
 
         return -1;
 }
 
-KIND SymbolTable::kind_of(const std::string &name)
+SCOPE SymbolTable::kind_of(const std::string &name)
 {
         std::unordered_map<std::string, const Symbol>::const_iterator found = subroutine_scope.find(name);
         if (found != subroutine_scope.end()) {
-                return found->second.kind;
+                return found->second.scope;
         }
 
         found = class_scope.find(name);
         if (found != class_scope.end()) {
-                return found->second.kind;
+                return found->second.scope;
         }
 
-        return KIND::UNKNOWN;
+        return SCOPE::UNKNOWN;
 }
 
 std::string SymbolTable::type_of(const std::string &name)

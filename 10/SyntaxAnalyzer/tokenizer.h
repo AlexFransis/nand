@@ -5,9 +5,18 @@
 #include <vector>
 #include <string>
 
+// TODO: use enum for type safety
+enum class TOKEN_TYPE {
+        UNKNOWN,
+        IDENTIFIER,
+        SYMBOL,
+        KEYWORD,
+        INTEGER_CONST,
+        STRING_CONST
+};
 
 struct Token {
-        std::string type;
+        TOKEN_TYPE type;
         std::string value;
 };
 
@@ -24,7 +33,7 @@ private:
         bool 			is_string(const std::string &token);
         bool 			is_identifier(const std::string &token);
 public:
-        std::string 		get_token_type(const std::string &token);
+        TOKEN_TYPE 		get_token_type(const std::string &token);
         bool			try_tokenize(const std::string &line, std::vector<Token> &out_tokens);
 };
 

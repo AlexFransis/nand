@@ -52,6 +52,11 @@ std::string format_push_pop(const PUSH_POP &push_pop, const SEGMENT &segment, in
         return result;
 }
 
+std::string format_function(const std::string &name, int n_locals)
+{
+        return "function " + name + " " + std::to_string(n_locals);
+}
+
 void VMEmitter::emit_push(const SEGMENT &segment, int i, std::vector<std::string> &out_vm_commands)
 {
         out_vm_commands.push_back(format_push_pop(PUSH_POP::PUSH, segment, i));
@@ -60,4 +65,14 @@ void VMEmitter::emit_push(const SEGMENT &segment, int i, std::vector<std::string
 void VMEmitter::emit_pop(const SEGMENT &segment, int i, std::vector<std::string> &out_vm_commands)
 {
         out_vm_commands.push_back(format_push_pop(PUSH_POP::POP, segment, i));
+}
+
+void VMEmitter::emit_label(const std::string &label, std::vector<std::string> &out_vm_commands)
+{
+        out_vm_commands.push_back("@" + label);
+}
+
+void VMEmitter::emit_function(const std::string &name, int n_locals, std::vector<std::string> &out_vm_commands)
+{
+        out_vm_commands.push_back(format_function(name, n_locals));
 }
