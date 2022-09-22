@@ -16,22 +16,24 @@ void SymbolTable::record_symbol(Symbol &s)
                 ++static_count;
                 class_scope.insert(std::make_pair(s.name, s));
         }
+
         if (s.scope == SCOPE::FIELD) {
                 s.index = field_count;
                 ++field_count;
                 class_scope.insert(std::make_pair(s.name, s));
         }
+
         if (s.scope == SCOPE::VAR) {
                 s.index = var_count;
                 ++var_count;
                 subroutine_scope.insert(std::make_pair(s.name, s));
         }
+
         if (s.scope == SCOPE::ARG) {
                 s.index = arg_count;
                 ++arg_count;
                 subroutine_scope.insert(std::make_pair(s.name, s));
         }
-
 }
 
 void SymbolTable::define_symbol(const std::string &name, const std::string &type, SCOPE kind)

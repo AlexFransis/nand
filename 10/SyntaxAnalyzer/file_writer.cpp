@@ -16,7 +16,7 @@ fs::path FileWriter::construct_output_file(const std::string &ext)
 
 void FileWriter::write_xml(const std::unique_ptr<AstNode> &ast)
 {
-        int indent = 2;
+        int indent = 4;
         fs::path xml_file = construct_output_file(xml_ext);
         std::ofstream ofstream;
 
@@ -73,7 +73,8 @@ void FileWriter::write_xml(const std::unique_ptr<AstNode> &ast)
                                 }
                                 ofstream << "<" << token_type->second << "> ";
                                 auto xml_element = xml_special_chars.find(ast.terminal_value);
-                                std::string value = (xml_element != xml_special_chars.end() ? token_type->second : ast.terminal_value);
+                                bool is_xml_special_char = xml_element != xml_special_chars.end();
+                                std::string value = is_xml_special_char ? token_type->second : ast.terminal_value;
                                 ofstream << value << " </" << token_type->second << ">\n";
                                 return;
                         }

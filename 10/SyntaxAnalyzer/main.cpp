@@ -36,9 +36,11 @@ int main(int argc, char** argv)
 
                         Analyzer a;
                         std::unique_ptr<AstNode> ast = a.compile(ifstream);
+                        //std::vector<std::string> vm_code = a.compile_vm_code(ifstream);
 
                         FileWriter writer(jack_file);
                         writer.write_xml(ast);
+                        //writer.write_vm_commands(vm_code);
 
                         ++it;
                 }

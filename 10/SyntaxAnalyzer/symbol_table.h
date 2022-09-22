@@ -27,14 +27,14 @@ private:
         int field_count;
         int arg_count;
         int var_count;
+        std::string class_name;
+        std::string subroutine_name;
 
         void record_symbol(Symbol &s);
         std::unordered_map<std::string, const Symbol> class_scope;
         std::unordered_map<std::string, const Symbol> subroutine_scope;
 
 public:
-        std::string class_name;
-        std::string subroutine_name;
 
         SymbolTable();
 
@@ -47,7 +47,8 @@ public:
         std::string type_of(const std::string &name);
         int index_of(const std::string &name);
         bool try_get(const std::string &name, Symbol*symbol);
-        inline bool is_class_scope(const Symbol &s) const { return s.scope == SCOPE::FIELD; }
+        inline std::string get_class_name() const { return class_name; }
+        inline std::string get_subroutine_name() const { return class_name + "." + subroutine_name; }
         inline std::unordered_map<std::string, const Symbol> view_class_scope() const { return class_scope; }
         inline std::unordered_map<std::string, const Symbol> view_subroutine_scope() const { return subroutine_scope; }
 

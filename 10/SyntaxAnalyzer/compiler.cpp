@@ -1,9 +1,13 @@
 #include "compiler.h"
+#include "ast_node.h"
+#include "tokenizer.h"
 #include <algorithm>
 #include <iostream>
 #include <cassert>
+#include <memory>
 
 
+Compiler::Compiler(){}
 Compiler::Compiler(const std::vector<Token> &tokens)
 {
         m_curr_token = tokens.begin();
@@ -13,8 +17,7 @@ Compiler::Compiler(const std::vector<Token> &tokens)
 
 std::unique_ptr<AstNode> Compiler::generate_ast()
 {
-        std::unique_ptr<AstNode> ast = compile_class();
-        return ast;
+        return compile_class();
 }
 
 void Compiler::debug(const std::string &context)
@@ -25,11 +28,11 @@ void Compiler::debug(const std::string &context)
 void Compiler::debug(const SymbolTable &st)
 {
         std::string scopes [5] = {"unknown", "static", "field", "var", "arg" };
-        std::cout << "SYMBOL TABLE CLASS SCOPE: " << st.class_name << std::endl;
+        std::cout << "SYMBOL TABLE CLASS SCOPE: " << st.get_class_name() << std::endl;
         for (const auto &s : st.view_class_scope()) {
                 std::cout << "\t" << s.second.name << " | " << s.second.type << " | " << scopes[(int)s.second.scope] << " | " << s.second.index << std::endl;
         }
-        std::cout << "SYMBOL TABLE SUBROUTINE SCOPE: " << st.subroutine_name << std::endl;
+        std::cout << "SYMBOL TABLE SUBROUTINE SCOPE: " << st.get_subroutine_name() << std::endl;
         for (const auto &s : st.view_subroutine_scope()) {
                 std::cout << "\t" << s.second.name << " | " << s.second.type << " | " << scopes[(int)s.second.scope] << " | " << s.second.index << std::endl;
         }
@@ -47,7 +50,6 @@ std::unique_ptr<AstNode> Compiler::compile_class()
 
         // className
         compiled_class->children.push_back(make_node());
-        m_st.begin_class(current_value());
         advance();
 
         // '{'
@@ -83,6 +85,7 @@ std::unique_ptr<AstNode> Compiler::compile_class()
 
 std::unique_ptr<AstNode> Compiler::compile_class_var_dec()
 {
+
         // ('static' | 'field') type varName (',' varName)* ';'
         std::unique_ptr<AstNode> class_var_dec = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::CLASS_VAR_DEC });
 
@@ -97,7 +100,6 @@ std::unique_ptr<AstNode> Compiler::compile_class_var_dec()
         // varName
         class_var_dec->children.push_back(make_node());
 
-
         if (lookahead_value() == ",") {
                 do {
                         advance();
@@ -108,7 +110,6 @@ std::unique_ptr<AstNode> Compiler::compile_class_var_dec()
 
                         // varName
                         class_var_dec->children.push_back(make_node());
-
                 } while (lookahead_value() == ",");
         }
         advance();
@@ -234,7 +235,6 @@ std::unique_ptr<AstNode> Compiler::compile_var_dec()
         // varName
         var_dec->children.push_back(make_node());
 
-        // varName
         if (lookahead_value() == ",") {
                 do {
                         advance();
@@ -679,6 +679,353 @@ std::unique_ptr<AstNode> Compiler::compile_expression_list()
 }
 
 
-void Compiler::traverse_expression(const std::unique_ptr<AstNode> &ptr)
+std::vector<std::string> Compiler::generate_vm_code(const std::unique_ptr<AstNode> &ast)
 {
+        traverse_class(ast);
+
+        return m_vm_code;
+}
+
+void Compiler::traverse_class(const std::unique_ptr<AstNode> &root)
+{
+        assert(root->ast_type == AST_NODE_TYPE::CLASS);
+
+        for (std::unique_ptr<AstNode> &node : root->children) {
+                switch (node->ast_type) {
+                case AST_NODE_TYPE::TERMINAL_ELEMENT:
+                        if (node->token_type == TOKEN_TYPE::IDENTIFIER) {
+                                m_st.begin_class(node->terminal_value);
+                        }
+                        break;
+                case AST_NODE_TYPE::CLASS_VAR_DEC:
+                        traverse_class_var_dec(node);
+                        debug(m_st);
+                        break;
+
+                case AST_NODE_TYPE::SUBROUTINE_DEC:
+                        traverse_subroutine_dec(node);
+                        debug(m_st);
+                        break;
+                default:
+                        break;
+
+                };
+
+        }
+
+
+}
+
+void Compiler::traverse_class_var_dec(const std::unique_ptr<AstNode> &node)
+{
+        Symbol class_var;
+
+        std::vector<std::unique_ptr<AstNode>>::const_iterator it = node->children.cbegin();
+
+        // scope
+        std::string scope = (*it)->terminal_value;
+        if (scope == "field") {
+                class_var.scope = SCOPE::FIELD;
+        }
+
+        if (scope == "static") {
+                class_var.scope = SCOPE::STATIC;
+        }
+
+        ++it;
+
+        // type
+        class_var.type = (*it)->terminal_value;
+
+        ++it;
+
+        // name
+        class_var.name = (*it)->terminal_value;
+        m_st.define_symbol(class_var);
+
+
+        while ((*(it+1))->terminal_value == ",") {
+                // ,
+                ++it;
+
+                // name
+                ++it;
+                class_var.name = (*it)->terminal_value;
+                m_st.define_symbol(class_var);
+        }
+}
+
+void Compiler::traverse_subroutine_dec(const std::unique_ptr<AstNode> &node)
+{
+        std::vector<std::unique_ptr<AstNode>>::const_iterator it = node->children.cbegin();
+        // constructor | function | method
+        std::string subroutine_type = (*it)->terminal_value;
+        ++it;
+        ++it;
+        // subroutine name
+        m_st.begin_subroutine((*it)->terminal_value);
+        if (subroutine_type == "method") {
+                // methods operate on k + 1 args
+                m_st.define_symbol("this", m_st.get_class_name(), SCOPE::ARG);
+        }
+
+        while (it != node->children.cend()) {
+                if ((*it)->ast_type == AST_NODE_TYPE::PARAMETER_LIST) {
+                        traverse_parameter_list(*it);
+                        ++it;
+                        continue;
+                }
+
+                if ((*it)->ast_type == AST_NODE_TYPE::SUBROUTINE_BODY) {
+                        traverse_subroutine_body(*it);
+                        ++it;
+                        continue;
+                }
+
+                ++it;
+        }
+}
+
+void Compiler::traverse_parameter_list(const std::unique_ptr<AstNode> &node)
+{
+        std::vector<std::unique_ptr<AstNode>>::const_iterator it = node->children.cbegin();
+        Symbol param;
+        param.scope = SCOPE::ARG;
+        param.type = (*it)->terminal_value;
+
+        // name
+        ++it;
+        param.name = (*it)->terminal_value;
+        m_st.define_symbol(param);
+
+        while ((it+1) != node->children.cend() && (*(it+1))->terminal_value == ",") {
+                // ,
+                ++it;
+
+                //type
+                ++it;
+                param.type = (*it)->terminal_value;
+
+                // name
+                ++it;
+                param.name = (*it)->terminal_value;
+                m_st.define_symbol(param);
+        }
+}
+
+
+void Compiler::traverse_subroutine_body(const std::unique_ptr<AstNode> &node)
+{
+        for (const std::unique_ptr<AstNode> &node : node->children) {
+                switch (node->ast_type) {
+                case AST_NODE_TYPE::VAR_DEC :
+                        traverse_var_dec(node);
+                        break;
+                case AST_NODE_TYPE::STATEMENTS :
+                        // emit function after couting the nb of local vars
+                        m_vme.emit_function(m_st.get_subroutine_name(), m_st.count_kind(SCOPE::VAR), m_vm_code);
+                        traverse_statements(node);
+                        break;
+                default:
+                        break;
+                }
+        }
+}
+
+void Compiler::traverse_var_dec(const std::unique_ptr<AstNode> &node)
+{
+        std::vector<std::unique_ptr<AstNode>>::const_iterator it = node->children.cbegin();
+        Symbol var;
+        var.scope = SCOPE::VAR;
+
+        // type
+        ++it;
+        var.type = (*it)->terminal_value;
+
+        // varname
+        ++it;
+        var.name = (*it)->terminal_value;
+        m_st.define_symbol(var);
+
+        while ((it+1) != node->children.cend() && (*(it+1))->terminal_value == ",") {
+                // ,
+                ++it;
+
+                // varname
+                ++it;
+                var.name = (*it)->terminal_value;
+                m_st.define_symbol(var);
+        }
+}
+
+
+void Compiler::traverse_statements(const std::unique_ptr<AstNode> &node)
+{
+        for (const std::unique_ptr<AstNode> &node : node->children) {
+                switch (node->ast_type) {
+                case AST_NODE_TYPE::LET_STATEMENT:
+                        traverse_let(node);
+                        break;
+                case AST_NODE_TYPE::IF_STATEMENT:
+                case AST_NODE_TYPE::DO_STATEMENT:
+                case AST_NODE_TYPE::WHILE_STATEMENT:
+                case AST_NODE_TYPE::RETURN_STATEMENT:
+                default:
+                        break;
+                }
+        }
+}
+
+void Compiler::traverse_let(const std::unique_ptr<AstNode> &node)
+{
+        // eval right side first
+        const std::unique_ptr<AstNode> *let_identifier;
+        for (const std::unique_ptr<AstNode> &node : node->children) {
+                if (node->ast_type == AST_NODE_TYPE::TERMINAL_ELEMENT &&
+                    node->token_type == TOKEN_TYPE::IDENTIFIER) {
+                        let_identifier = &node;
+                }
+
+                if (node->ast_type == AST_NODE_TYPE::EXPRESSION) {
+                        traverse_expression(node);
+                }
+        }
+}
+
+void Compiler::traverse_expression(const std::unique_ptr<AstNode> &node)
+{
+        int nb_terms = node->children.size();
+        // term
+        if (nb_terms == 1) {
+                traverse_term(node);
+        }
+
+        // term (op term)*
+        if (nb_terms > 1) {
+                for (const std::unique_ptr<AstNode> &node : node->children) {
+                        if (node->ast_type == AST_NODE_TYPE::TERM) {
+                                traverse_term(node);
+                        }
+                }
+
+                for (const std::unique_ptr<AstNode> &node : node->children) {
+                        if (node->token_type == TOKEN_TYPE::SYMBOL) {
+                                // mul and div are implemented via function call to Math lib
+                                if (node->terminal_value == "+") m_vme.emit_arithmetic(COMMAND::ADD, m_vm_code);
+                                if (node->terminal_value == "-") m_vme.emit_arithmetic(COMMAND::SUB, m_vm_code);
+                                if (node->terminal_value == "&") m_vme.emit_arithmetic(COMMAND::AND, m_vm_code);
+                                if (node->terminal_value == "|") m_vme.emit_arithmetic(COMMAND::OR, m_vm_code);
+                                if (node->terminal_value == ">") m_vme.emit_arithmetic(COMMAND::GT, m_vm_code);
+                                if (node->terminal_value == "<") m_vme.emit_arithmetic(COMMAND::LT, m_vm_code);
+                                if (node->terminal_value == "=") m_vme.emit_arithmetic(COMMAND::EQ, m_vm_code);
+                        }
+                }
+        }
+}
+
+void Compiler::traverse_term(const std::unique_ptr<AstNode> &node)
+{
+        std::vector<std::unique_ptr<AstNode>>::const_iterator it = node->children.cbegin();
+        while (it != node->children.cend()) {
+                TOKEN_TYPE type = node->token_type;
+                std::string value = node->terminal_value;
+
+                if (type == TOKEN_TYPE::INTEGER_CONST) {
+                        m_vme.emit_push(SEGMENT::CONSTANT, std::stoi(value), m_vm_code);
+                        ++it;
+                        continue;
+                }
+
+                if (type == TOKEN_TYPE::STRING_CONST) {
+                        // TODO
+                        ++it;
+                        continue;
+                }
+
+                if (type == TOKEN_TYPE::KEYWORD) {
+                        if (value == "null" || value == "false") {
+                                m_vme.emit_push(SEGMENT::CONSTANT, 0, m_vm_code);
+                        }
+
+                        if (value == "this") {
+                                m_vme.emit_push(SEGMENT::POINTER, 0, m_vm_code);
+                        }
+
+                        if (value == "true") {
+                                // -1
+                                m_vme.emit_push(SEGMENT::CONSTANT, 1, m_vm_code);
+                                m_vme.emit_arithmetic(COMMAND::NEG, m_vm_code);
+                        }
+
+                        ++it;
+                        continue;
+                }
+
+                if (type == TOKEN_TYPE::SYMBOL) {
+                        if (value == "~") {
+                                traverse_term(*(it+1));
+                                m_vme.emit_arithmetic(COMMAND::NOT, m_vm_code);
+                                // skip term
+                                it += 2;
+                                continue;
+                        }
+
+                        if (value == "-") {
+                                traverse_term(*(it+1));
+                                m_vme.emit_arithmetic(COMMAND::NEG, m_vm_code);
+                                // skip term
+                                it += 2;
+                                continue;
+                        }
+
+                        if (value == "(") {
+                                ++it;
+                                traverse_expression(*it);
+                                ++it;
+                                continue;
+                        }
+                }
+
+                if (type == TOKEN_TYPE::IDENTIFIER) {
+                        AstNode *lookahead_node = (*(it+1)).get();
+                        // className|varName.subroutineName
+                        if (lookahead_node->token_type == TOKEN_TYPE::SYMBOL && lookahead_node->terminal_value == ".") {
+                                std::string var_name = (*it)->terminal_value;
+                                // check if method belongs to a var
+                                SCOPE scope = m_st.kind_of(var_name);
+                                if (scope == SCOPE::VAR) {
+                                        m_vme.emit_push(SEGMENT::LOCAL, m_st.index_of(var_name), m_vm_code);
+                                }
+
+                                ++it; // .
+                                ++it; // subroutineName
+                                std::string subroutine_name = (*it)->terminal_value;
+
+                                ++it; // (
+
+                                int nb_args = traverse_expression_list(*it);
+                                m_vme.emit_call(var_name + "." + subroutine_name, nb_args+1, m_vm_code);
+                        }
+
+                }
+
+        }
+}
+
+int Compiler::traverse_expression_list(const std::unique_ptr<AstNode> &node)
+{
+        int nb_args = 0;
+        std::vector<std::unique_ptr<AstNode>>::const_iterator it = node->children.cbegin();
+        if (it == node->children.cend()) return nb_args;
+
+        traverse_expression(*it);
+        ++nb_args;
+
+        while ((it+1) != node->children.cend() && (*(it+1))->terminal_value == ",") {
+                ++it; // ,
+                traverse_expression(*it);
+                ++nb_args;
+        }
+
+        return nb_args;
 }

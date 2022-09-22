@@ -24,3 +24,10 @@ std::unique_ptr<AstNode> Analyzer::compile(std::ifstream &input_stream)
 
         return ast;
 }
+
+std::vector<std::string> Analyzer::compile_vm_code(std::ifstream &input_stream)
+{
+        std::unique_ptr<AstNode> ast = compile(input_stream);
+        Compiler c;
+        return c.generate_vm_code(ast);
+}

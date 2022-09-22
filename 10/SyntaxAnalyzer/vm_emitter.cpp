@@ -76,3 +76,28 @@ void VMEmitter::emit_function(const std::string &name, int n_locals, std::vector
 {
         out_vm_commands.push_back(format_function(name, n_locals));
 }
+
+void VMEmitter::emit_arithmetic(const COMMAND &command, std::vector<std::string> &out_vm_commands)
+{
+        switch (command) {
+        case COMMAND::ADD :
+                out_vm_commands.push_back("add");
+        case COMMAND::SUB :
+                out_vm_commands.push_back("sub");
+        case COMMAND::NEG :
+                out_vm_commands.push_back("neg");
+        case COMMAND::EQ :
+                out_vm_commands.push_back("eq");
+        case COMMAND::LT :
+                out_vm_commands.push_back("lt");
+        case COMMAND::GT :
+                out_vm_commands.push_back("gt");
+        case COMMAND::OR :
+                out_vm_commands.push_back("or");
+        case COMMAND::NOT :
+                out_vm_commands.push_back("not");
+                break;
+        default:
+                break;
+        }
+}

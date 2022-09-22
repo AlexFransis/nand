@@ -15,16 +15,31 @@ private:
         std::vector<Token>::const_iterator m_curr_token;
         VMEmitter m_vme;
         SymbolTable m_st;
+        AstNode m_curr_node;
+        std::vector<std::string> m_vm_code;
 
         void debug(const std::string &context);
         void debug(const SymbolTable &st);
-        void traverse_expression(const std::unique_ptr<AstNode> &ptr);
         inline void advance() { m_curr_token++; }
         inline std::string current_value() { return m_curr_token->value; }
         inline TOKEN_TYPE current_type() { return m_curr_token->type; }
         inline std::string lookahead_value() { return (m_curr_token + 1)->value; }
         inline std::unique_ptr<AstNode> make_node() { return std::make_unique<AstNode>(AstNode{.token_type = current_type(),
                                                                                                .terminal_value = current_value()}); }
+
+        // TRAVERSE AST TO CONSTRUCT SYMBOL TABLE AND EMIT VM CODE
+        void traverse_class(const std::unique_ptr<AstNode> &root);
+        void traverse_class_var_dec(const std::unique_ptr<AstNode> &node);
+        void traverse_subroutine_dec(const std::unique_ptr<AstNode> &node);
+        void traverse_parameter_list(const std::unique_ptr<AstNode> &node);
+        void traverse_subroutine_body(const std::unique_ptr<AstNode> &node);
+        void traverse_var_dec(const std::unique_ptr<AstNode> &node);
+        void traverse_statements(const std::unique_ptr<AstNode> &node);
+        void traverse_let(const std::unique_ptr<AstNode> &node);
+        void traverse_expression(const std::unique_ptr<AstNode> &node);
+        void traverse_term(const std::unique_ptr<AstNode> &node);
+        int traverse_expression_list(const std::unique_ptr<AstNode> &node);
+
 
         // PROGRAM STRUCTURE
         std::unique_ptr<AstNode> compile_class();
@@ -49,10 +64,11 @@ private:
         std::unique_ptr<AstNode> compile_expression_list();
 
 public:
+        Compiler();
         Compiler(const std::vector<Token> &tokens);
 
         std::unique_ptr<AstNode> generate_ast();
-        std::vector<std::string> generate_vm_code();
+        std::vector<std::string> generate_vm_code(const std::unique_ptr<AstNode> &ast);
 };
 
 #endif
