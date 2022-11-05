@@ -1,6 +1,7 @@
 #include "compiler.h"
 #include "ast_node.h"
 #include "tokenizer.h"
+#include "vm_emitter.h"
 #include <algorithm>
 #include <iostream>
 #include <cassert>
@@ -988,27 +989,48 @@ void Compiler::traverse_term(const std::unique_ptr<AstNode> &node)
 
                 if (type == TOKEN_TYPE::IDENTIFIER) {
                         AstNode *lookahead_node = (*(it+1)).get();
-                        // className|varName.subroutineName
+                        // className|varName.subroutineName ( expressionList )
                         if (lookahead_node->token_type == TOKEN_TYPE::SYMBOL && lookahead_node->terminal_value == ".") {
-                                std::string var_name = (*it)->terminal_value;
+                                std::string class_or_var_name = (*it)->terminal_value;
+                                SCOPE scope = m_st.kind_of(class_or_var_name);
                                 // check if method belongs to a var
-                                SCOPE scope = m_st.kind_of(var_name);
                                 if (scope == SCOPE::VAR) {
-                                        m_vme.emit_push(SEGMENT::LOCAL, m_st.index_of(var_name), m_vm_code);
+                                        m_vme.emit_push(SEGMENT::LOCAL, m_st.index_of(class_or_var_name), m_vm_code);
+                                        class_or_var_name = m_st.type_of(class_or_var_name);
                                 }
 
                                 ++it; // .
                                 ++it; // subroutineName
                                 std::string subroutine_name = (*it)->terminal_value;
-
                                 ++it; // (
 
                                 int nb_args = traverse_expression_list(*it);
-                                m_vme.emit_call(var_name + "." + subroutine_name, nb_args+1, m_vm_code);
+
+                                // if its a method, add an arg to the method. the reference of the object on which the method
+                                // is supposed to operate on
+                                if (scope == SCOPE::VAR) {
+                                        nb_args++;
+                                }
+                                m_vme.emit_call(class_or_var_name + "." + subroutine_name, nb_args, m_vm_code);
                         }
 
-                }
+                        // subrtouineName ( expressionList )
+                        if (lookahead_node->token_type == TOKEN_TYPE::SYMBOL && lookahead_node->terminal_value == "(") {
+                                std::string subroutine_name = (*it)->terminal_value;
+                                m_vme.emit_push(SEGMENT::POINTER, 0, m_vm_code);
 
+                                ++it; // (
+                                ++it; // expressionList
+
+                                int nb_args = traverse_expression_list(*it);
+                                m_vme.emit_call(m_st.get_class_name() + "." + subroutine_name, nb_args, m_vm_code);
+                        }
+
+                        // varName [ expression ]
+                        if (lookahead_node->token_type == TOKEN_TYPE::SYMBOL && lookahead_node->terminal_value == "[") {
+                                std::string var_name = (*it)->terminal_value;
+                        }
+                }
         }
 }
 
