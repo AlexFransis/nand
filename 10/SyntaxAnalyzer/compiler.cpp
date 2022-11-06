@@ -1028,7 +1028,18 @@ void Compiler::traverse_term(const std::unique_ptr<AstNode> &node)
 
                         // varName [ expression ]
                         if (lookahead_node->token_type == TOKEN_TYPE::SYMBOL && lookahead_node->terminal_value == "[") {
+                                // get symbol
                                 std::string var_name = (*it)->terminal_value;
+                                Symbol s;
+                                m_st.try_get(var_name, &s);
+                                m_vme.emit_push(SEGMENT::LOCAL, s.index, m_vm_code);
+
+                                ++it; // [
+                                ++it; // expression
+
+                                traverse_expression(*it);
+                                m_vme.emit_arithmetic(COMMAND::ADD, m_vm_code);
+
                         }
                 }
         }
