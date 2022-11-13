@@ -6,6 +6,7 @@
 #include <iostream>
 #include <cassert>
 #include <memory>
+#include <vector>
 
 
 Compiler::Compiler(){}
@@ -895,46 +896,35 @@ void Compiler::traverse_let(const std::unique_ptr<AstNode> &node)
         std::string identifier_name = (*let_identifier)->terminal_value;
         Symbol s;
         if (m_st.try_get(identifier_name, &s)) {
-                if (s.scope == SCOPE::VAR || s.scope == SCOPE::FIELD) {
-                        m_vme.emit_pop(SEGMENT::LOCAL, s.index, m_vm_code);
-                }
-
-                if (s.scope == SCOPE::STATIC) {
-                        m_vme.emit_pop(SEGMENT::STATIC, s.index, m_vm_code);
-                }
+                m_vme.emit_pop(s.scope, s.index, m_vm_code);
         }
 }
 
 void Compiler::traverse_expression(const std::unique_ptr<AstNode> &node)
 {
-        int nb_terms = node->children.size();
+        std::vector<std::unique_ptr<AstNode>>::const_iterator it = node->children.cbegin();
+
         // term
-        if (nb_terms == 1) {
-                traverse_term(node->children.front());
-        }
+        traverse_term(*it);
+        ++it;
 
-        // term (op term)*
-        if (nb_terms > 1) {
-                for (const std::unique_ptr<AstNode> &node : node->children) {
-                        if (node->ast_type == AST_NODE_TYPE::TERM) {
-                                traverse_term(node);
-                        }
-                }
+        // (op term)*
+        while (it != node->children.cend()) {
+                        const std::unique_ptr<AstNode> *op = &(*it);
 
-                for (const std::unique_ptr<AstNode> &node : node->children) {
-                        if (node->token_type == TOKEN_TYPE::SYMBOL) {
-                                // mul and div are implemented via function call to Math lib
-                                if (node->terminal_value == "*") m_vme.emit_call("Math.multiply", 2, m_vm_code);
-                                if (node->terminal_value == "/") m_vme.emit_call("Math.divide", 2, m_vm_code);
-                                if (node->terminal_value == "+") m_vme.emit_arithmetic(COMMAND::ADD, m_vm_code);
-                                if (node->terminal_value == "-") m_vme.emit_arithmetic(COMMAND::SUB, m_vm_code);
-                                if (node->terminal_value == "&") m_vme.emit_arithmetic(COMMAND::AND, m_vm_code);
-                                if (node->terminal_value == "|") m_vme.emit_arithmetic(COMMAND::OR, m_vm_code);
-                                if (node->terminal_value == ">") m_vme.emit_arithmetic(COMMAND::GT, m_vm_code);
-                                if (node->terminal_value == "<") m_vme.emit_arithmetic(COMMAND::LT, m_vm_code);
-                                if (node->terminal_value == "=") m_vme.emit_arithmetic(COMMAND::EQ, m_vm_code);
-                        }
-                }
+                        ++it; // term
+                        traverse_term(*it);
+
+                        if ((*op)->terminal_value == "*") m_vme.emit_call("Math.multiply", 2, m_vm_code);
+                        if ((*op)->terminal_value == "/") m_vme.emit_call("Math.divide", 2, m_vm_code);
+                        if ((*op)->terminal_value == "+") m_vme.emit_arithmetic(COMMAND::ADD, m_vm_code);
+                        if ((*op)->terminal_value == "-") m_vme.emit_arithmetic(COMMAND::SUB, m_vm_code);
+                        if ((*op)->terminal_value == "&") m_vme.emit_arithmetic(COMMAND::AND, m_vm_code);
+                        if ((*op)->terminal_value == "|") m_vme.emit_arithmetic(COMMAND::OR, m_vm_code);
+                        if ((*op)->terminal_value == ">") m_vme.emit_arithmetic(COMMAND::GT, m_vm_code);
+                        if ((*op)->terminal_value == "<") m_vme.emit_arithmetic(COMMAND::LT, m_vm_code);
+                        if ((*op)->terminal_value == "=") m_vme.emit_arithmetic(COMMAND::EQ, m_vm_code);
+                        ++it;
         }
 }
 
@@ -964,7 +954,7 @@ void Compiler::traverse_term(const std::unique_ptr<AstNode> &node)
                         m_vme.emit_call("String.new", 1, m_vm_code);
 
                         // get ascii for each char in string
-                        for (int i = 0; i < str_len; ++i) {
+                        for (size_t i = 0; i < str_len; ++i) {
                                 char c = str_val[i];
                                 int ascii = (int)c;
                                 m_vme.emit_push(SEGMENT::CONSTANT, ascii, m_vm_code);
@@ -1026,12 +1016,12 @@ void Compiler::traverse_term(const std::unique_ptr<AstNode> &node)
                 }
 
                 if (type == TOKEN_TYPE::IDENTIFIER) {
-                        AstNode *lookahead_node = (*(it+1)).get();
+                        std::vector<std::unique_ptr<AstNode>>::const_iterator lookahead_node = (it+1);
 
                         // className|varName.subroutineName ( expressionList )
-                        if (lookahead_node != nullptr &&
-                            lookahead_node->token_type == TOKEN_TYPE::SYMBOL &&
-                            lookahead_node->terminal_value == ".") {
+                        if (lookahead_node != node->children.cend() &&
+                            (*lookahead_node)->token_type == TOKEN_TYPE::SYMBOL &&
+                            (*lookahead_node)->terminal_value == ".") {
                                 std::string class_or_var_name = (*it)->terminal_value;
                                 SCOPE scope = m_st.kind_of(class_or_var_name);
                                 // check if method belongs to a var
@@ -1051,7 +1041,7 @@ void Compiler::traverse_term(const std::unique_ptr<AstNode> &node)
                                 // if its a method, add an arg to the method. the reference of the object on which the method
                                 // is supposed to operate on
                                 if (scope == SCOPE::VAR) {
-                                        nb_args++;
+                                        ++nb_args;
                                 }
                                 m_vme.emit_call(class_or_var_name + "." + subroutine_name, nb_args, m_vm_code);
                                 ++it;
@@ -1059,9 +1049,9 @@ void Compiler::traverse_term(const std::unique_ptr<AstNode> &node)
                         }
 
                         // subrtouineName ( expressionList )
-                        if (lookahead_node != nullptr &&
-                            lookahead_node->token_type == TOKEN_TYPE::SYMBOL &&
-                            lookahead_node->terminal_value == "(") {
+                        if (lookahead_node != node->children.cend() &&
+                            (*lookahead_node)->token_type == TOKEN_TYPE::SYMBOL &&
+                            (*lookahead_node)->terminal_value == "(") {
                                 std::string subroutine_name = (*it)->terminal_value;
                                 m_vme.emit_push(SEGMENT::POINTER, 0, m_vm_code);
 
@@ -1076,9 +1066,9 @@ void Compiler::traverse_term(const std::unique_ptr<AstNode> &node)
 
 
                         // varName [ expression ]
-                        if (lookahead_node != nullptr &&
-                            lookahead_node->token_type == TOKEN_TYPE::SYMBOL &&
-                            lookahead_node->terminal_value == "[") {
+                        if (lookahead_node != node->children.cend() &&
+                            (*lookahead_node)->token_type == TOKEN_TYPE::SYMBOL &&
+                            (*lookahead_node)->terminal_value == "[") {
                                 // get symbol
                                 std::string var_name = (*it)->terminal_value;
                                 Symbol s;
@@ -1098,13 +1088,7 @@ void Compiler::traverse_term(const std::unique_ptr<AstNode> &node)
                         // local varName
                         Symbol s;
                         if (m_st.try_get(value, &s)) {
-                                if (s.scope == SCOPE::VAR || s.scope == SCOPE::FIELD) {
-                                        m_vme.emit_pop(SEGMENT::LOCAL, s.index, m_vm_code);
-                                }
-
-                                if (s.scope == SCOPE::STATIC) {
-                                        m_vme.emit_pop(SEGMENT::STATIC, s.index, m_vm_code);
-                                }
+                                m_vme.emit_push(s.scope, s.index, m_vm_code);
                         }
 
                 }

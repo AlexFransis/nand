@@ -38,7 +38,9 @@ enum class PUSH_POP {
 class VMEmitter {
 public:
         void emit_push(const SEGMENT &segment, int i, std::vector<std::string> &out_vm_commands);
+        void emit_push(const SCOPE &scope, int i, std::vector<std::string> &out_vm_commands);
         void emit_pop(const SEGMENT &segment, int i, std::vector<std::string> &out_vm_commands);
+        void emit_pop(const SCOPE &scope, int i, std::vector<std::string> &out_vm_commands);
         void emit_arithmetic(const COMMAND &command, std::vector<std::string> &out_vm_commands);
         void emit_label(const std::string &label, std::vector<std::string> &out_vm_commands);
         void emit_goto(const std::string &label, std::vector<std::string> &out_vm_commands);

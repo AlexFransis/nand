@@ -67,9 +67,34 @@ void VMEmitter::emit_push(const SEGMENT &segment, int i, std::vector<std::string
         out_vm_commands.push_back(format_push_pop(PUSH_POP::PUSH, segment, i));
 }
 
+void VMEmitter::emit_push(const SCOPE &scope, int i, std::vector<std::string> &out_vm_commands)
+{
+        if (scope == SCOPE::VAR || scope == SCOPE::FIELD) {
+                emit_push(SEGMENT::LOCAL, i, out_vm_commands);
+
+        }
+
+        if (scope == SCOPE::STATIC) {
+                emit_push(SEGMENT::STATIC, i, out_vm_commands);
+        }
+}
+
+
 void VMEmitter::emit_pop(const SEGMENT &segment, int i, std::vector<std::string> &out_vm_commands)
 {
         out_vm_commands.push_back(format_push_pop(PUSH_POP::POP, segment, i));
+}
+
+void VMEmitter::emit_pop(const SCOPE &scope, int i, std::vector<std::string> &out_vm_commands)
+{
+        if (scope == SCOPE::VAR || scope == SCOPE::FIELD) {
+                emit_pop(SEGMENT::LOCAL, i, out_vm_commands);
+
+        }
+
+        if (scope == SCOPE::STATIC) {
+                emit_pop(SEGMENT::STATIC, i, out_vm_commands);
+        }
 }
 
 void VMEmitter::emit_label(const std::string &label, std::vector<std::string> &out_vm_commands)
@@ -87,18 +112,25 @@ void VMEmitter::emit_arithmetic(const COMMAND &command, std::vector<std::string>
         switch (command) {
         case COMMAND::ADD :
                 out_vm_commands.push_back("add");
+                break;
         case COMMAND::SUB :
                 out_vm_commands.push_back("sub");
+                break;
         case COMMAND::NEG :
                 out_vm_commands.push_back("neg");
+                break;
         case COMMAND::EQ :
                 out_vm_commands.push_back("eq");
+                break;
         case COMMAND::LT :
                 out_vm_commands.push_back("lt");
+                break;
         case COMMAND::GT :
                 out_vm_commands.push_back("gt");
+                break;
         case COMMAND::OR :
                 out_vm_commands.push_back("or");
+                break;
         case COMMAND::NOT :
                 out_vm_commands.push_back("not");
                 break;
