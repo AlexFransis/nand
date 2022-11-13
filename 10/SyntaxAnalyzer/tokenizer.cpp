@@ -202,7 +202,8 @@ bool Tokenizer::try_tokenize(const std::string &line, std::vector<Token> &out_to
                                 return false;
                         }
 
-                        Token t { type, token };
+                        std::string stripped = token.substr(1, token.size() - 2);
+                        Token t { type, stripped };
                         out_tokens.push_back(t);
 
                         i = j;

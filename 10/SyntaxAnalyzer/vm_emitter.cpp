@@ -57,6 +57,11 @@ std::string format_function(const std::string &name, int n_locals)
         return "function " + name + " " + std::to_string(n_locals);
 }
 
+std::string format_call(const std::string &name, int n_args)
+{
+        return "call " + name + " " + std::to_string(n_args);
+}
+
 void VMEmitter::emit_push(const SEGMENT &segment, int i, std::vector<std::string> &out_vm_commands)
 {
         out_vm_commands.push_back(format_push_pop(PUSH_POP::PUSH, segment, i));
@@ -100,4 +105,9 @@ void VMEmitter::emit_arithmetic(const COMMAND &command, std::vector<std::string>
         default:
                 break;
         }
+}
+
+void VMEmitter::emit_call(const std::string &name, int n_args, std::vector<std::string> &out_vm_commands)
+{
+        out_vm_commands.push_back(format_call(name, n_args));
 }
