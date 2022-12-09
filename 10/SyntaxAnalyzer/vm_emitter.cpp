@@ -143,3 +143,8 @@ void VMEmitter::emit_call(const std::string &name, int n_args, std::vector<std::
 {
         out_vm_commands.push_back(format_call(name, n_args));
 }
+
+void VMEmitter::emit_return(std::vector<std::string> &out_vm_commands)
+{
+        out_vm_commands.push_back("return");
+}

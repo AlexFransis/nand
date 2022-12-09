@@ -872,6 +872,7 @@ void Compiler::traverse_statements(const std::unique_ptr<AstNode> &node)
                 case AST_NODE_TYPE::DO_STATEMENT:
                 case AST_NODE_TYPE::WHILE_STATEMENT:
                 case AST_NODE_TYPE::RETURN_STATEMENT:
+                        traverse_return(node);
                 default:
                         break;
                 }
@@ -897,6 +898,24 @@ void Compiler::traverse_let(const std::unique_ptr<AstNode> &node)
         Symbol s;
         if (m_st.try_get(identifier_name, &s)) {
                 m_vme.emit_pop(s.scope, s.index, m_vm_code);
+        }
+}
+
+void Compiler::traverse_return(const std::unique_ptr<AstNode> &return_statement)
+{
+        std::vector<std::unique_ptr<AstNode>>::const_iterator it = return_statement->children.cbegin();
+
+        ++it; // return keyword
+
+        if ((*it)->terminal_value == ";") {
+                m_vme.emit_push(SEGMENT::CONSTANT, 0, m_vm_code);
+                m_vme.emit_return(m_vm_code);
+                return;
+        }
+
+        if ((*it)->ast_type == AST_NODE_TYPE::EXPRESSION) {
+                traverse_expression((*it));
+                return;
         }
 }
 
@@ -943,7 +962,6 @@ void Compiler::traverse_term(const std::unique_ptr<AstNode> &node)
                 }
 
                 if (type == TOKEN_TYPE::STRING_CONST) {
-                        // TODO
                         std::string str_val = (*it)->terminal_value;
                         size_t str_len = str_val.size();
 
@@ -961,6 +979,7 @@ void Compiler::traverse_term(const std::unique_ptr<AstNode> &node)
                                 // call String.appendChar on the new string instance
                                 m_vme.emit_call("String.appendChar", 2, m_vm_code);
                         }
+
                         ++it;
                         continue;
                 }
@@ -1038,8 +1057,7 @@ void Compiler::traverse_term(const std::unique_ptr<AstNode> &node)
 
                                 int nb_args = traverse_expression_list(*it);
 
-                                // if its a method, add an arg to the method. the reference of the object on which the method
-                                // is supposed to operate on
+                                // if its a method, add an arg to the method. the reference of the object on which the method is supposed to operate on
                                 if (scope == SCOPE::VAR) {
                                         ++nb_args;
                                 }
