@@ -873,6 +873,7 @@ void Compiler::traverse_statements(const std::unique_ptr<AstNode> &node)
                 case AST_NODE_TYPE::WHILE_STATEMENT:
                 case AST_NODE_TYPE::RETURN_STATEMENT:
                         traverse_return(node);
+                        break;
                 default:
                         break;
                 }
@@ -882,17 +883,38 @@ void Compiler::traverse_statements(const std::unique_ptr<AstNode> &node)
 void Compiler::traverse_let(const std::unique_ptr<AstNode> &node)
 {
         // eval right side first
-        const std::unique_ptr<AstNode> *let_identifier;
-        for (const std::unique_ptr<AstNode> &node : node->children) {
-                if (node->ast_type == AST_NODE_TYPE::TERMINAL_ELEMENT &&
-                    node->token_type == TOKEN_TYPE::IDENTIFIER) {
-                        let_identifier = &node;
-                }
-
-                if (node->ast_type == AST_NODE_TYPE::EXPRESSION) {
-                        traverse_expression(node);
-                }
+        std::unique_ptr<AstNode> *let_identifier;
+        std::vector<std::unique_ptr<AstNode>>::iterator it = node->children.begin();
+        if ((*it)->token_type == TOKEN_TYPE::IDENTIFIER) {
+                let_identifier = it.base();
         }
+
+        // skip until we get to '=' symbol to eval the right side
+        while ((*it)->terminal_value != "=" && (*it)->token_type != TOKEN_TYPE::SYMBOL) {
+                ++it;
+        }
+
+        ++it; // right side
+
+        if ((*it)->ast_type == AST_NODE_TYPE::EXPRESSION) {
+                traverse_expression(*it);
+        }
+
+        // eval left side
+
+
+
+
+        // for (const std::unique_ptr<AstNode> &node : node->children) {
+        //         if (node->ast_type == AST_NODE_TYPE::TERMINAL_ELEMENT &&
+        //             node->token_type == TOKEN_TYPE::IDENTIFIER) {
+        //                 let_identifier = &node;
+        //         }
+
+        //         if (node->ast_type == AST_NODE_TYPE::EXPRESSION) {
+        //                 traverse_expression(node);
+        //         }
+        // }
 
         std::string identifier_name = (*let_identifier)->terminal_value;
         Symbol s;
