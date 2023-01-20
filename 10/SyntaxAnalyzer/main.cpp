@@ -1,5 +1,6 @@
 #include <filesystem>
 #include <iostream>
+#include <string>
 #include "analyzer.h"
 #include "ast_node.h"
 #include "file_reader.h"
@@ -9,13 +10,17 @@ namespace fs = std::filesystem;
 
 int main(int argc, char** argv)
 {
-        if (argc != 2) {
+        if (argc < 2) {
                 std::cerr << "Usage:\n";
                 std::cerr << "\t" << *argv << " $filename | $dir\n";
                 return 1;
         }
 
         std::string input_path = *(argv + 1);
+        std::string xml_out = std::string();
+        if (argc == 3) {
+                xml_out = *(argv + 2);
+        }
 
         try {
                 FileReader reader (input_path);
@@ -35,12 +40,15 @@ int main(int argc, char** argv)
                         }
 
                         Analyzer a;
-                        // std::unique_ptr<AstNode> ast = a.compile(ifstream);
-                        std::vector<std::string> vm_code = a.compile_vm_code(ifstream);
-
                         FileWriter writer(jack_file);
-                        // writer.write_xml(ast);
-                        writer.write_vm_commands(vm_code);
+                        if (!xml_out.empty() && xml_out == "--xml-out") {
+                                std::unique_ptr<AstNode> ast = a.compile(ifstream);
+                                writer.write_xml(ast);
+
+                        } else {
+                                std::vector<std::string> vm_code = a.compile_vm_code(ifstream);
+                                writer.write_vm_commands(vm_code);
+                        }
 
                         ++it;
                 }
