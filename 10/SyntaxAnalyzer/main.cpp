@@ -12,7 +12,7 @@ int main(int argc, char** argv)
 {
         if (argc < 2) {
                 std::cerr << "Usage:\n";
-                std::cerr << "\t" << *argv << " $filename | $dir\n";
+                std::cerr << "\t" << *argv << " $filename | $dir --xml-out?\n";
                 return 1;
         }
 

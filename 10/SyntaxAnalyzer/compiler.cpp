@@ -882,11 +882,20 @@ void Compiler::traverse_statements(const std::unique_ptr<AstNode> &node)
 
 void Compiler::traverse_let(const std::unique_ptr<AstNode> &node)
 {
-        // eval right side first
+        // grab pointer to variable name
         std::unique_ptr<AstNode> *let_identifier;
         std::vector<std::unique_ptr<AstNode>>::iterator it = node->children.begin();
         if ((*it)->token_type == TOKEN_TYPE::IDENTIFIER) {
                 let_identifier = it.base();
+        }
+
+        // check if variable is an array
+        ++it;
+
+        if ((*it)->terminal_value == "[") {
+                // eval expression
+                ++it;
+                traverse_expression(*it);
         }
 
         // skip until we get to '=' symbol to eval the right side
@@ -900,21 +909,6 @@ void Compiler::traverse_let(const std::unique_ptr<AstNode> &node)
                 traverse_expression(*it);
         }
 
-        // eval left side
-
-
-
-
-        // for (const std::unique_ptr<AstNode> &node : node->children) {
-        //         if (node->ast_type == AST_NODE_TYPE::TERMINAL_ELEMENT &&
-        //             node->token_type == TOKEN_TYPE::IDENTIFIER) {
-        //                 let_identifier = &node;
-        //         }
-
-        //         if (node->ast_type == AST_NODE_TYPE::EXPRESSION) {
-        //                 traverse_expression(node);
-        //         }
-        // }
 
         std::string identifier_name = (*let_identifier)->terminal_value;
         Symbol s;
