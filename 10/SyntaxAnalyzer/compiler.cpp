@@ -701,12 +701,10 @@ void Compiler::traverse_class(const std::unique_ptr<AstNode> &root)
                         break;
                 case AST_NODE_TYPE::CLASS_VAR_DEC:
                         traverse_class_var_dec(node);
-                        debug(m_st);
                         break;
 
                 case AST_NODE_TYPE::SUBROUTINE_DEC:
                         traverse_subroutine_dec(node);
-                        debug(m_st);
                         break;
                 default:
                         break;
@@ -882,38 +880,67 @@ void Compiler::traverse_statements(const std::unique_ptr<AstNode> &node)
 
 void Compiler::traverse_let(const std::unique_ptr<AstNode> &node)
 {
+        std::vector<std::unique_ptr<AstNode>>::iterator it = node->children.begin();
+
+        ++it; // skip let keyword
+
+        assert((*it)->token_type == TOKEN_TYPE::IDENTIFIER);
         // grab pointer to variable name
         std::unique_ptr<AstNode> *let_identifier;
-        std::vector<std::unique_ptr<AstNode>>::iterator it = node->children.begin();
-        if ((*it)->token_type == TOKEN_TYPE::IDENTIFIER) {
-                let_identifier = it.base();
-        }
+        let_identifier = it.base();
 
-        // check if variable is an array
         ++it;
 
-        if ((*it)->terminal_value == "[") {
-                // eval expression
+        // check if variable is an array
+        if ((*it)->token_type == TOKEN_TYPE::SYMBOL && (*it)->terminal_value == "[") {
+                // eval array expression
                 ++it;
                 traverse_expression(*it);
-        }
 
-        // skip until we get to '=' symbol to eval the right side
-        while ((*it)->terminal_value != "=" && (*it)->token_type != TOKEN_TYPE::SYMBOL) {
-                ++it;
-        }
+                // push array name
+                std::string identifier_name = (*let_identifier)->terminal_value;
+                Symbol s;
+                if (m_st.try_get(identifier_name, &s)) {
+                        m_vme.emit_push(s.scope, s.index, m_vm_code);
+                }
 
-        ++it; // right side
+                // add
+                m_vme.emit_arithmetic(COMMAND::ADD, m_vm_code);
 
-        if ((*it)->ast_type == AST_NODE_TYPE::EXPRESSION) {
-                traverse_expression(*it);
-        }
+                // pop address to `that` segment
+                m_vme.emit_pop(SEGMENT::POINTER, 1, m_vm_code);
+
+                // skip until we get to '=' symbol to eval the right side
+                while ((*it)->terminal_value != "=") {
+                        ++it;
+                }
+
+                ++it; // right side
+
+                if ((*it)->ast_type == AST_NODE_TYPE::EXPRESSION) {
+                        traverse_expression(*it);
+                }
+
+                // pop right side to array address
+                m_vme.emit_pop(SEGMENT::THAT, 0, m_vm_code);
+        } else {
+                // skip until we get to '=' symbol to eval the right side
+                while ((*it)->terminal_value != "=" && (*it)->token_type != TOKEN_TYPE::SYMBOL) {
+                        ++it;
+                }
+
+                ++it; // right side
+
+                if ((*it)->ast_type == AST_NODE_TYPE::EXPRESSION) {
+                        traverse_expression(*it);
+                }
 
 
-        std::string identifier_name = (*let_identifier)->terminal_value;
-        Symbol s;
-        if (m_st.try_get(identifier_name, &s)) {
-                m_vme.emit_pop(s.scope, s.index, m_vm_code);
+                std::string identifier_name = (*let_identifier)->terminal_value;
+                Symbol s;
+                if (m_st.try_get(identifier_name, &s)) {
+                        m_vme.emit_pop(s.scope, s.index, m_vm_code);
+                }
         }
 }
 
