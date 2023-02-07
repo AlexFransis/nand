@@ -702,18 +702,13 @@ void Compiler::traverse_class(const std::unique_ptr<AstNode> &root)
                 case AST_NODE_TYPE::CLASS_VAR_DEC:
                         traverse_class_var_dec(node);
                         break;
-
                 case AST_NODE_TYPE::SUBROUTINE_DEC:
                         traverse_subroutine_dec(node);
                         break;
                 default:
                         break;
-
                 };
-
         }
-
-
 }
 
 void Compiler::traverse_class_var_dec(const std::unique_ptr<AstNode> &node)
@@ -816,6 +811,9 @@ void Compiler::traverse_parameter_list(const std::unique_ptr<AstNode> &node)
 
 void Compiler::traverse_subroutine_body(const std::unique_ptr<AstNode> &node)
 {
+        int if_label_idx = 0;
+        int while_label_idx = 0;
+
         for (const std::unique_ptr<AstNode> &node : node->children) {
                 switch (node->ast_type) {
                 case AST_NODE_TYPE::VAR_DEC :
@@ -824,7 +822,7 @@ void Compiler::traverse_subroutine_body(const std::unique_ptr<AstNode> &node)
                 case AST_NODE_TYPE::STATEMENTS :
                         // emit function after couting the nb of local vars
                         m_vme.emit_function(m_st.get_subroutine_name(), m_st.count_kind(SCOPE::VAR), m_vm_code);
-                        traverse_statements(node);
+                        traverse_statements(node, &if_label_idx, &while_label_idx);
                         break;
                 default:
                         break;
@@ -859,16 +857,22 @@ void Compiler::traverse_var_dec(const std::unique_ptr<AstNode> &node)
 }
 
 
-void Compiler::traverse_statements(const std::unique_ptr<AstNode> &node)
+void Compiler::traverse_statements(const std::unique_ptr<AstNode> &node, int *if_label_idx, int *while_label_idx)
 {
         for (const std::unique_ptr<AstNode> &node : node->children) {
                 switch (node->ast_type) {
                 case AST_NODE_TYPE::LET_STATEMENT:
                         traverse_let(node);
                         break;
-                case AST_NODE_TYPE::IF_STATEMENT:
                 case AST_NODE_TYPE::DO_STATEMENT:
+                        traverse_term(node);
+                        break;
+                case AST_NODE_TYPE::IF_STATEMENT:
+                        traverse_if(node, if_label_idx, while_label_idx);
+                        break;
                 case AST_NODE_TYPE::WHILE_STATEMENT:
+                        traverse_while(node, if_label_idx, while_label_idx);
+                        break;
                 case AST_NODE_TYPE::RETURN_STATEMENT:
                         traverse_return(node);
                         break;
@@ -1109,7 +1113,7 @@ void Compiler::traverse_term(const std::unique_ptr<AstNode> &node)
                                 continue;
                         }
 
-                        // subrtouineName ( expressionList )
+                        // subroutineName ( expressionList )
                         if (lookahead_node != node->children.cend() &&
                             (*lookahead_node)->token_type == TOKEN_TYPE::SYMBOL &&
                             (*lookahead_node)->terminal_value == "(") {
@@ -1154,7 +1158,7 @@ void Compiler::traverse_term(const std::unique_ptr<AstNode> &node)
 
                 }
 
-                // subrtouineName ( expressionList )
+                // subroutineName ( expressionList )
                 if (ast_type == AST_NODE_TYPE::SUBROUTINE_CALL) {
                         traverse_term(*it);
                         ++it;
@@ -1181,4 +1185,98 @@ int Compiler::traverse_expression_list(const std::unique_ptr<AstNode> &node)
         }
 
         return nb_args;
+}
+
+bool has_else_statement(const std::unique_ptr<AstNode> &node)
+{
+        for (const std::unique_ptr<AstNode> &child : node->children) {
+                return child->token_type == TOKEN_TYPE::KEYWORD && child->terminal_value == "else";
+        }
+
+        return false;
+}
+
+void Compiler::traverse_if(const std::unique_ptr<AstNode> &node, int *if_label_idx, int *while_label_idx)
+{
+        std::string else_statement_begin = "ELSE_BEGIN" + std::to_string(*if_label_idx);
+        std::string else_statement_end = "ELSE_END" + std::to_string(*if_label_idx);
+        ++(*if_label_idx); // increment label idx
+
+        bool has_else_statement = false;
+        for (const std::unique_ptr<AstNode> &child : node->children) {
+                if (child->token_type == TOKEN_TYPE::KEYWORD && child->terminal_value == "else") {
+                        has_else_statement = true;
+                        break;
+                }
+        }
+
+        std::vector<std::unique_ptr<AstNode>>::const_iterator it = node->children.cbegin();
+
+        it++;  // if
+        it++; // (
+
+        // compute !(cond)
+        traverse_expression(*it);
+        m_vme.emit_arithmetic(COMMAND::NOT, m_vm_code);
+
+        // goto ELSE_BEGIN label
+        m_vme.emit_if(else_statement_begin, m_vm_code);
+
+        while ((*it)->ast_type != AST_NODE_TYPE::STATEMENTS) {
+                ++it;
+        }
+
+        // evaluate IF statements
+        traverse_statements(*it, if_label_idx, while_label_idx);
+
+        // goto ELSE_END label
+        m_vme.emit_goto(else_statement_end, m_vm_code);
+
+        // ELSE_BEGIN label
+        m_vme.emit_label(else_statement_begin, m_vm_code);
+        if (has_else_statement) {
+                do { ++it; }
+                while ((*it)->ast_type != AST_NODE_TYPE::STATEMENTS);
+        }
+
+        // evaluate ELSE statements
+        traverse_statements(*it, if_label_idx, while_label_idx);
+
+        // ELSE_END label
+        m_vme.emit_label(else_statement_end, m_vm_code);
+}
+
+void Compiler::traverse_while(const std::unique_ptr<AstNode> &node, int *if_label_idx, int *while_label_idx)
+{
+        std::string while_begin = "WHILE_BEGIN" + std::to_string(*while_label_idx);
+        std::string while_end = "WHILE_END" + std::to_string(*while_label_idx);
+        ++(*while_label_idx); // increment label idx
+
+        std::vector<std::unique_ptr<AstNode>>::const_iterator it = node->children.cbegin();
+
+        it++;  // while
+        it++; // (
+
+        // WHILE_BEGIN label
+        m_vme.emit_label(while_end, m_vm_code);
+
+        // compute !(cond)
+        traverse_expression(*it);
+        m_vme.emit_arithmetic(COMMAND::NOT, m_vm_code);
+
+        // goto WHILE_END label
+        m_vme.emit_if(while_begin, m_vm_code);
+
+        while ((*it)->ast_type != AST_NODE_TYPE::STATEMENTS) {
+                ++it;
+        }
+
+        // evaluate WHILE statements
+        traverse_statements(*it, if_label_idx, while_label_idx);
+
+        // goto WHILE_BEGIN label
+        m_vme.emit_goto(while_begin, m_vm_code);
+
+        // WHILE_END label
+        m_vme.emit_label(while_end, m_vm_code);
 }

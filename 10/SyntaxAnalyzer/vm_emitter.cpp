@@ -99,7 +99,7 @@ void VMEmitter::emit_pop(const SCOPE &scope, int i, std::vector<std::string> &ou
 
 void VMEmitter::emit_label(const std::string &label, std::vector<std::string> &out_vm_commands)
 {
-        out_vm_commands.push_back("@" + label);
+        out_vm_commands.push_back("label " + label);
 }
 
 void VMEmitter::emit_function(const std::string &name, int n_locals, std::vector<std::string> &out_vm_commands)
@@ -147,4 +147,13 @@ void VMEmitter::emit_call(const std::string &name, int n_args, std::vector<std::
 void VMEmitter::emit_return(std::vector<std::string> &out_vm_commands)
 {
         out_vm_commands.push_back("return");
+}
+
+void VMEmitter::emit_goto(const std::string &label, std::vector<std::string> &out_vm_commands)
+{
+        out_vm_commands.push_back("goto " + label);
+}
+void VMEmitter::emit_if(const std::string &label, std::vector<std::string> &out_vm_commands)
+{
+        out_vm_commands.push_back("if-goto " + label);
 }

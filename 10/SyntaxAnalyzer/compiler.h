@@ -34,12 +34,14 @@ private:
         void traverse_parameter_list(const std::unique_ptr<AstNode> &node);
         void traverse_subroutine_body(const std::unique_ptr<AstNode> &node);
         void traverse_var_dec(const std::unique_ptr<AstNode> &node);
-        void traverse_statements(const std::unique_ptr<AstNode> &node);
+        void traverse_statements(const std::unique_ptr<AstNode> &node, int *if_label_idx, int *while_label_idx);
         void traverse_let(const std::unique_ptr<AstNode> &node);
         void traverse_return(const std::unique_ptr<AstNode> &node);
         void traverse_expression(const std::unique_ptr<AstNode> &node);
         void traverse_term(const std::unique_ptr<AstNode> &node);
         int traverse_expression_list(const std::unique_ptr<AstNode> &node);
+        void traverse_if(const std::unique_ptr<AstNode> &node, int *if_label_idx, int *while_label_idx);
+        void traverse_while(const std::unique_ptr<AstNode> &node, int *if_label_idx, int *while_label_idx);
 
 
         // PROGRAM STRUCTURE
