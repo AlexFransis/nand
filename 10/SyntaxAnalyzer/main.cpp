@@ -2,6 +2,7 @@
 #include <iostream>
 #include <string>
 #include "analyzer.h"
+#include "compiler.h"
 #include "ast_node.h"
 #include "file_reader.h"
 #include "file_writer.h"
@@ -39,25 +40,25 @@ int main(int argc, char** argv)
                                 throw std::domain_error(err);
                         }
 
-                        Analyzer a;
+                        Analyzer analyzer;
+                        Compiler compiler;
                         FileWriter writer(jack_file);
-                        if (!xml_out.empty() && xml_out == "--xml-out") {
-                                std::unique_ptr<AstNode> ast = a.compile(ifstream);
-                                writer.write_xml(ast);
 
-                        } else {
-                                std::vector<std::string> vm_code = a.compile_vm_code(ifstream);
-                                writer.write_vm_commands(vm_code);
+                        std::unique_ptr<AstNode> ast = analyzer.generate_ast(ifstream);
+
+                        if (!xml_out.empty() && xml_out == "--xml-out") {
+                                writer.write_xml(ast);
                         }
+
+                        std::vector<std::string> vm_code = compiler.generate_vm_code(ast);
+                        writer.write_vm_commands(vm_code);
 
                         ++it;
                 }
-
         } catch (const std::domain_error &err) {
                 std::cerr << err.what() << std::endl;
                 return 1;
         }
-
         std::cout << "[INFO] Compilation completed" << std::endl;
 
         return 0;
