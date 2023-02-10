@@ -82,17 +82,20 @@ void FileWriter::write_xml(const std::unique_ptr<AstNode> &ast)
                         for (int i = 0; i < depth * indent; ++i) {
                                 ofstream << ' ';
                         }
+
                         auto ast_type = ast_type_map.find(ast.ast_type);
                         ofstream << "<" << ast_type->second << ">";
                         ofstream << std::endl;
+
                         for (auto const &node : ast.children) {
                                 recur(*node, depth + 1);
                         }
+
                         for (int i = 0; i < depth * indent; ++i) {
                                 ofstream << ' ';
                         }
-                        ofstream << "</" << ast_type->second << ">\n";
 
+                        ofstream << "</" << ast_type->second << ">\n";
                 };
 
         recur(*ast, 0);

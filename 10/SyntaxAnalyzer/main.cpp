@@ -40,18 +40,20 @@ int main(int argc, char** argv)
                                 throw std::domain_error(err);
                         }
 
+                        FileWriter writer(jack_file);
+                        Tokenizer tokenizer;
                         Analyzer analyzer;
                         Compiler compiler;
-                        FileWriter writer(jack_file);
 
-                        std::unique_ptr<AstNode> ast = analyzer.generate_ast(ifstream);
+                        std::vector<Token> tokens = tokenizer.generate_tokens(ifstream);
+                        std::unique_ptr<AstNode> ast = analyzer.generate_ast(tokens);
+                        std::vector<std::string> vm_code = compiler.generate_vm_code(ast);
+
+                        writer.write_vm_commands(vm_code);
 
                         if (!xml_out.empty() && xml_out == "--xml-out") {
                                 writer.write_xml(ast);
                         }
-
-                        std::vector<std::string> vm_code = compiler.generate_vm_code(ast);
-                        writer.write_vm_commands(vm_code);
 
                         ++it;
                 }

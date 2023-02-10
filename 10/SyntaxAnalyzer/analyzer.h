@@ -38,7 +38,7 @@ private:
         std::unique_ptr<AstNode> analyze_subroutine_call();
         std::unique_ptr<AstNode> analyze_expression_list();
 public:
-        std::unique_ptr<AstNode> generate_ast(std::ifstream &input_stream);
+        std::unique_ptr<AstNode> generate_ast(const std::vector<Token> &tokens);
 };
 
 #endif

@@ -4,6 +4,7 @@
 #include <fstream>
 #include <string>
 #include <vector>
+#include <cassert>
 
 
 void Analyzer::debug(const std::string &context)
@@ -651,22 +652,8 @@ std::unique_ptr<AstNode> Analyzer::analyze_expression_list()
         return expression_list;
 }
 
-std::unique_ptr<AstNode> Analyzer::generate_ast(std::ifstream &input_stream)
+std::unique_ptr<AstNode> Analyzer::generate_ast(const std::vector<Token> &tokens)
 {
-        std::vector<Token> tokens;
-        Tokenizer t;
-        int line_number = 0;
-        while (!input_stream.eof()) {
-                line_number++;
-                std::string current_line;
-                std::getline(input_stream, current_line);
-
-                if (!t.try_tokenize(current_line, tokens)) {
-                        std::string err = "[ERR] Invalid syntax on line " + std::to_string(line_number);
-                        throw std::domain_error(err);
-                }
-        }
-
         m_curr_token = tokens.cbegin();
         std::unique_ptr<AstNode> ast = analyze_class();
 

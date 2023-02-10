@@ -35,8 +35,6 @@ std::vector<std::string> Compiler::generate_vm_code(const std::unique_ptr<AstNod
 
 void Compiler::compile_class(const std::unique_ptr<AstNode> &root)
 {
-        assert(root->ast_type == AST_NODE_TYPE::CLASS);
-
         for (std::unique_ptr<AstNode> &node : root->children) {
                 switch (node->ast_type) {
                 case AST_NODE_TYPE::TERMINAL_ELEMENT:
@@ -223,58 +221,45 @@ void Compiler::compile_let(const std::unique_ptr<AstNode> &node)
         std::vector<std::unique_ptr<AstNode>>::iterator it = node->children.begin();
         ++it; // skip let keyword
 
-        assert((*it)->token_type == TOKEN_TYPE::IDENTIFIER);
         // grab pointer to variable name
-        std::unique_ptr<AstNode> *let_identifier;
-        let_identifier = it.base();
+        std::vector<std::unique_ptr<AstNode>>::iterator let_identifier;
+        let_identifier = it;
 
-        ++it;
 
-        // check if variable is an array
-        if ((*it)->token_type == TOKEN_TYPE::SYMBOL && (*it)->terminal_value == "[") {
-                // eval array expression
+        // skip until we get to '=' symbol to eval the right side
+        while ((*it)->terminal_value != "=") {
                 ++it;
+        }
+
+        ++it; // right side
+
+        // eval right side
+        if ((*it)->ast_type == AST_NODE_TYPE::EXPRESSION) {
                 compile_expression(*it);
+        }
+
+        // eval left side
+        // lookahead to check if variable name is for an array
+        if ((*(let_identifier+1))->token_type == TOKEN_TYPE::SYMBOL && (*(let_identifier+1))->terminal_value == "[") {
+                std::string identifier_name = (*let_identifier)->terminal_value;
+
+                // eval array expression
+                ++let_identifier; // [
+                ++let_identifier; // expression
+                compile_expression(*let_identifier);
 
                 // push array name
-                std::string identifier_name = (*let_identifier)->terminal_value;
                 Symbol s;
                 if (m_st.try_get(identifier_name, &s)) {
                         m_vme.emit_push(s.scope, s.index, m_vm_code);
                 }
 
-                // add
                 m_vme.emit_arithmetic(COMMAND::ADD, m_vm_code);
 
                 // pop address to `that` segment
                 m_vme.emit_pop(SEGMENT::POINTER, 1, m_vm_code);
-
-                // skip until we get to '=' symbol to eval the right side
-                while ((*it)->terminal_value != "=") {
-                        ++it;
-                }
-
-                ++it; // right side
-
-                if ((*it)->ast_type == AST_NODE_TYPE::EXPRESSION) {
-                        compile_expression(*it);
-                }
-
-                // pop right side to array address
                 m_vme.emit_pop(SEGMENT::THAT, 0, m_vm_code);
         } else {
-                // skip until we get to '=' symbol to eval the right side
-                while ((*it)->terminal_value != "=" && (*it)->token_type != TOKEN_TYPE::SYMBOL) {
-                        ++it;
-                }
-
-                ++it; // right side
-
-                if ((*it)->ast_type == AST_NODE_TYPE::EXPRESSION) {
-                        compile_expression(*it);
-                }
-
-
                 std::string identifier_name = (*let_identifier)->terminal_value;
                 Symbol s;
                 if (m_st.try_get(identifier_name, &s)) {
@@ -480,6 +465,8 @@ void Compiler::compile_term(const std::unique_ptr<AstNode> &node)
 
                                 compile_expression(*it);
                                 m_vme.emit_arithmetic(COMMAND::ADD, m_vm_code);
+                                m_vme.emit_pop(SEGMENT::POINTER, 1, m_vm_code);
+                                m_vme.emit_push(SEGMENT::THAT, 0, m_vm_code);
                                 ++it;
                                 continue;
 
@@ -513,10 +500,14 @@ int Compiler::compile_expression_list(const std::unique_ptr<AstNode> &node)
         compile_expression(*it);
         ++nb_args;
 
-        while ((it+1) != node->children.cend() && (*(it+1))->terminal_value == ",") {
-                ++it; // ,
+        ++it;
+
+        while (it != node->children.cend() && (*it)->terminal_value == ",") {
+                ++it;
                 compile_expression(*it);
                 ++nb_args;
+
+                ++it; // ,
         }
 
         return nb_args;

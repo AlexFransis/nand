@@ -1,5 +1,7 @@
 #include "tokenizer.h"
 #include <cctype>
+#include <cassert>
+#include <fstream>
 #include <stdexcept>
 #include <string>
 #include <unordered_set>
@@ -36,6 +38,49 @@ std::string Tokenizer::trim_comments(const std::string &line)
         }
 
 	return (pos_begin == std::string::npos) ? line : line.substr(0, pos_begin);
+}
+
+std::string Tokenizer::trim_multiline_comment(std::ifstream &input_stream, int *line_number)
+{
+        bool has_multiline = false;
+        std::string line;
+
+        while (!input_stream.eof()) {
+                std::getline(input_stream, line);
+                ++(*line_number);
+
+                // has no multiline comment
+                std::size_t pos_begin = line.find("/**");
+                if (pos_begin == std::string::npos) {
+                        return line;
+                }
+
+                // multiline comment is on the same line continue to next line
+                std::size_t pos_end = line.find("*/");
+                if (pos_end != std::string::npos) {
+                        continue;
+                }
+
+                // multiline comment found
+                has_multiline = true;
+
+                while (has_multiline) {
+                        std::getline(input_stream, line);
+                        ++(*line_number);
+                        line = ltrim(line);
+                        std::string::const_iterator it = line.cbegin();
+
+                        std::size_t pos_end = line.find("*/");
+                        assert(*it == '*' || pos_end != std::string::npos);
+
+                        // multiline comment finished
+                        if (pos_end != std::string::npos) {
+                                has_multiline = false;
+                        }
+                }
+        }
+
+        return line;
 }
 
 std::string Tokenizer::trim_ws(const std::string &line)
@@ -232,4 +277,19 @@ bool Tokenizer::try_tokenize(const std::string &line, std::vector<Token> &out_to
         }
 
         return true;
+}
+
+std::vector<Token> Tokenizer::generate_tokens(std::ifstream &input_stream)
+{
+        int line_number = 0;
+        std::vector<Token> tokens;
+        while (!input_stream.eof()) {
+                std::string line = trim_multiline_comment(input_stream, &line_number);
+                if (!try_tokenize(line, tokens)) {
+                        std::string err = "[ERR] Invalid syntax on line " + std::to_string(line_number);
+                        throw std::domain_error(err);
+                }
+        }
+
+        return tokens;
 }
