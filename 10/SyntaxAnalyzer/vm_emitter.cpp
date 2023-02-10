@@ -1,4 +1,5 @@
 #include "vm_emitter.h"
+#include "symbol_table.h"
 #include <cassert>
 #include <string>
 
@@ -69,13 +70,22 @@ void VMEmitter::emit_push(const SEGMENT &segment, int i, std::vector<std::string
 
 void VMEmitter::emit_push(const SCOPE &scope, int i, std::vector<std::string> &out_vm_commands)
 {
-        if (scope == SCOPE::VAR || scope == SCOPE::FIELD) {
+        if (scope == SCOPE::VAR) {
                 emit_push(SEGMENT::LOCAL, i, out_vm_commands);
+
+        }
+
+        if (scope == SCOPE::FIELD) {
+                emit_push(SEGMENT::THIS, i, out_vm_commands);
 
         }
 
         if (scope == SCOPE::STATIC) {
                 emit_push(SEGMENT::STATIC, i, out_vm_commands);
+        }
+
+        if (scope == SCOPE::ARG) {
+                emit_push(SEGMENT::ARGUMENT, i, out_vm_commands);
         }
 }
 
@@ -87,13 +97,22 @@ void VMEmitter::emit_pop(const SEGMENT &segment, int i, std::vector<std::string>
 
 void VMEmitter::emit_pop(const SCOPE &scope, int i, std::vector<std::string> &out_vm_commands)
 {
-        if (scope == SCOPE::VAR || scope == SCOPE::FIELD) {
+        if (scope == SCOPE::VAR) {
                 emit_pop(SEGMENT::LOCAL, i, out_vm_commands);
+
+        }
+
+        if (scope == SCOPE::FIELD) {
+                emit_pop(SEGMENT::THIS, i, out_vm_commands);
 
         }
 
         if (scope == SCOPE::STATIC) {
                 emit_pop(SEGMENT::STATIC, i, out_vm_commands);
+        }
+
+        if (scope == SCOPE::ARG) {
+                emit_pop(SEGMENT::ARGUMENT, i, out_vm_commands);
         }
 }
 

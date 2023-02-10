@@ -22,7 +22,7 @@ private:
         void compile_class_var_dec(const std::unique_ptr<AstNode> &node);
         void compile_subroutine_dec(const std::unique_ptr<AstNode> &node);
         void compile_parameter_list(const std::unique_ptr<AstNode> &node);
-        void compile_subroutine_body(const std::unique_ptr<AstNode> &node);
+        void compile_subroutine_body(const std::unique_ptr<AstNode> &node, bool is_constructor);
         void compile_var_dec(const std::unique_ptr<AstNode> &node);
 
         void compile_statements(const std::unique_ptr<AstNode> &node, int *if_label_idx, int *while_label_idx);

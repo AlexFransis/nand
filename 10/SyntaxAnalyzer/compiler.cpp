@@ -1,5 +1,6 @@
 #include "compiler.h"
 #include "ast_node.h"
+#include "symbol_table.h"
 #include "vm_emitter.h"
 #include <iostream>
 #include <memory>
@@ -89,6 +90,7 @@ void Compiler::compile_subroutine_dec(const std::unique_ptr<AstNode> &node)
         std::vector<std::unique_ptr<AstNode>>::const_iterator it = node->children.cbegin();
         // constructor | function | method
         std::string subroutine_type = (*it)->terminal_value;
+
         ++it;
         ++it;
         // subroutine name
@@ -106,7 +108,7 @@ void Compiler::compile_subroutine_dec(const std::unique_ptr<AstNode> &node)
                 }
 
                 if ((*it)->ast_type == AST_NODE_TYPE::SUBROUTINE_BODY) {
-                        compile_subroutine_body(*it);
+                        compile_subroutine_body(*it, subroutine_type == "constructor");
                         ++it;
                         continue;
                 }
@@ -143,7 +145,7 @@ void Compiler::compile_parameter_list(const std::unique_ptr<AstNode> &node)
 }
 
 
-void Compiler::compile_subroutine_body(const std::unique_ptr<AstNode> &node)
+void Compiler::compile_subroutine_body(const std::unique_ptr<AstNode> &node, bool is_constructor)
 {
         int if_label_idx = 0;
         int while_label_idx = 0;
@@ -156,6 +158,15 @@ void Compiler::compile_subroutine_body(const std::unique_ptr<AstNode> &node)
                 case AST_NODE_TYPE::STATEMENTS :
                         // emit function after couting the nb of local vars
                         m_vme.emit_function(m_st.get_subroutine_name(), m_st.count_kind(SCOPE::VAR), m_vm_code);
+
+                        // call mem alloc
+                        if (is_constructor) {
+                                int field_count = m_st.count_kind(SCOPE::FIELD);
+                                m_vme.emit_push(SEGMENT::CONSTANT, field_count, m_vm_code);
+                                m_vme.emit_call("Memory.alloc", 1, m_vm_code);
+                                m_vme.emit_pop(SEGMENT::POINTER, 0, m_vm_code);
+                        }
+
                         compile_statements(node, &if_label_idx, &while_label_idx);
                         break;
                 default:
@@ -199,7 +210,9 @@ void Compiler::compile_statements(const std::unique_ptr<AstNode> &node, int *if_
                         compile_let(node);
                         break;
                 case AST_NODE_TYPE::DO_STATEMENT:
+                        // pop unused retrun value from void method
                         compile_term(node);
+                        m_vme.emit_pop(SEGMENT::TEMP, 0, m_vm_code);
                         break;
                 case AST_NODE_TYPE::IF_STATEMENT:
                         compile_if(node, if_label_idx, while_label_idx);
@@ -282,6 +295,7 @@ void Compiler::compile_return(const std::unique_ptr<AstNode> &return_statement)
 
         if ((*it)->ast_type == AST_NODE_TYPE::EXPRESSION) {
                 compile_expression((*it));
+                m_vme.emit_return(m_vm_code);
                 return;
         }
 }
@@ -411,9 +425,12 @@ void Compiler::compile_term(const std::unique_ptr<AstNode> &node)
                                 std::string class_or_var_name = (*it)->terminal_value;
                                 SCOPE scope = m_st.kind_of(class_or_var_name);
                                 // check if method belongs to a var
+                                int nb_args = 0;
                                 if (scope == SCOPE::VAR) {
                                         m_vme.emit_push(SEGMENT::LOCAL, m_st.index_of(class_or_var_name), m_vm_code);
                                         class_or_var_name = m_st.type_of(class_or_var_name);
+                                        // add an argument to the method. the reference of the object on which the method is supposed to operate on
+                                        ++nb_args;
                                 }
 
                                 ++it; // .
@@ -422,12 +439,7 @@ void Compiler::compile_term(const std::unique_ptr<AstNode> &node)
                                 ++it; // (
                                 ++it; // expressionList
 
-                                int nb_args = compile_expression_list(*it);
-
-                                // if its a method, add an arg to the method. the reference of the object on which the method is supposed to operate on
-                                if (scope == SCOPE::VAR) {
-                                        ++nb_args;
-                                }
+                                nb_args = nb_args + compile_expression_list(*it);
                                 m_vme.emit_call(class_or_var_name + "." + subroutine_name, nb_args, m_vm_code);
                                 ++it;
                                 continue;
@@ -443,7 +455,7 @@ void Compiler::compile_term(const std::unique_ptr<AstNode> &node)
                                 ++it; // (
                                 ++it; // expressionList
 
-                                int nb_args = compile_expression_list(*it);
+                                int nb_args = compile_expression_list(*it) + 1;
                                 m_vme.emit_call(m_st.get_class_name() + "." + subroutine_name, nb_args, m_vm_code);
                                 ++it;
                                 continue;
