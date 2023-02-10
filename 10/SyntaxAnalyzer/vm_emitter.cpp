@@ -153,6 +153,9 @@ void VMEmitter::emit_arithmetic(const COMMAND &command, std::vector<std::string>
         case COMMAND::NOT :
                 out_vm_commands.push_back("not");
                 break;
+        case COMMAND::AND :
+                out_vm_commands.push_back("and");
+                break;
         default:
                 break;
         }

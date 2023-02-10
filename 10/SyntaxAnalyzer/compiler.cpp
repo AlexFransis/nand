@@ -108,7 +108,7 @@ void Compiler::compile_subroutine_dec(const std::unique_ptr<AstNode> &node)
                 }
 
                 if ((*it)->ast_type == AST_NODE_TYPE::SUBROUTINE_BODY) {
-                        compile_subroutine_body(*it, subroutine_type == "constructor");
+                        compile_subroutine_body(*it, subroutine_type);
                         ++it;
                         continue;
                 }
@@ -145,7 +145,7 @@ void Compiler::compile_parameter_list(const std::unique_ptr<AstNode> &node)
 }
 
 
-void Compiler::compile_subroutine_body(const std::unique_ptr<AstNode> &node, bool is_constructor)
+void Compiler::compile_subroutine_body(const std::unique_ptr<AstNode> &node, std::string subroutine_type)
 {
         int if_label_idx = 0;
         int while_label_idx = 0;
@@ -160,10 +160,16 @@ void Compiler::compile_subroutine_body(const std::unique_ptr<AstNode> &node, boo
                         m_vme.emit_function(m_st.get_subroutine_name(), m_st.count_kind(SCOPE::VAR), m_vm_code);
 
                         // call mem alloc
-                        if (is_constructor) {
+                        if (subroutine_type == "constructor") {
                                 int field_count = m_st.count_kind(SCOPE::FIELD);
                                 m_vme.emit_push(SEGMENT::CONSTANT, field_count, m_vm_code);
                                 m_vme.emit_call("Memory.alloc", 1, m_vm_code);
+                                m_vme.emit_pop(SEGMENT::POINTER, 0, m_vm_code);
+                        }
+
+                        // set object reference to THIS
+                        if (subroutine_type == "method") {
+                                m_vme.emit_push(SEGMENT::ARGUMENT, 0, m_vm_code);
                                 m_vme.emit_pop(SEGMENT::POINTER, 0, m_vm_code);
                         }
 
@@ -424,12 +430,19 @@ void Compiler::compile_term(const std::unique_ptr<AstNode> &node)
                             (*lookahead_node)->terminal_value == ".") {
                                 std::string class_or_var_name = (*it)->terminal_value;
                                 SCOPE scope = m_st.kind_of(class_or_var_name);
-                                // check if method belongs to a var
+                                // check if method belongs to a var or field
                                 int nb_args = 0;
                                 if (scope == SCOPE::VAR) {
                                         m_vme.emit_push(SEGMENT::LOCAL, m_st.index_of(class_or_var_name), m_vm_code);
                                         class_or_var_name = m_st.type_of(class_or_var_name);
-                                        // add an argument to the method. the reference of the object on which the method is supposed to operate on
+                                        // add an argument to the method. the reference of the local var
+                                        ++nb_args;
+                                }
+
+                                if (scope == SCOPE::FIELD) {
+                                        m_vme.emit_push(SEGMENT::THIS, m_st.index_of(class_or_var_name), m_vm_code);
+                                        class_or_var_name = m_st.type_of(class_or_var_name);
+                                        // add an argument to the method. the reference of this object
                                         ++nb_args;
                                 }
 
@@ -566,10 +579,10 @@ void Compiler::compile_if(const std::unique_ptr<AstNode> &node, int *if_label_id
         if (has_else_statement) {
                 do { ++it; }
                 while ((*it)->ast_type != AST_NODE_TYPE::STATEMENTS);
-        }
 
-        // evaluate ELSE statements
-        compile_statements(*it, if_label_idx, while_label_idx);
+                // evaluate ELSE statements
+                compile_statements(*it, if_label_idx, while_label_idx);
+        }
 
         // ELSE_END label
         m_vme.emit_label(else_statement_end, m_vm_code);
@@ -587,14 +600,14 @@ void Compiler::compile_while(const std::unique_ptr<AstNode> &node, int *if_label
         it++; // (
 
         // WHILE_BEGIN label
-        m_vme.emit_label(while_end, m_vm_code);
+        m_vme.emit_label(while_begin, m_vm_code);
 
         // compute !(cond)
         compile_expression(*it);
         m_vme.emit_arithmetic(COMMAND::NOT, m_vm_code);
 
         // goto WHILE_END label
-        m_vme.emit_if(while_begin, m_vm_code);
+        m_vme.emit_if(while_end, m_vm_code);
 
         while ((*it)->ast_type != AST_NODE_TYPE::STATEMENTS) {
                 ++it;
