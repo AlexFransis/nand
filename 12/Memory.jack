@@ -9,9 +9,16 @@
  * consists of 32,768 words, each holding a 16-bit binary number.
  */ 
 class Memory {
+    // heap range 2048 - 16383 = 0x0800 - 0x3FFF
+    field int baseHeap, maxHeap;
+    field Array freeList;
 
     /** Initializes the class. */
     function void init() {
+    	let baseHeap = 2048;
+    	let maxHeap = 16383;
+		let freeList = Array.new(maxHeap - baseHeap);
+		let freeList[0] = maxHeap - baseHeap;
     }
 
     /** Returns the RAM value at the given address. */
@@ -25,6 +32,8 @@ class Memory {
     /** Finds an available RAM block of the given size and returns
      *  a reference to its base address. */
     function int alloc(int size) {
+    	// first fit
+		
     }
 
     /** De-allocates the given object (cast as an array) by making
