@@ -234,7 +234,8 @@ std::unique_ptr<AstNode> Analyzer::analyze_statements()
         // (letStatement | ifStatement | whileStatement | doStatement | returnStatement)*
         std::unique_ptr<AstNode> statements = std::make_unique<AstNode>(AstNode { AST_NODE_TYPE::STATEMENTS });
 
-        do {
+        while (lookahead_value() == "do" || lookahead_value() == "let" || lookahead_value() == "while" ||
+               lookahead_value() == "if" || lookahead_value() == "return") {
                 advance();
 
                 if (current_value() == "let") {
@@ -261,10 +262,7 @@ std::unique_ptr<AstNode> Analyzer::analyze_statements()
                         statements->children.push_back(analyze_return());
                         continue;
                 }
-
         }
-        while (lookahead_value() == "do" || lookahead_value() == "let" || lookahead_value() == "while" ||
-               lookahead_value() == "if" || lookahead_value() == "return");
 
         return statements;
 }
