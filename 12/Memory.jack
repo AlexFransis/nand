@@ -10,6 +10,7 @@
  */
 class Memory {
     // heap range 2048 - 16383 = 0x0800 - 0x3FFF
+    static int BASE_RAM_ADDR;
     static int BASE_HEAP_ADDR;
     static int MAX_HEAP_ADDR;
     static int FREE_LENGTH;
@@ -22,6 +23,7 @@ class Memory {
     function void init() {
     	// FreeList[0] = length of current free block
     	// FreeList[1] = pointer to next free block
+        let BASE_RAM_ADDR = 0;
     	let BASE_HEAP_ADDR = 2048;
     	let MAX_HEAP_ADDR = 16383;
     	let FREE_LENGTH = 0;
@@ -31,14 +33,18 @@ class Memory {
     	let FreeList = BASE_HEAP_ADDR;
 	let FreeList[FREE_LENGTH] = MAX_HEAP_ADDR - BASE_HEAP_ADDR; // length of the initial block
 	let FreeList[FREE_NEXT] = null;
+	return;
     }
 
     /** Returns the RAM value at the given address. */
     function int peek(int address) {
+        return BASE_RAM_ADDR[address];
     }
 
     /** Sets the RAM value at the given address to the given value. */
     function void poke(int address, int value) {
+        let BASE_RAM_ADDR[address] = value;
+        return;
     }
 
     /** Finds an available RAM block of the given size and returns
@@ -54,8 +60,10 @@ class Memory {
     	// traverse FreeList for first fit
     	while (~foundFreeBlock & ~(freeBlock[FREE_NEXT] = null)) {
     	    if (freeBlock[FREE_LENGTH] > (size + 1)) {
-                foundFreeBlock = true;
+                let foundFreeBlock = true;
     	    }
+
+            let freeBlock = freeBlock[FREE_NEXT];
     	}
 
         if (~foundFreeBlock) {
@@ -65,20 +73,28 @@ class Memory {
     	// splice free block to allocate memory
 	let freeBlock[FREE_LENGTH] = freeBlock[FREE_LENGTH] - (size + 1);
  	// address of allocated block is adreess of free block + size
-	allocatedBlock = freeBlock + size
+	let allocatedBlock = freeBlock + size;
 	// save size of allocated memory
-	allocatedBlock[ALLOC_LENGTH] = size + 1;
+	let allocatedBlock[ALLOC_LENGTH] = size + 1;
 
 	return allocatedBlock;
     }
 
     /** De-allocates the given object (cast as an array) by making
      *  it available for future allocations. */
-    function void free(Array o) {
+    function void deAlloc(Array o) {
         // insert freed block using an address order policy
-        // addr(prev) < addr(curr) < addr(next)
+        // addr(prev) < addr(freed object) < addr(next)
+        var int currBlockAddr;
+        let currBlockAddr = FreeList;
+        while (currBlockAddr[FREE_NEXT] < o) {
+            let currBlockAddr = currBlockAddr[FREE_NEXT];
+        }
 
-
-
+        // insert freed object in between currentBlock and the next block
+        // currBlock -> freedObject -> nextFree
+        let o[0] = currBlockAddr[FREE_NEXT];
+        let currBlockAddr[FREE_NEXT] = o[ALLOC_LENGTH];
+        return;
     }
 }
