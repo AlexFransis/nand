@@ -432,19 +432,25 @@ void Compiler::compile_term(const std::unique_ptr<AstNode> &node)
                                 SCOPE scope = m_st.kind_of(class_or_var_name);
                                 // check if method belongs to a var or field
                                 int nb_args = 0;
-                                if (scope == SCOPE::VAR) {
-                                        m_vme.emit_push(SEGMENT::LOCAL, m_st.index_of(class_or_var_name), m_vm_code);
-                                        class_or_var_name = m_st.type_of(class_or_var_name);
-                                        // add an argument to the method. the reference of the local var
-                                        ++nb_args;
-                                }
+                                // if (scope == SCOPE::VAR) {
+                                //         m_vme.emit_push(SEGMENT::LOCAL, m_st.index_of(class_or_var_name), m_vm_code);
+                                //         class_or_var_name = m_st.type_of(class_or_var_name);
+                                //         // add an argument to the method. the reference of the local var
+                                //         ++nb_args;
+                                // }
 
-                                if (scope == SCOPE::FIELD) {
-                                        m_vme.emit_push(SEGMENT::THIS, m_st.index_of(class_or_var_name), m_vm_code);
-                                        class_or_var_name = m_st.type_of(class_or_var_name);
-                                        // add an argument to the method. the reference of this object
-                                        ++nb_args;
-                                }
+                                // if (scope == SCOPE::FIELD) {
+                                //         m_vme.emit_push(SEGMENT::THIS, m_st.index_of(class_or_var_name), m_vm_code);
+                                //         class_or_var_name = m_st.type_of(class_or_var_name);
+                                //         ++nb_args;
+                                // }
+
+                                m_vme.emit_push(scope, m_st.index_of(class_or_var_name), m_vm_code);
+                                class_or_var_name = m_st.type_of(class_or_var_name);
+                                // add an argument to the method. the reference of object that is calling the method
+                                ++nb_args;
+
+
 
                                 ++it; // .
                                 ++it; // subroutineName
@@ -483,7 +489,7 @@ void Compiler::compile_term(const std::unique_ptr<AstNode> &node)
                                 std::string var_name = (*it)->terminal_value;
                                 Symbol s;
                                 m_st.try_get(var_name, &s);
-                                m_vme.emit_push(SEGMENT::LOCAL, s.index, m_vm_code);
+                                m_vme.emit_push(s.scope, s.index, m_vm_code);
 
                                 ++it; // [
                                 ++it; // expression

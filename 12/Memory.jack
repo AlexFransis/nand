@@ -28,7 +28,7 @@ class Memory {
     	let MAX_HEAP_ADDR = 16383;
     	let FREE_LENGTH = 0;
     	let FREE_NEXT = 1;
-    	let ALLOC_LENGTH = 1;
+    	let ALLOC_LENGTH = -1;
 
     	let FreeList = BASE_HEAP_ADDR;
 	let FreeList[FREE_LENGTH] = MAX_HEAP_ADDR - BASE_HEAP_ADDR; // length of the initial block
@@ -87,7 +87,7 @@ class Memory {
         // addr(prev) < addr(freed object) < addr(next)
         var int currBlockAddr;
         let currBlockAddr = FreeList;
-        while (currBlockAddr[FREE_NEXT] < o) {
+        while ((o > currBlockAddr) & (o < currBlockAddr[FREE_NEXT])) {
             let currBlockAddr = currBlockAddr[FREE_NEXT];
         }
 
