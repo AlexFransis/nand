@@ -7,18 +7,30 @@
  * This library provides two services: direct access to the computer's main
  * memory (RAM), and allocation and recycling of memory blocks. The Hack RAM
  * consists of 32,768 words, each holding a 16-bit binary number.
- */ 
+ */
 class Memory {
     // heap range 2048 - 16383 = 0x0800 - 0x3FFF
-    field int baseHeap, maxHeap;
-    field Array freeList;
+    static int BASE_HEAP_ADDR;
+    static int MAX_HEAP_ADDR;
+    static int FREE_LENGTH;
+    static int FREE_NEXT;
+    static int ALLOC_LENGTH;
+    static Array FreeList;
+
 
     /** Initializes the class. */
     function void init() {
-    	let baseHeap = 2048;
-    	let maxHeap = 16383;
-		let freeList = Array.new(maxHeap - baseHeap);
-		let freeList[0] = maxHeap - baseHeap;
+    	// FreeList[0] = length of current free block
+    	// FreeList[1] = pointer to next free block
+    	let BASE_HEAP_ADDR = 2048;
+    	let MAX_HEAP_ADDR = 16383;
+    	let FREE_LENGTH = 0;
+    	let FREE_NEXT = 1;
+    	let ALLOC_LENGTH = 1;
+
+    	let FreeList = BASE_HEAP_ADDR;
+	let FreeList[FREE_LENGTH] = MAX_HEAP_ADDR - BASE_HEAP_ADDR; // length of the initial block
+	let FreeList[FREE_NEXT] = null;
     }
 
     /** Returns the RAM value at the given address. */
@@ -32,12 +44,41 @@ class Memory {
     /** Finds an available RAM block of the given size and returns
      *  a reference to its base address. */
     function int alloc(int size) {
-    	// first fit
-		
+    	var Array freeBlock;
+    	var Array allocatedBlock;
+    	var boolean foundFreeBlock;
+
+    	let freeBlock = FreeList;
+    	let foundFreeBlock = false;
+
+    	// traverse FreeList for first fit
+    	while (~foundFreeBlock & ~(freeBlock[FREE_NEXT] = null)) {
+    	    if (freeBlock[FREE_LENGTH] > (size + 1)) {
+                foundFreeBlock = true;
+    	    }
+    	}
+
+        if (~foundFreeBlock) {
+            // TODO: DEFRAG HERE
+        }
+
+    	// splice free block to allocate memory
+	let freeBlock[FREE_LENGTH] = freeBlock[FREE_LENGTH] - (size + 1);
+ 	// address of allocated block is adreess of free block + size
+	allocatedBlock = freeBlock + size
+	// save size of allocated memory
+	allocatedBlock[ALLOC_LENGTH] = size + 1;
+
+	return allocatedBlock;
     }
 
     /** De-allocates the given object (cast as an array) by making
      *  it available for future allocations. */
-    function void deAlloc(Array o) {
-    }    
+    function void free(Array o) {
+        // insert freed block using an address order policy
+        // addr(prev) < addr(curr) < addr(next)
+
+
+
+    }
 }
