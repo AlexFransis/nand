@@ -139,14 +139,13 @@ class Memory {
     }
 
     function void defrag() {
+        var int nextBlockAddr;
+        var int nextBlockLength;
+        var int currentBlockLength;
         var int currentBlockAddr;
         let currentBlockAddr = FreeList;
 
         while (~(currentBlockAddr[FREE_NEXT] = null)) {
-            var int nextBlockAddr;
-            var int nextBlockLength;
-            var int currentBlockLength;
-
             let nextBlockAddr = currentBlockAddr[FREE_NEXT];
             let currentBlockLength = currentBlockAddr[FREE_LENGTH];
             let nextBlockLength = nextBlockAddr[FREE_LENGTH];
