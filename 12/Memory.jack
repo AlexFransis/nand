@@ -10,12 +10,15 @@
  */
 class Memory {
     // heap range 2048 - 16383 = 0x0800 - 0x3FFF
-    static int BASE_RAM_ADDR;  	// 0x0000
-    static int BASE_HEAP_ADDR; 	// 0x0800
-    static int MAX_HEAP_ADDR; 	// 0x3FFF
-    static int FREE_LENGTH;	// index of length of current free block
-    static int FREE_NEXT;	// index of pointer to next free block
-    static int ALLOC_LENGTH;	// index of length of new allocated block
+    static int BASE_RAM_ADDR;  		// 0x0000
+    static int BASE_HEAP_ADDR; 		// 0x0800
+    static int MAX_HEAP_ADDR; 		// 0x3FFF
+    static int MAX_HEAP_MEM;		// MAX_HEAP_ADDR - BASE_HEAP_ADDR
+    static int AVAILABLE_MEM;		// current available memory of all free blocks
+    static int TOTAL_ALLOC_MEM;		// total allocated memory from the heap
+    static int FREE_LENGTH;		// index of length of current free block
+    static int FREE_NEXT;		// index of pointer to next free block
+    static int ALLOC_LENGTH;		// index of length of new allocated block
     static Array FreeList;
 
 
@@ -24,6 +27,9 @@ class Memory {
         let BASE_RAM_ADDR = 0;
     	let BASE_HEAP_ADDR = 2048;
     	let MAX_HEAP_ADDR = 16383;
+        let MAX_HEAP_MEM = 14335;
+        let AVAILABLE_MEM = MAX_HEAP_MEM;
+        let TOTAL_ALLOC_MEM = 0;
     	let FREE_LENGTH = 0;
     	let FREE_NEXT = 1;
     	let ALLOC_LENGTH = -1;
@@ -46,11 +52,46 @@ class Memory {
         return;
     }
 
-    /** Finds an available RAM block of the given size and returns
-     *  a reference to its base address. */
+    /**
+     * Finds an available RAM block of the given size and returns
+     * a reference to its base address.
+     * Returns -1 if no available block was found.
+     */
+
     function int alloc(int size) {
+        // not enough memory available, return -1
+        if ((size > MAX_HEAP_MEM) | (size > AVAILABLE_MEM)) {
+            return -1;
+        }
+
     	var Array freeBlock;
-    	var Array allocatedBlock;
+
+        let freeBlock = firstFit(size);
+
+        if (freeBlock = -1) {
+            do defrag();
+            let freeBlock = firstFit(size);
+            if (freeBlock = -1) {
+                return -1;
+            }
+        }
+
+    	// splice free block to allocate memory
+        let freeBlock[FREE_LENGTH] = freeBlock[FREE_LENGTH] - (size + 1);
+        // address of allocated block is adreess of free block + size
+        let allocatedBlock = freeBlock + size;
+        // save size of allocated memory
+        let allocatedBlock[ALLOC_LENGTH] = size + 1;
+
+        // update total allocated and free memory
+        let TOTAL_ALLOC_MEM = TOTAL_ALLOC_MEM + size;
+        let AVAILABLE_MEM = AVAILABLE_MEM - size;
+
+        return allocatedBlock;
+    }
+
+    function int firstFit(int size) {
+    	var Array freeBlock;
     	var boolean foundFreeBlock;
 
     	let freeBlock = FreeList;
@@ -65,17 +106,10 @@ class Memory {
         }
 
         if (~foundFreeBlock) {
-            // TODO: DEFRAG HERE
+            return -1;
         }
 
-    	// splice free block to allocate memory
-        let freeBlock[FREE_LENGTH] = freeBlock[FREE_LENGTH] - (size + 1);
-        // address of allocated block is adreess of free block + size
-        let allocatedBlock = freeBlock + size;
-        // save size of allocated memory
-        let allocatedBlock[ALLOC_LENGTH] = size + 1;
-
-        return allocatedBlock;
+        return freeBlock;
     }
 
     /** De-allocates the given object (cast as an array) by making
@@ -83,8 +117,11 @@ class Memory {
     function void deAlloc(Array o) {
         // insert freed block using an address order policy
         // addr(prev) < addr(freed object) < addr(next)
+        var int objectLength;
         var int currBlockAddr;
         let currBlockAddr = FreeList;
+        let objectLength = o[ALLOC_LENGTH];
+
         while ((o > currBlockAddr) & (o < currBlockAddr[FREE_NEXT])) {
             let currBlockAddr = currBlockAddr[FREE_NEXT];
         }
@@ -92,8 +129,36 @@ class Memory {
         // insert freed object in between currentBlock and the next block
         // currBlock -> freedObject -> nextFree
         let o[0] = currBlockAddr[FREE_NEXT];
-        let currBlockAddr[FREE_NEXT] = o[ALLOC_LENGTH];
+        let currBlockAddr[FREE_NEXT] = objectLength;
+
+        // update total allocated and free memory
+        let TOTAL_ALLOC_MEM = TOTAL_ALLOC_MEM - objectLength;
+        let AVAILABLE_MEM = AVAILABLE_MEM + objectLength;
 
         return;
+    }
+
+    function void defrag() {
+        var int currentBlockAddr;
+        let currentBlockAddr = FreeList;
+
+        while (~(currentBlockAddr[FREE_NEXT] = null)) {
+            var int nextBlockAddr;
+            var int nextBlockLength;
+            var int currentBlockLength;
+
+            let nextBlockAddr = currentBlockAddr[FREE_NEXT];
+            let currentBlockLength = currentBlockAddr[FREE_LENGTH];
+            let nextBlockLength = nextBlockAddr[FREE_LENGTH];
+
+            // check if current and next block are adjacent
+            // if true, coallesce both blocks into a larger block
+            if ((currentBlockAddr + currentBlockLength) = nextBlockAddr) {
+                let currentBlockAddr[FREE_LENGTH] = currentBlockLength + nextBlockLength;
+                let currentBlockAddr[FREE_NEXT] = nextBlockAddr[FREE_NEXT];
+            } else {
+                let currentBlockAddr = nextBlockAddr;
+            }
+        }
     }
 }
