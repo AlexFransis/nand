@@ -21,19 +21,20 @@ class Memory {
 
     /** Initializes the class. */
     function void init() {
-    	// FreeList[0] = length of current free block
-    	// FreeList[1] = pointer to next free block
         let BASE_RAM_ADDR = 0;
     	let BASE_HEAP_ADDR = 2048;
     	let MAX_HEAP_ADDR = 16383;
+
+    	// FreeList[0] = length of current free block
+    	// FreeList[1] = pointer to next free block
     	let FREE_LENGTH = 0;
     	let FREE_NEXT = 1;
     	let ALLOC_LENGTH = -1;
-
     	let FreeList = BASE_HEAP_ADDR;
-	let FreeList[FREE_LENGTH] = MAX_HEAP_ADDR - BASE_HEAP_ADDR; // length of the initial block
-	let FreeList[FREE_NEXT] = null;
-	return;
+		let FreeList[FREE_LENGTH] = MAX_HEAP_ADDR - BASE_HEAP_ADDR; // length of the initial block
+		let FreeList[FREE_NEXT] = null;
+
+		return;
     }
 
     /** Returns the RAM value at the given address. */
@@ -44,6 +45,7 @@ class Memory {
     /** Sets the RAM value at the given address to the given value. */
     function void poke(int address, int value) {
         let BASE_RAM_ADDR[address] = value;
+
         return;
     }
 
@@ -57,27 +59,26 @@ class Memory {
     	let freeBlock = FreeList;
     	let foundFreeBlock = false;
 
-    	// traverse FreeList for first fit
-    	while (~foundFreeBlock & ~(freeBlock[FREE_NEXT] = null)) {
-    	    if (freeBlock[FREE_LENGTH] > (size + 1)) {
+        while (~(freeBlock = null) & ~foundFreeBlock) {
+            if (freeBlock[FREE_LENGTH] > (size + 1)) {
                 let foundFreeBlock = true;
-    	    }
-
-            let freeBlock = freeBlock[FREE_NEXT];
-    	}
+            } else {
+                let freeBlock = freeBlock[FREE_NEXT];
+            }
+        }
 
         if (~foundFreeBlock) {
             // TODO: DEFRAG HERE
         }
 
     	// splice free block to allocate memory
-	let freeBlock[FREE_LENGTH] = freeBlock[FREE_LENGTH] - (size + 1);
- 	// address of allocated block is adreess of free block + size
-	let allocatedBlock = freeBlock + size;
-	// save size of allocated memory
-	let allocatedBlock[ALLOC_LENGTH] = size + 1;
+		let freeBlock[FREE_LENGTH] = freeBlock[FREE_LENGTH] - (size + 1);
+ 		// address of allocated block is adreess of free block + size
+		let allocatedBlock = freeBlock + size;
+		// save size of allocated memory
+		let allocatedBlock[ALLOC_LENGTH] = size + 1;
 
-	return allocatedBlock;
+		return allocatedBlock;
     }
 
     /** De-allocates the given object (cast as an array) by making
@@ -95,6 +96,7 @@ class Memory {
         // currBlock -> freedObject -> nextFree
         let o[0] = currBlockAddr[FREE_NEXT];
         let currBlockAddr[FREE_NEXT] = o[ALLOC_LENGTH];
+
         return;
     }
 }
