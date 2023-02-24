@@ -425,32 +425,19 @@ void Compiler::compile_term(const std::unique_ptr<AstNode> &node)
                         std::vector<std::unique_ptr<AstNode>>::const_iterator lookahead_node = (it+1);
 
                         // className|varName.subroutineName ( expressionList )
-                        if (lookahead_node != node->children.cend() &&
-                            (*lookahead_node)->token_type == TOKEN_TYPE::SYMBOL &&
-                            (*lookahead_node)->terminal_value == ".") {
+                        if (lookahead_node != node->children.cend() && (*lookahead_node)->token_type == TOKEN_TYPE::SYMBOL && (*lookahead_node)->terminal_value == ".") {
                                 std::string class_or_var_name = (*it)->terminal_value;
-                                SCOPE scope = m_st.kind_of(class_or_var_name);
                                 // check if method belongs to a var or field
+                                SCOPE scope = m_st.kind_of(class_or_var_name);
                                 int nb_args = 0;
-                                // if (scope == SCOPE::VAR) {
-                                //         m_vme.emit_push(SEGMENT::LOCAL, m_st.index_of(class_or_var_name), m_vm_code);
-                                //         class_or_var_name = m_st.type_of(class_or_var_name);
-                                //         // add an argument to the method. the reference of the local var
-                                //         ++nb_args;
-                                // }
 
-                                // if (scope == SCOPE::FIELD) {
-                                //         m_vme.emit_push(SEGMENT::THIS, m_st.index_of(class_or_var_name), m_vm_code);
-                                //         class_or_var_name = m_st.type_of(class_or_var_name);
-                                //         ++nb_args;
-                                // }
-
-                                m_vme.emit_push(scope, m_st.index_of(class_or_var_name), m_vm_code);
-                                class_or_var_name = m_st.type_of(class_or_var_name);
-                                // add an argument to the method. the reference of object that is calling the method
-                                ++nb_args;
-
-
+                                // identifier is not a var/field/static
+                                if (scope != SCOPE::UNKNOWN) {
+                                        m_vme.emit_push(scope, m_st.index_of(class_or_var_name), m_vm_code);
+                                        class_or_var_name = m_st.type_of(class_or_var_name);
+                                        // add an argument to the method. the reference of object that is calling the method
+                                        ++nb_args;
+                                }
 
                                 ++it; // .
                                 ++it; // subroutineName
