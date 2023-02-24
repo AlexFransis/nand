@@ -59,18 +59,18 @@ class Memory {
      */
 
     function int alloc(int size) {
+    	var Array freeBlock;
+        var int allocatedBlock;
         // not enough memory available, return -1
         if ((size > MAX_HEAP_MEM) | (size > AVAILABLE_MEM)) {
             return -1;
         }
 
-    	var Array freeBlock;
-
-        let freeBlock = firstFit(size);
+        let freeBlock = Memory.firstFit(size);
 
         if (freeBlock = -1) {
-            do defrag();
-            let freeBlock = firstFit(size);
+            do Memory.defrag();
+            let freeBlock = Memory.firstFit(size);
             if (freeBlock = -1) {
                 return -1;
             }
@@ -159,5 +159,38 @@ class Memory {
                 let currentBlockAddr = nextBlockAddr;
             }
         }
+
+        return;
+    }
+
+    function int countBlocks() {
+        var int currentBlock;
+        var int nbOfBlocks;
+
+        let currentBlock = FreeList;
+        let nbOfBlocks = 0;
+
+        while (~(currentBlock = null)) {
+            let nbOfBlocks = nbOfBlocks + 1;
+            let currentBlock = currentBlock[FREE_NEXT];
+        }
+
+        return nbOfBlocks;
+    }
+
+    function void examine() {
+        do Output.printString("Total free heap memory: ");
+        do Output.printInt(AVAILABLE_MEM);
+        do Output.println();
+
+        do Output.printString("Total allocated memory: ");
+        do Output.printInt(TOTAL_ALLOC_MEM);
+        do Output.println();
+
+        do Output.printString("Total number of blocks: ");
+        do Output.printInt(Memory.countBlocks());
+        do Output.println();
+
+        return;
     }
 }
